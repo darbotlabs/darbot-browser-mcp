@@ -22,7 +22,7 @@ for (const mcpHeadless of [false, true]) {
     test.skip(process.platform === 'linux', 'Auto-detection wont let this test run on linux');
     test.skip(({ mcpMode, mcpHeadless }) => mcpMode === 'docker' && !mcpHeadless, 'Headed mode is not supported in docker');
     test('browser', async ({ client, server, mcpBrowser }) => {
-      test.skip(!['chrome', 'msedge', 'chromium'].includes(mcpBrowser ?? ''), 'Only chrome is supported for this test');
+      test.skip(!['chrome', 'msedge', 'chromium'].includes(mcpBrowser ?? ''), 'Only Chromium-based browsers are supported for this test');
       server.route('/', (req, res) => {
         res.writeHead(200, { 'Content-Type': 'text/html' });
         res.end(`
