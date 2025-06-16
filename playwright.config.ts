@@ -26,8 +26,8 @@ export default defineConfig<TestOptions>({
   workers: process.env.CI ? 1 : undefined,
   reporter: 'list',
   projects: [
-    { name: 'chrome' },
-    { name: 'msedge', use: { mcpBrowser: 'msedge' } },
+    { name: 'msedge' },
+    { name: 'chrome', use: { mcpBrowser: 'chrome' } },
     { name: 'chromium', use: { mcpBrowser: 'chromium' } },
     ...process.env.MCP_IN_DOCKER ? [{
       name: 'chromium-docker',

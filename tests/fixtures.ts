@@ -143,7 +143,7 @@ export const test = baseTest.extend<TestFixtures & TestOptions, WorkerFixtures>(
     await use(headless);
   },
 
-  mcpBrowser: ['chrome', { option: true }],
+  mcpBrowser: ['msedge', { option: true }],
 
   mcpMode: [undefined, { option: true }],
 
