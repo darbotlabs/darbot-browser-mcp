@@ -160,7 +160,7 @@ Playwright MCP server supports following arguments. They can be provided in the 
                                allowed.
   --block-service-workers      block service workers
   --browser <browser>          browser or chrome channel to use, possible
-                               values: chrome, firefox, webkit, msedge.
+                               values: msedge, chrome, firefox, webkit.
   --browser-agent <endpoint>   Use browser agent (experimental).
   --caps <caps>                comma-separated list of capabilities to enable,
                                possible values: tabs, pdf, history, wait, files,
@@ -272,7 +272,7 @@ npx @playwright/mcp@latest --config path/to/config.json
     // Browser launch options (see Playwright docs)
     // @see https://playwright.dev/docs/api/class-browsertype#browser-type-launch
     launchOptions?: {
-      channel?: string;        // Browser channel (e.g. 'chrome')
+      channel?: string;        // Browser channel (e.g. 'msedge')
       headless?: boolean;      // Run in headless mode
       executablePath?: string; // Path to browser executable
       // ... other Playwright launch options

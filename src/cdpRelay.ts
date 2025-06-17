@@ -15,7 +15,7 @@
  */
 
 /**
- * Bridge Server - Standalone WebSocket server that bridges Playwright MCP and Chrome Extension
+ * Bridge Server - Standalone WebSocket server that bridges Playwright MCP and Browser Extension
  *
  * Endpoints:
  * - /cdp - Full CDP interface for Playwright MCP
@@ -104,7 +104,7 @@ export class CDPRelayServer extends EventEmitter {
   }
 
   /**
-   * Handle Extension connection - forwards to chrome.debugger
+   * Handle Extension connection - forwards to browser debugger
    */
   private _handleExtensionConnection(ws: WebSocket): void {
     if (this._extensionSocket?.readyState === WebSocket.OPEN) {
@@ -190,7 +190,7 @@ export class CDPRelayServer extends EventEmitter {
           id: message.id,
           result: {
             protocolVersion: '1.3',
-            product: 'Chrome/Extension-Bridge',
+            product: 'Browser/Extension-Bridge',
             userAgent: 'CDP-Bridge-Server/1.0.0',
           }
         });

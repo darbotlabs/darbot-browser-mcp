@@ -65,5 +65,5 @@ COPY --from=browser --chown=${USERNAME}:${USERNAME} ${PLAYWRIGHT_BROWSERS_PATH} 
 COPY --chown=${USERNAME}:${USERNAME} cli.js package.json ./
 COPY --from=builder --chown=${USERNAME}:${USERNAME} /app/lib /app/lib
 
-# Run in headless and only with chromium (other browsers need more dependencies not included in this image)
+# Run in headless and only with chromium (msedge is not available in this minimal Linux image)
 ENTRYPOINT ["node", "cli.js", "--headless", "--browser", "chromium", "--no-sandbox"]
