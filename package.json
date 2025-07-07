@@ -1,5 +1,5 @@
 {
-  "name": "darbot-browser-mcp",
+  "name": "@darbotlabs/darbot-browser-mcp",
   "version": "0.0.29",
   "description": "Browser Tools for MCP",
   "type": "module",

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package>
+  <metadata>
+    <id>DarbotLabs.Browser.MCP</id>
+    <version>0.0.29</version>
+    <title>Darbot Browser MCP</title>
+    <authors>DarbotLabs</authors>
+    <description>Browser automation tools for Model Context Protocol (MCP) servers. Provides browser automation capabilities through Playwright for MCP-enabled applications.</description>
+    <releaseNotes>Initial release of Browser MCP server with comprehensive browser automation tools.</releaseNotes>
+    <summary>Browser automation MCP server with Playwright integration</summary>
+    <language>en-US</language>
+    <projectUrl>https://github.com/darbotlabs/darbot-browser-mcp</projectUrl>
+    <iconUrl>https://raw.githubusercontent.com/darbotlabs/darbot-browser-mcp/main/extension/icons/icon-128.png</iconUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <license type="expression">Apache-2.0</license>
+    <copyright>Copyright 2024 DarbotLabs</copyright>
+    <dependencies>
+      <group targetFramework="net8.0">
+        <dependency id="Microsoft.Extensions.Hosting" version="8.0.0" />
+        <dependency id="Microsoft.Extensions.Logging" version="8.0.0" />
+        <dependency id="System.Text.Json" version="8.0.0" />
+      </group>
+    </dependencies>
+    <tags>mcp browser automation playwright testing web-automation model-context-protocol</tags>
+  </metadata>
+  <files>
+    <file src="dotnet\**\*" target="lib\net8.0" />
+    <file src="cli.js" target="tools" />
+    <file src="package.json" target="tools" />
+    <file src="README.md" target="" />
+    <file src="LICENSE" target="" />
+  </files>
+</package>

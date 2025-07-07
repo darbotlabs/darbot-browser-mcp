@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <PackageId>DarbotLabs.Browser.MCP</PackageId>
+    <Version>0.0.29</Version>
+    <Authors>DarbotLabs</Authors>
+    <Company>DarbotLabs</Company>
+    <Product>Darbot Browser MCP</Product>
+    <Description>Browser automation tools for Model Context Protocol (MCP) servers. Provides browser automation capabilities through Playwright for MCP-enabled applications.</Description>
+    <Copyright>Copyright 2024 DarbotLabs</Copyright>
+    <PackageProjectUrl>https://github.com/darbotlabs/darbot-browser-mcp</PackageProjectUrl>
+    <PackageIcon>icon-128.png</PackageIcon>
+    <PackageLicense>Apache-2.0</PackageLicense>
+    <PackageTags>mcp browser automation playwright testing web-automation model-context-protocol</PackageTags>
+    <RepositoryUrl>https://github.com/darbotlabs/darbot-browser-mcp</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
+    <PackageReference Include="System.Text.Json" Version="8.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\"/>
+    <None Include="..\..\extension\icons\icon-128.png" Pack="true" PackagePath="\"/>
+  </ItemGroup>
+
+</Project>

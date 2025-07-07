@@ -1,0 +1,80 @@
+{
+  "name": "darbot-browser-mcp",
+  "displayName": "Darbot Browser MCP",
+  "description": "Browser automation tools for Model Context Protocol (MCP) servers",
+  "version": "0.0.29",
+  "publisher": "darbotlabs",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "mcp",
+    "browser",
+    "automation",
+    "playwright",
+    "testing"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/darbotlabs/darbot-browser-mcp.git"
+  },
+  "homepage": "https://github.com/darbotlabs/darbot-browser-mcp",
+  "bugs": {
+    "url": "https://github.com/darbotlabs/darbot-browser-mcp/issues"
+  },
+  "license": "Apache-2.0",
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "darbot-browser-mcp.startServer",
+        "title": "Start Browser MCP Server",
+        "category": "Darbot Browser MCP"
+      },
+      {
+        "command": "darbot-browser-mcp.stopServer",
+        "title": "Stop Browser MCP Server",
+        "category": "Darbot Browser MCP"
+      },
+      {
+        "command": "darbot-browser-mcp.showStatus",
+        "title": "Show Server Status",
+        "category": "Darbot Browser MCP"
+      }
+    ],
+    "configuration": {
+      "title": "Darbot Browser MCP",
+      "properties": {
+        "darbot-browser-mcp.serverPath": {
+          "type": "string",
+          "default": "npx @darbotlabs/darbot-browser-mcp@latest",
+          "description": "Path or command to start the Browser MCP server"
+        },
+        "darbot-browser-mcp.autoStart": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically start the Browser MCP server when VS Code starts"
+        },
+        "darbot-browser-mcp.logLevel": {
+          "type": "string",
+          "enum": ["error", "warn", "info", "debug"],
+          "default": "info",
+          "description": "Log level for the Browser MCP server"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0",
+    "@types/node": "^22.13.10",
+    "typescript": "^5.8.2"
+  }
+}
