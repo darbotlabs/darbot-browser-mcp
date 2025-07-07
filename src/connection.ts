@@ -31,7 +31,7 @@ export function createConnection(config: FullConfig, browserContextFactory: Brow
   const tools = allTools.filter(tool => !config.capabilities || tool.capability === 'core' || config.capabilities.includes(tool.capability));
   validateConfig(config);
   const context = new Context(tools, config, browserContextFactory);
-  const server = new McpServer({ name: 'Playwright', version: packageJSON.version }, {
+  const server = new McpServer({ name: 'Browser', version: packageJSON.version }, {
     capabilities: {
       tools: {},
     }

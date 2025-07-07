@@ -54,7 +54,7 @@ After installation, the Browser MCP server will be available for use with your G
 
 #### Click the button to install:
 
-[![Install MCP Server](https://cursor.com/deeplink/mcp-install-dark.svg)](https://cursor.com/install-mcp?name=playwright&config=eyJjb21tYW5kIjogIm5weCBkYXJib3QtcGxheXdyaWdodC1tY3BAbGF0ZXN0In0=)
+[![Install MCP Server](https://cursor.com/deeplink/mcp-install-dark.svg)](https://cursor.com/install-mcp?name=browser&config=eyJjb21tYW5kIjogIm5weCBkYXJib3QtYnJvd3Nlci1tY3BAbGF0ZXN0In0K)
 
 #### Or install manually:
 

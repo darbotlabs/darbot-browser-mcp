@@ -121,7 +121,7 @@ class BrowserServer {
   private _updateReport() {
     // Clear the current line and move cursor to top of screen
     process.stdout.write('\x1b[2J\x1b[H');
-    process.stdout.write(`Playwright Browser Server v${packageJSON.version}\n`);
+    process.stdout.write(`Browser Server v${packageJSON.version}\n`);
     process.stdout.write(`Listening on ${this._server.urlPrefix('human-readable')}\n\n`);
 
     if (this._entries.length === 0) {
