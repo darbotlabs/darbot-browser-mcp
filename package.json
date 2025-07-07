@@ -1,13 +1,13 @@
 {
-  "name": "darbot-playwright-mcp",
+  "name": "darbot-browser-mcp",
   "version": "0.0.29",
-  "description": "Playwright Tools for MCP",
+  "description": "Browser Tools for MCP",
   "type": "module",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/microsoft/playwright-mcp.git"
+    "url": "git+https://github.com/darbotlabs/darbot-browser-mcp.git"
   },
-  "homepage": "https://playwright.dev",
+  "homepage": "https://github.com/darbotlabs/darbot-browser-mcp",
   "engines": {
     "node": ">=18"
   },
@@ -63,6 +63,6 @@
     "typescript": "^5.8.2"
   },
   "bin": {
-    "darbot-playwright-mcp": "cli.js"
+    "darbot-browser-mcp": "cli.js"
   }
 }
