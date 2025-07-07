@@ -17,7 +17,7 @@
 // @ts-check
 
 /**
- * Popup script for Playwright MCP Bridge extension
+ * Popup script for Browser MCP Bridge extension
  */
 
 class PopupController {
