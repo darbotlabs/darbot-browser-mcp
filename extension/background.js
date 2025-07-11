@@ -160,7 +160,7 @@ class TabShareExtension {
       // Update UI
       chrome.action.setBadgeText({ tabId, text: '●' });
       chrome.action.setBadgeBackgroundColor({ tabId, color: '#4CAF50' });
-      chrome.action.setTitle({ tabId, title: 'Disconnect from Playwright MCP' });
+      chrome.action.setTitle({ tabId, title: 'Disconnect from Browser MCP' });
 
       debugLog(`Tab ${tabId} connected successfully`);
 
@@ -294,7 +294,7 @@ class TabShareExtension {
 
     // Update UI
     chrome.action.setBadgeText({ tabId, text: '' });
-    chrome.action.setTitle({ tabId, title: 'Share tab with Playwright MCP' });
+    chrome.action.setTitle({ tabId, title: 'Share tab with Browser MCP' });
 
     debugLog(`Tab ${tabId} disconnected`);
   }

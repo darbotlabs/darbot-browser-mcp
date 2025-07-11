@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Playwright MCP Bridge",
+  "name": "Browser MCP Bridge",
   "version": "1.0.0",
-  "description": "Share browser tabs with Playwright MCP server through CDP bridge",
+  "description": "Share browser tabs with Browser MCP server through CDP bridge",
 
   "permissions": [
     "debugger",
@@ -21,7 +21,7 @@
   },
 
   "action": {
-    "default_title": "Share tab with Playwright MCP",
+    "default_title": "Share tab with Browser MCP",
     "default_popup": "popup.html",
     "default_icon": {
       "16": "icons/icon-16.png",
