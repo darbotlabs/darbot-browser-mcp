@@ -170,9 +170,11 @@ async function deleteProfile(profileName: string) {
   const profilesDir = await getProfilesDir();
   const sanitizedName = sanitizeForFilePath(profileName);
   const profileDir = path.join(profilesDir, sanitizedName);
-
-  if (!fs.existsSync(profileDir))
+  try {
+    await fs.promises.access(profileDir);
+  } catch {
     throw new Error(`Work profile "${profileName}" not found`);
+  }
 
   await fs.promises.rm(profileDir, { recursive: true, force: true });
 }
