@@ -183,7 +183,7 @@ export const browserSaveProfile = defineTool({
     const profileData = await saveCurrentProfile(context, name, description);
 
     return {
-      code: [`await saveWorkProfile('${name}', '${description || ''}')`],
+      code: [`await browser_save_profile({ name: '${name}', description: '${description || ''}' })`],
       action: async () => ({ content: [] }),
       captureSnapshot: false,
       waitForNetwork: false,
