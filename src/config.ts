@@ -72,7 +72,7 @@ const defaultConfig: FullConfig = {
         '--disable-popup-blocking',
         '--allow-popups',
         '--disable-extensions-except',
-        '--load-extension=/path/to/extension', // Replace '/path/to/extension' with the actual extension path or ID
+        `--load-extension=${process.env.EXTENSION_PATH || '/default/path/to/extension'}`, // Use EXTENSION_PATH environment variable or fallback to default
       ],
     },
     contextOptions: {
