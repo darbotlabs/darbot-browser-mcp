@@ -252,7 +252,7 @@ export const browserListProfiles = defineTool({
     }
 
     return {
-      code: ['await listWorkProfiles()'],
+      code: ['await browser_list_profiles()'],
       action: async () => ({ content: [] }),
       captureSnapshot: false,
       waitForNetwork: false,
