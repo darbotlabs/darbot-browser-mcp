@@ -72,7 +72,7 @@ const defaultConfig: FullConfig = {
         '--disable-popup-blocking',
         '--allow-popups',
         '--disable-extensions-except',
-        '--load-extension',
+        '--load-extension=/path/to/extension', // Replace '/path/to/extension' with the actual extension path or ID
       ],
     },
     contextOptions: {
