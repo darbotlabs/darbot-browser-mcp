@@ -101,9 +101,11 @@ async function loadProfile(context: Context, profileName: string) {
   const profilesDir = await getProfilesDir();
   const sanitizedName = sanitizeForFilePath(profileName);
   const profileDir = path.join(profilesDir, sanitizedName);
-
-  if (!fs.existsSync(profileDir))
+  try {
+    await fs.promises.access(profileDir);
+  } catch {
     throw new Error(`Work profile "${profileName}" not found`);
+  }
 
   // Load profile metadata
   const profileDataPath = path.join(profileDir, 'profile.json');
