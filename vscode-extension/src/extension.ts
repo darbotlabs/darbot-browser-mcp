@@ -67,8 +67,9 @@ async function startServer() {
     const args = parts.slice(1);
 
     // Add log level if specified
-    if (logLevel !== 'info')
+    if (logLevel !== 'info') {
       args.push('--log-level', logLevel);
+    }
 
     mcpServerProcess = spawn(command, args, {
       stdio: 'pipe',
