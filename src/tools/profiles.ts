@@ -119,6 +119,10 @@ async function loadProfile(context: Context, profileName: string) {
 
     // Create new context with the stored state
     const tab = await context.ensureTab();
+    const currentContext = tab.page.context();
+    if (currentContext) {
+      await currentContext.close();
+    }
     const newContext = await tab.page.context().browser()?.newContext({
       storageState,
       viewport: null,
