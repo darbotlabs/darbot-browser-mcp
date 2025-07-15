@@ -210,7 +210,7 @@ export const browserSwitchProfile = defineTool({
     const result = await loadProfile(context, name);
 
     return {
-      code: [`await switchToWorkProfile('${name}')`],
+      code: [`await browser_switch_profile({ name: '${name}' })`],
       action: async () => ({ content: [] }),
       captureSnapshot: true,
       waitForNetwork: false,
