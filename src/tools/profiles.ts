@@ -152,9 +152,12 @@ async function listProfiles() {
       const stat = await fs.promises.stat(profileDir);
       if (stat.isDirectory()) {
         const profileDataPath = path.join(profileDir, 'profile.json');
-        if (fs.existsSync(profileDataPath)) {
+        try {
+          await fs.promises.access(profileDataPath);
           const profileData = JSON.parse(await fs.promises.readFile(profileDataPath, 'utf8'));
           profiles.push(profileData);
+        } catch {
+          // File does not exist, skip this entry
         }
       }
     }
