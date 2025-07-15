@@ -68,6 +68,12 @@ const defaultConfig: FullConfig = {
       channel: 'msedge',
       headless: os.platform() === 'linux' && !process.env.DISPLAY,
       chromiumSandbox: true,
+      args: [
+        '--disable-popup-blocking',
+        '--allow-popups',
+        `--disable-extensions-except=${process.env.EXTENSION_PATH || '/default/path/to/extension'}`, // Use EXTENSION_PATH environment variable or fallback to default
+        `--load-extension=${process.env.EXTENSION_PATH || '/default/path/to/extension'}`, // Use EXTENSION_PATH environment variable or fallback to default
+      ],
     },
     contextOptions: {
       viewport: null,
