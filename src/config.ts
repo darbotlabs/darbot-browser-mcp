@@ -71,7 +71,7 @@ const defaultConfig: FullConfig = {
       args: [
         '--disable-popup-blocking',
         '--allow-popups',
-        '--disable-extensions-except',
+        `--disable-extensions-except=${process.env.EXTENSION_PATH || '/default/path/to/extension'}`, // Use EXTENSION_PATH environment variable or fallback to default
         `--load-extension=${process.env.EXTENSION_PATH || '/default/path/to/extension'}`, // Use EXTENSION_PATH environment variable or fallback to default
       ],
     },
