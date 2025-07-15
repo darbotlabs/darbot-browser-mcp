@@ -279,7 +279,7 @@ export const browserDeleteProfile = defineTool({
     await deleteProfile(name);
 
     return {
-      code: [`await deleteWorkProfile('${name}')`],
+      code: [`await browser_delete_profile({ name: '${name}' })`],
       action: async () => ({ content: [] }),
       captureSnapshot: false,
       waitForNetwork: false,
