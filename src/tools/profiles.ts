@@ -113,7 +113,8 @@ async function loadProfile(context: Context, profileName: string) {
 
   // Load storage state if available
   const storageStatePath = path.join(profileDir, 'storage-state.json');
-  if (fs.existsSync(storageStatePath)) {
+  try {
+    await fs.promises.access(storageStatePath);
     const storageState = JSON.parse(await fs.promises.readFile(storageStatePath, 'utf8'));
 
     // Create new context with the stored state
