@@ -167,7 +167,7 @@ async function deleteProfile(profileName: string) {
   if (!fs.existsSync(profileDir))
     throw new Error(`Work profile "${profileName}" not found`);
 
-  await fs.promises.rmdir(profileDir, { recursive: true });
+  await fs.promises.rm(profileDir, { recursive: true, force: true });
 }
 
 export const browserSaveProfile = defineTool({
