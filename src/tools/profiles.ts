@@ -133,6 +133,8 @@ async function loadProfile(context: Context, profileName: string) {
       await newPage.goto(profileData.url);
       return { profileData, restored: true };
     }
+  } catch {
+    // Storage state not available or failed to load, fall through to fallback
   }
 
   // Fallback: just navigate to the URL
