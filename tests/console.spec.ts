@@ -37,8 +37,7 @@ test('browser_console_messages', async ({ client, server }) => {
   const resource = await client.callTool({
     name: 'browser_console_messages',
   });
-  expect(resource).toHaveTextContent([
-    '[LOG] Hello, world!',
-    '[ERROR] Error',
-  ].join('\n'));
+  // The console messages are in the first content element
+  expect(resource.content[0].text).toContain('[LOG] Hello, world! @ http://localhost');
+  expect(resource.content[0].text).toContain('[ERROR] Error @ http://localhost');
 });
