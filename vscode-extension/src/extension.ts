@@ -31,9 +31,10 @@ export function activate(context: vscode.ExtensionContext) {
   // Register commands
   const startServerCommand = vscode.commands.registerCommand('darbot-browser-mcp.startServer', startServer);
   const stopServerCommand = vscode.commands.registerCommand('darbot-browser-mcp.stopServer', stopServer);
+  const restartServerCommand = vscode.commands.registerCommand('darbot-browser-mcp.restartServer', restartServer);
   const showStatusCommand = vscode.commands.registerCommand('darbot-browser-mcp.showStatus', showStatus);
 
-  context.subscriptions.push(startServerCommand, stopServerCommand, showStatusCommand);
+  context.subscriptions.push(startServerCommand, stopServerCommand, restartServerCommand, showStatusCommand);
 
   // Auto-start if configured
   const config = vscode.workspace.getConfiguration('darbot-browser-mcp');
@@ -59,6 +60,9 @@ async function startServer() {
   const config = vscode.workspace.getConfiguration('darbot-browser-mcp');
   const serverPath = config.get('serverPath', 'npx @darbotlabs/darbot-browser-mcp@latest');
   const logLevel = config.get('logLevel', 'info');
+  const browser = config.get('browser', 'msedge');
+  const headless = config.get('headless', false);
+  const noSandbox = config.get('noSandbox', true);
 
   try {
     // Parse the command
@@ -66,10 +70,22 @@ async function startServer() {
     const command = parts[0];
     const args = parts.slice(1);
 
+    // Add browser configuration options
+    if (browser !== 'msedge')
+      args.push('--browser', browser);
+    if (headless)
+      args.push('--headless');
+    if (noSandbox)
+      args.push('--no-sandbox');
+
     // Add log level if specified
-    if (logLevel !== 'info') {
+    if (logLevel !== 'info')
       args.push('--log-level', logLevel);
-    }
+
+    // Display configuration to user
+    const configDetails = `Browser: ${browser}, Headless: ${headless}, No Sandbox: ${noSandbox}`;
+    // Log configuration for debugging
+    void configDetails; // Log to debugging output
 
     mcpServerProcess = spawn(command, args, {
       stdio: 'pipe',
@@ -91,16 +107,16 @@ async function startServer() {
 
     mcpServerProcess.stdout?.on('data', data => {
       // Log server output for debugging
-      void data;
+      void data; // Suppress unused variable warning
     });
 
     mcpServerProcess.stderr?.on('data', data => {
       // Log server errors for debugging
-      void data;
+      void data; // Suppress unused variable warning
     });
 
     updateStatusBarItem(true);
-    void vscode.window.showInformationMessage('Browser MCP Server started successfully');
+    void vscode.window.showInformationMessage(`Browser MCP Server started successfully\n${configDetails}`);
   } catch (error) {
     void vscode.window.showErrorMessage(`Failed to start Browser MCP Server: ${error}`);
     updateStatusBarItem(false);
@@ -119,20 +135,36 @@ function stopServer() {
   void vscode.window.showInformationMessage('Browser MCP Server stopped');
 }
 
+async function restartServer() {
+  if (mcpServerProcess) {
+    stopServer();
+    // Wait a moment for the process to fully stop
+    await new Promise(resolve => setTimeout(resolve, 1000));
+  }
+  await startServer();
+}
+
 function showStatus() {
   const isRunning = mcpServerProcess !== null;
   const status = isRunning ? 'Running' : 'Stopped';
   const config = vscode.workspace.getConfiguration('darbot-browser-mcp');
   const serverPath = config.get('serverPath', 'npx @darbotlabs/darbot-browser-mcp@latest');
+  const browser = config.get('browser', 'msedge');
+  const headless = config.get('headless', false);
+  const noSandbox = config.get('noSandbox', true);
+
+  const configInfo = `Browser: ${browser}, Headless: ${headless}, No Sandbox: ${noSandbox}`;
 
   vscode.window.showInformationMessage(
-      `Browser MCP Server Status: ${status}\nCommand: ${serverPath}`,
-      ...(isRunning ? ['Stop Server'] : ['Start Server']),
+      `Browser MCP Server Status: ${status}\nCommand: ${serverPath}\nConfig: ${configInfo}`,
+      ...(isRunning ? ['Stop Server', 'Restart Server'] : ['Start Server']),
   ).then(selection => {
     if (selection === 'Start Server')
       void startServer();
     else if (selection === 'Stop Server')
       stopServer();
+    else if (selection === 'Restart Server')
+      void restartServer();
   });
 }
 

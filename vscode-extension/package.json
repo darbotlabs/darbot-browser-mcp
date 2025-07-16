@@ -8,7 +8,7 @@
     "vscode": "^1.85.0"
   },
   "categories": [
-    "Other"
+    "AI", "Other"
   ],
   "keywords": [
     "mcp",
@@ -28,6 +28,12 @@
   "license": "Apache-2.0",
   "main": "./out/extension.js",
   "contributes": {
+    "mcpServerDefinitionProviders": [
+      {
+        "id": "darbot-browser-mcp",
+        "label": "Darbot Browser MCP"
+      }
+    ],
     "commands": [
       {
         "command": "darbot-browser-mcp.startServer",
@@ -37,6 +43,11 @@
       {
         "command": "darbot-browser-mcp.stopServer",
         "title": "Stop Browser MCP Server",
+        "category": "Darbot Browser MCP"
+      },
+      {
+        "command": "darbot-browser-mcp.restartServer",
+        "title": "Restart Browser MCP Server",
         "category": "Darbot Browser MCP"
       },
       {
@@ -63,6 +74,22 @@
           "enum": ["error", "warn", "info", "debug"],
           "default": "info",
           "description": "Log level for the Browser MCP server"
+        },
+        "darbot-browser-mcp.browser": {
+          "type": "string",
+          "default": "msedge",
+          "enum": ["msedge", "chrome", "firefox", "webkit"],
+          "description": "Browser to use for automation"
+        },
+        "darbot-browser-mcp.headless": {
+          "type": "boolean",
+          "default": false,
+          "description": "Run browser in headless mode"
+        },
+        "darbot-browser-mcp.noSandbox": {
+          "type": "boolean",
+          "default": true,
+          "description": "Disable sandbox for browser processes"
         }
       }
     }
