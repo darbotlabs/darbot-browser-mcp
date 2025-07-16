@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+// @ts-ignore
+import { asLocator } from 'playwright-core/lib/utils';
+
 import type * as playwright from 'playwright';
 import type { Context } from '../context.js';
 import type { Tab } from '../tab.js';
@@ -78,7 +81,12 @@ export function sanitizeForFilePath(s: string) {
 }
 
 export async function generateLocator(locator: playwright.Locator): Promise<string> {
-  return (locator as any)._generateLocatorString();
+  try {
+    const { resolvedSelector } = await (locator as any)._resolveSelector();
+    return asLocator('javascript', resolvedSelector);
+  } catch (e) {
+    throw new Error('Ref not found, likely because element was removed. Use browser_snapshot to see what elements are currently on the page.');
+  }
 }
 
 export async function callOnPageNoTrace<T>(page: playwright.Page, callback: (page: playwright.Page) => Promise<T>): Promise<T> {
