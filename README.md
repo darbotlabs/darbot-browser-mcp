@@ -1,22 +1,35 @@
-## Darbot Browser MCP
+# Darbot Browser MCP
 
-A Model Context Protocol (MCP) server that provides browser automation capabilities using [Playwright](https://playwright.dev). This server enables LLMs to interact with web pages through structured accessibility snapshots, bypassing the need for screenshots or visually-tuned models. This version is optimized for Microsoft Edge with work profile support.
+![Darbot Banner](./assets/darbot_logo_icon_pack/darbot-horizontal-banner-1500x500.png)
 
-### Key Features
+**🤖 Your Autonomous Browser Companion - Powered by AI**
 
-- **Fast and lightweight**. Uses Playwright's accessibility tree, not pixel-based input.
-- **LLM-friendly**. No vision models needed, operates purely on structured data.
-- **Deterministic tool application**. Avoids ambiguity common with screenshot-based approaches.
+A Model Context Protocol (MCP) server that provides intelligent autonomous browser capabilities. This server enables AI models to interact with web pages through structured accessibility snapshots, delivering autonomous browsing without requiring vision models. Optimized for Microsoft Edge with comprehensive work profile support.
 
-### Requirements
-- Node.js 18 or newer
-- VS Code, Cursor, Windsurf, Claude Desktop or any other MCP client
+[![NPM Version](https://img.shields.io/npm/v/@darbotlabs/darbot-browser-mcp?style=flat-square&color=0098FF)](https://www.npmjs.com/package/@darbotlabs/darbot-browser-mcp)
+[![Downloads](https://img.shields.io/npm/dm/@darbotlabs/darbot-browser-mcp?style=flat-square&color=0098FF)](https://www.npmjs.com/package/@darbotlabs/darbot-browser-mcp)
+[![VS Code Extension](https://img.shields.io/visual-studio-marketplace/v/darbotlabs.darbot-browser-mcp?style=flat-square&color=24bfa5&label=VS%20Code)](https://marketplace.visualstudio.com/items?itemName=darbotlabs.darbot-browser-mcp)
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue?style=flat-square)](./LICENSE)
 
-### Installation Options
+## ✨ Key Features
+
+- **🚀 Fast and lightweight** - Uses accessibility tree, not pixel-based input
+- **🧠 AI-friendly** - No vision models needed, operates purely on structured data  
+- **🎯 Deterministic** - Avoids ambiguity common with screenshot-based approaches
+- **🔄 Work Profiles** - Save and restore complete browser sessions
+- **🛠️ 29 Autonomous Tools** - Comprehensive autonomous browser capabilities
+- **⚡ Multi-Platform** - Available as NPM package, VS Code extension, NuGet package, and browser extension
+
+## 📋 Requirements
+- **Node.js** 18 or newer
+- **VS Code, Cursor, Windsurf, Claude Desktop** or any other MCP client
+- **Microsoft Edge** (recommended) or Chrome/Firefox/WebKit
+
+## 📦 Installation Options
 
 Darbot Browser MCP is available in multiple package formats:
 
-#### NPM Package
+### 🔧 NPM Package
 ```bash
 # Install globally
 npm install -g @darbotlabs/darbot-browser-mcp
@@ -25,24 +38,91 @@ npm install -g @darbotlabs/darbot-browser-mcp
 npx @darbotlabs/darbot-browser-mcp@latest
 ```
 
-#### VS Code Extension
-Install the "Darbot Browser MCP" extension from the VS Code marketplace or search for `darbotlabs.darbot-browser-mcp`.
+### 🔌 VS Code Extension
+Install the **"Darbot Browser MCP"** extension from the VS Code marketplace or search for `darbotlabs.darbot-browser-mcp`.
 
-#### NuGet Package (.NET)
+[**📥 Install VS Code Extension**](https://marketplace.visualstudio.com/items?itemName=darbotlabs.darbot-browser-mcp)
+
+### 📚 NuGet Package (.NET)
 ```bash
 # Install for .NET projects
 dotnet add package DarbotLabs.Browser.MCP
 ```
 
-#### Browser Extension
-Install the Browser MCP Bridge extension from the Chrome Web Store to share browser tabs with the MCP server.
+### 🌐 Browser Extension
+Install the **Browser MCP Bridge** extension from the Chrome Web Store to share browser tabs with the MCP server.
+
+---
+
+## 🎯 Why Choose Darbot Browser MCP?
+
+| Traditional Browser Automation | 🤖 Darbot Browser MCP |
+|--------------------------------|------------------------|
+| ❌ Pixel-based, brittle selectors | ✅ AI-friendly accessibility snapshots |
+| ❌ Requires vision models | ✅ Pure structured data approach |
+| ❌ Complex setup and maintenance | ✅ Simple NPM install, ready in seconds |
+| ❌ Browser-specific code | ✅ Universal MCP protocol |
+| ❌ No session management | ✅ Advanced autonomous work profiles |
+
+### 🛠️ Complete Autonomous Toolkit (29 Tools)
+
+<details>
+<summary><b>🔧 Core Autonomous Operations</b></summary>
+
+- `browser_navigate` - Autonomously navigate to any URL
+- `browser_click` - Autonomous intelligent element clicking  
+- `browser_type` - Autonomous smart text input with submit options
+- `browser_snapshot` - AI-optimized autonomous accessibility snapshots
+- `browser_wait_for` - Autonomous intelligent waiting conditions
+
+</details>
+
+<details>
+<summary><b>📁 Autonomous Work Profile Management</b></summary>
+
+- `browser_save_profile` - Autonomously save complete browser sessions
+- `browser_switch_profile` - Autonomously load saved profiles  
+- `browser_list_profiles` - Autonomously manage all your profiles
+- `browser_delete_profile` - Autonomous clean profile management
+
+</details>
+
+<details>
+<summary><b>🖼️ Autonomous Media & Resources</b></summary>
+
+- `browser_take_screenshot` - Autonomous high-quality screenshots
+- `browser_pdf_save` - Autonomous PDF generation from pages
+- `browser_file_upload` - Autonomous file upload handling
+
+</details>
+
+<details>
+<summary><b>🗂️ Autonomous Tab Management</b></summary>
+
+- `browser_tab_new` - Autonomously open new tabs
+- `browser_tab_list` - Autonomously get all open tabs
+- `browser_tab_select` - Autonomously switch between tabs
+- `browser_tab_close` - Autonomous clean tab management
+
+</details>
+
+<details>
+<summary><b>🧪 Autonomous Testing & Development</b></summary>
+
+- `browser_generate_playwright_test` - Autonomously auto-generate test code
+- `browser_console_messages` - Autonomous debug with console access
+- `browser_network_requests` - Autonomous network activity monitoring
+
+</details>
+
+[**📖 View All 29 Tools**](#tools)
 
 <!--
 // Generate using:
 node utils/generate-links.js
 -->
 
-### Getting started
+## 🚀 Getting Started
 
 First, install the Browser MCP server with your client. A typical configuration looks like this:
 
@@ -59,7 +139,9 @@ First, install the Browser MCP server with your client. A typical configuration 
 }
 ```
 
-[<img src="https://img.shields.io/badge/VS_Code-VS_Code?style=flat-square&label=Install%20Server&color=0098FF" alt="Install in VS Code">](https://insiders.vscode.dev/redirect?url=vscode%3Amcp%2Finstall%3F%257B%2522name%2522%253A%2522browser%2522%252C%2522command%2522%253A%2522npx%2522%252C%2522args%2522%253A%255B%2522%2540darbotlabs%252Fdarbot-browser-mcp%2540latest%2522%255D%257D) [<img alt="Install in VS Code Insiders" src="https://img.shields.io/badge/VS_Code_Insiders-VS_Code_Insiders?style=flat-square&label=Install%20Server&color=24bfa5">](https://insiders.vscode.dev/redirect?url=vscode-insiders%3Amcp%2Finstall%3F%257B%2522name%2522%253A%2522browser%2522%252C%2522command%2522%253A%2522npx%2522%252C%2522args%2522%253A%255B%2522%2540darbotlabs%252Fdarbot-browser-mcp%2540latest%2522%255D%257D)
+### 📱 Quick Install Buttons
+
+[<img src="https://img.shields.io/badge/VS_Code-Install_Server-0098FF?style=for-the-badge&logo=visual-studio-code" alt="Install in VS Code">](https://insiders.vscode.dev/redirect?url=vscode%3Amcp%2Finstall%3F%257B%2522name%2522%253A%2522browser%2522%252C%2522command%2522%253A%2522npx%2522%252C%2522args%2522%253A%255B%2522%2540darbotlabs%252Fdarbot-browser-mcp%2540latest%2522%255D%257D) [<img src="https://img.shields.io/badge/VS_Code_Insiders-Install_Server-24bfa5?style=for-the-badge&logo=visual-studio-code" alt="Install in VS Code Insiders">](https://insiders.vscode.dev/redirect?url=vscode-insiders%3Amcp%2Finstall%3F%257B%2522name%2522%253A%2522browser%2522%252C%2522command%2522%253A%2522npx%2522%252C%2522args%2522%253A%255B%2522%2540darbotlabs%252Fdarbot-browser-mcp%2540latest%2522%255D%257D)
 
 
 <details><summary><b>Install in VS Code</b></summary>

@@ -216,7 +216,7 @@ async function createTransport(args: string[], mcpMode: TestOptions['mcpMode']):
     const dockerArgs = ['run', '--rm', '-i', '--network=host', '-v', `${test.info().project.outputDir}:/app/test-results`];
     const transport = new StdioClientTransport({
       command: 'docker',
-      args: [...dockerArgs, 'playwright-mcp-dev:latest', ...args],
+      args: [...dockerArgs, 'darbot-browser-mcp:latest', ...args],
     });
     return {
       transport,

@@ -46,7 +46,7 @@ test('config user data dir', async ({ startClient, server, mcpMode }, testInfo) 
 
 test.describe(() => {
   test.use({ mcpBrowser: '' });
-  test('browserName', { annotation: { type: 'issue', description: 'https://github.com/microsoft/playwright-mcp/issues/458' } }, async ({ startClient, mcpMode }, testInfo) => {
+  test('browserName', { annotation: { type: 'issue', description: 'https://github.com/darbotlabs/darbot-browser-mcp/issues/458' } }, async ({ startClient, mcpMode }, testInfo) => {
     test.skip(mcpMode === 'extension', 'Extension mode only supports Chromium');
     const config: Config = {
       browser: {

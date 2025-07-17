@@ -188,8 +188,8 @@ export const browserSaveProfile = defineTool({
   capability: 'core' as const,
   schema: {
     name: 'browser_save_profile',
-    title: 'Save Work Profile',
-    description: 'Save the current browser state as a work profile',
+    title: 'Autonomous profile saving',
+    description: 'Autonomously save the current browser state as a reusable work profile for later restoration',
     inputSchema: saveProfileSchema,
     type: 'destructive',
   },
@@ -215,8 +215,8 @@ export const browserSwitchProfile = defineTool({
   capability: 'core' as const,
   schema: {
     name: 'browser_switch_profile',
-    title: 'Switch Work Profile',
-    description: 'Switch to a saved work profile',
+    title: 'Autonomous profile switching',
+    description: 'Autonomously switch to a previously saved work profile, restoring browser state and session',
     inputSchema: switchProfileSchema,
     type: 'destructive',
   },
@@ -242,8 +242,8 @@ export const browserListProfiles = defineTool({
   capability: 'core' as const,
   schema: {
     name: 'browser_list_profiles',
-    title: 'List Work Profiles',
-    description: 'List all saved work profiles',
+    title: 'Autonomous profile listing',
+    description: 'Autonomously list all saved work profiles with their details and creation information',
     inputSchema: listProfilesSchema,
     type: 'readOnly',
   },
@@ -284,8 +284,8 @@ export const browserDeleteProfile = defineTool({
   capability: 'core' as const,
   schema: {
     name: 'browser_delete_profile',
-    title: 'Delete Work Profile',
-    description: 'Delete a saved work profile',
+    title: 'Autonomous profile deletion',
+    description: 'Autonomously delete a saved work profile permanently from storage',
     inputSchema: deleteProfileSchema,
     type: 'destructive',
   },

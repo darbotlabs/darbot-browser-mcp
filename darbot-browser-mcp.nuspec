@@ -2,12 +2,12 @@
 <package>
   <metadata>
     <id>DarbotLabs.Browser.MCP</id>
-    <version>0.0.29</version>
+    <version>0.1.0</version>
     <title>Darbot Browser MCP</title>
     <authors>DarbotLabs</authors>
-    <description>Browser automation tools for Model Context Protocol (MCP) servers. Provides browser automation capabilities through Playwright for MCP-enabled applications.</description>
-    <releaseNotes>Initial release of Browser MCP server with comprehensive browser automation tools.</releaseNotes>
-    <summary>Browser automation MCP server with Playwright integration</summary>
+    <description>Autonomous browser tools for Model Context Protocol (MCP) servers. Provides AI-driven browser automation capabilities for MCP-enabled applications.</description>
+    <releaseNotes>Browser MCP server with comprehensive autonomous browser tools and AI-driven automation.</releaseNotes>
+    <summary>Autonomous browser MCP server with AI-driven browser tools</summary>
     <language>en-US</language>
     <projectUrl>https://github.com/darbotlabs/darbot-browser-mcp</projectUrl>
     <iconUrl>https://raw.githubusercontent.com/darbotlabs/darbot-browser-mcp/main/extension/icons/icon-128.png</iconUrl>
@@ -21,7 +21,7 @@
         <dependency id="System.Text.Json" version="8.0.0" />
       </group>
     </dependencies>
-    <tags>mcp browser automation playwright testing web-automation model-context-protocol</tags>
+    <tags>mcp browser autonomous darbot testing web-automation model-context-protocol ai</tags>
   </metadata>
   <files>
     <file src="dotnet\**\*" target="lib\net8.0" />

@@ -21,8 +21,8 @@ const console = defineTool({
   capability: 'core',
   schema: {
     name: 'browser_console_messages',
-    title: 'Get console messages',
-    description: 'Returns all console messages',
+    title: 'Autonomous console monitoring',
+    description: 'Autonomously retrieve all browser console messages for debugging and analysis',
     inputSchema: z.object({}),
     type: 'readOnly',
   },

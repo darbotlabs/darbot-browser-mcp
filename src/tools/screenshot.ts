@@ -39,8 +39,8 @@ const screenshot = defineTool({
   capability: 'core',
   schema: {
     name: 'browser_take_screenshot',
-    title: 'Take a screenshot',
-    description: `Take a screenshot of the current page. You can't perform actions based on the screenshot, use browser_snapshot for actions.`,
+    title: 'Autonomous screenshot capture',
+    description: `Autonomously take visual screenshots of the current page or specific elements. Use browser_snapshot for structured page data instead of visual screenshots.`,
     inputSchema: screenshotSchema,
     type: 'readOnly',
   },

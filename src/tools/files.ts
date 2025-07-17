@@ -22,8 +22,8 @@ const uploadFile: ToolFactory = captureSnapshot => defineTool({
 
   schema: {
     name: 'browser_file_upload',
-    title: 'Upload files',
-    description: 'Upload one or multiple files',
+    title: 'Autonomous file upload',
+    description: 'Autonomously upload one or multiple files when a file chooser dialog appears',
     inputSchema: z.object({
       paths: z.array(z.string()).describe('The absolute paths to the files to upload. Can be a single file or multiple files.'),
     }),

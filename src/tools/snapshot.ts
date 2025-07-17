@@ -24,8 +24,8 @@ const snapshot = defineTool({
   capability: 'core',
   schema: {
     name: 'browser_snapshot',
-    title: 'Page snapshot',
-    description: 'Capture accessibility snapshot of the current page, this is better than screenshot',
+    title: 'Autonomous page snapshot',
+    description: 'Autonomously capture a detailed accessibility snapshot of the current page for analysis. This provides structured page content better than a screenshot.',
     inputSchema: z.object({}),
     type: 'readOnly',
   },
@@ -54,8 +54,8 @@ const click = defineTool({
   capability: 'core',
   schema: {
     name: 'browser_click',
-    title: 'Click',
-    description: 'Perform click on a web page',
+    title: 'Autonomous click',
+    description: 'Autonomously perform click interactions on web page elements',
     inputSchema: clickSchema,
     type: 'destructive',
   },
@@ -86,8 +86,8 @@ const drag = defineTool({
   capability: 'core',
   schema: {
     name: 'browser_drag',
-    title: 'Drag mouse',
-    description: 'Perform drag and drop between two elements',
+    title: 'Autonomous drag & drop',
+    description: 'Autonomously perform drag and drop operations between web page elements',
     inputSchema: z.object({
       startElement: z.string().describe('Human-readable source element description used to obtain the permission to interact with the element'),
       startRef: z.string().describe('Exact source element reference from the page snapshot'),
@@ -120,8 +120,8 @@ const hover = defineTool({
   capability: 'core',
   schema: {
     name: 'browser_hover',
-    title: 'Hover mouse',
-    description: 'Hover over element on page',
+    title: 'Autonomous hover',
+    description: 'Autonomously hover over specific elements on the web page',
     inputSchema: elementSchema,
     type: 'readOnly',
   },
@@ -154,8 +154,8 @@ const type = defineTool({
   capability: 'core',
   schema: {
     name: 'browser_type',
-    title: 'Type text',
-    description: 'Type text into editable element',
+    title: 'Autonomous text input',
+    description: 'Autonomously type text into editable elements on the web page',
     inputSchema: typeSchema,
     type: 'destructive',
   },
@@ -200,8 +200,8 @@ const selectOption = defineTool({
   capability: 'core',
   schema: {
     name: 'browser_select_option',
-    title: 'Select option',
-    description: 'Select an option in a dropdown',
+    title: 'Autonomous dropdown selection',
+    description: 'Autonomously select options in dropdown menus on the web page',
     inputSchema: selectOptionSchema,
     type: 'destructive',
   },

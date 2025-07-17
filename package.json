@@ -1,7 +1,7 @@
 {
   "name": "@darbotlabs/darbot-browser-mcp",
-  "version": "0.0.30",
-  "description": "Browser Tools for MCP",
+  "version": "0.1.1",
+  "description": "🤖 Your Autonomous Browser Companion - 29 AI-driven browser tools with work profile support",
   "type": "module",
   "repository": {
     "type": "git",
@@ -20,13 +20,11 @@
     "lint": "npm run update-readme && eslint . && tsc --noEmit",
     "update-readme": "node utils/update-readme.js",
     "watch": "tsc --watch",
-    "test": "playwright test",
-    "ctest": "playwright test --project=msedge",
-    "ftest": "playwright test --project=firefox",
-    "wtest": "playwright test --project=webkit",
-    "etest": "playwright test --project=chromium-extension",
-    "run-server": "node lib/browserServer.js",
-    "clean": "rm -rf lib",
+    "test": "npx @playwright/test",
+    "test:msedge": "npx @playwright/test --project=msedge",
+    "run-server": "node cli.js",
+    "run-darbot": "node cli.js",
+    "clean": "rmdir /s /q lib 2>nul || echo Clean completed",
     "npm-publish": "npm run clean && npm run build && npm run test && npm publish"
   },
   "exports": {

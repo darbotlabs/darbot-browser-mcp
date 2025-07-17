@@ -15,10 +15,10 @@
  */
 
 /**
- * Bridge Server - Standalone WebSocket server that bridges Playwright MCP and Browser Extension
+ * Bridge Server - Standalone WebSocket server that bridges Darbot Browser MCP and Browser Extension
  *
  * Endpoints:
- * - /cdp - Full CDP interface for Playwright MCP
+ * - /cdp - Full CDP interface for Darbot Browser MCP
  * - /extension - Extension connection for chrome.debugger forwarding
  */
 
@@ -71,7 +71,7 @@ export class CDPRelayServer extends EventEmitter {
   }
 
   /**
-   * Handle Playwright MCP connection - provides full CDP interface
+   * Handle Darbot Browser MCP connection - provides full CDP interface
    */
   private _handlePlaywrightConnection(ws: WebSocket): void {
     if (this._playwrightSocket?.readyState === WebSocket.OPEN) {
@@ -80,7 +80,7 @@ export class CDPRelayServer extends EventEmitter {
     }
 
     this._playwrightSocket = ws;
-    debugLogger('Playwright MCP connected');
+    debugLogger('Darbot Browser MCP connected');
 
     ws.on('message', data => {
       try {
@@ -95,7 +95,7 @@ export class CDPRelayServer extends EventEmitter {
       if (this._playwrightSocket === ws)
         this._playwrightSocket = null;
 
-      debugLogger('Playwright MCP disconnected');
+      debugLogger('Darbot Browser MCP disconnected');
     });
 
     ws.on('error', error => {
@@ -137,7 +137,7 @@ export class CDPRelayServer extends EventEmitter {
   }
 
   /**
-   * Handle messages from Playwright MCP
+   * Handle messages from Darbot Browser MCP
    */
   private _handlePlaywrightMessage(message: any): void {
     debugLogger('← Playwright:', message.method || `response(${message.id})`);
@@ -305,7 +305,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const server = new CDPRelayServer(httpServer);
 
   console.error(`CDP Bridge Server listening on ws://localhost:${port}`);
-  console.error(`- Playwright MCP: ws://localhost:${port}${CDP_PATH}`);
+  console.error(`- Darbot Browser MCP: ws://localhost:${port}${CDP_PATH}`);
   console.error(`- Extension: ws://localhost:${port}${EXTENSION_PATH}`);
 
   process.on('SIGINT', () => {
