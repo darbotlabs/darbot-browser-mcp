@@ -569,16 +569,16 @@ X Y coordinate space, based on the provided screenshot.
 <!-- NOTE: This has been generated via update-readme.js -->
 
 - **browser_snapshot**
-  - Title: Page snapshot
-  - Description: Capture accessibility snapshot of the current page, this is better than screenshot
+  - Title: Autonomous page snapshot
+  - Description: Autonomously capture a detailed accessibility snapshot of the current page for analysis. This provides structured page content better than a screenshot.
   - Parameters: None
   - Read-only: **true**
 
 <!-- NOTE: This has been generated via update-readme.js -->
 
 - **browser_click**
-  - Title: Click
-  - Description: Perform click on a web page
+  - Title: Autonomous click
+  - Description: Autonomously perform click interactions on web page elements
   - Parameters:
     - `element` (string): Human-readable element description used to obtain permission to interact with the element
     - `ref` (string): Exact target element reference from the page snapshot
@@ -588,8 +588,8 @@ X Y coordinate space, based on the provided screenshot.
 <!-- NOTE: This has been generated via update-readme.js -->
 
 - **browser_drag**
-  - Title: Drag mouse
-  - Description: Perform drag and drop between two elements
+  - Title: Autonomous drag & drop
+  - Description: Autonomously perform drag and drop operations between web page elements
   - Parameters:
     - `startElement` (string): Human-readable source element description used to obtain the permission to interact with the element
     - `startRef` (string): Exact source element reference from the page snapshot
@@ -600,8 +600,8 @@ X Y coordinate space, based on the provided screenshot.
 <!-- NOTE: This has been generated via update-readme.js -->
 
 - **browser_hover**
-  - Title: Hover mouse
-  - Description: Hover over element on page
+  - Title: Autonomous hover
+  - Description: Autonomously hover over specific elements on the web page
   - Parameters:
     - `element` (string): Human-readable element description used to obtain permission to interact with the element
     - `ref` (string): Exact target element reference from the page snapshot
@@ -610,8 +610,8 @@ X Y coordinate space, based on the provided screenshot.
 <!-- NOTE: This has been generated via update-readme.js -->
 
 - **browser_type**
-  - Title: Type text
-  - Description: Type text into editable element
+  - Title: Autonomous text input
+  - Description: Autonomously type text into editable elements on the web page
   - Parameters:
     - `element` (string): Human-readable element description used to obtain permission to interact with the element
     - `ref` (string): Exact target element reference from the page snapshot
@@ -623,8 +623,8 @@ X Y coordinate space, based on the provided screenshot.
 <!-- NOTE: This has been generated via update-readme.js -->
 
 - **browser_select_option**
-  - Title: Select option
-  - Description: Select an option in a dropdown
+  - Title: Autonomous dropdown selection
+  - Description: Autonomously select options in dropdown menus on the web page
   - Parameters:
     - `element` (string): Human-readable element description used to obtain permission to interact with the element
     - `ref` (string): Exact target element reference from the page snapshot
@@ -634,8 +634,8 @@ X Y coordinate space, based on the provided screenshot.
 <!-- NOTE: This has been generated via update-readme.js -->
 
 - **browser_press_key**
-  - Title: Press a key
-  - Description: Press a key on the keyboard
+  - Title: Autonomous keyboard input
+  - Description: Autonomously press keys on the keyboard to interact with the web page
   - Parameters:
     - `key` (string): Name of the key to press or a character to generate, such as `ArrowLeft` or `a`
   - Read-only: **false**
@@ -643,8 +643,8 @@ X Y coordinate space, based on the provided screenshot.
 <!-- NOTE: This has been generated via update-readme.js -->
 
 - **browser_wait_for**
-  - Title: Wait for
-  - Description: Wait for text to appear or disappear or a specified time to pass
+  - Title: Autonomous wait conditions
+  - Description: Autonomously wait for specific conditions: text appearance, text disappearance, or time duration
   - Parameters:
     - `time` (number, optional): The time to wait in seconds
     - `text` (string, optional): The text to wait for
@@ -654,8 +654,8 @@ X Y coordinate space, based on the provided screenshot.
 <!-- NOTE: This has been generated via update-readme.js -->
 
 - **browser_file_upload**
-  - Title: Upload files
-  - Description: Upload one or multiple files
+  - Title: Autonomous file upload
+  - Description: Autonomously upload one or multiple files when a file chooser dialog appears
   - Parameters:
     - `paths` (array): The absolute paths to the files to upload. Can be a single file or multiple files.
   - Read-only: **false**
@@ -663,8 +663,8 @@ X Y coordinate space, based on the provided screenshot.
 <!-- NOTE: This has been generated via update-readme.js -->
 
 - **browser_handle_dialog**
-  - Title: Handle a dialog
-  - Description: Handle a dialog
+  - Title: Autonomous dialog handling
+  - Description: Autonomously handle browser dialog boxes (alerts, confirmations, prompts)
   - Parameters:
     - `accept` (boolean): Whether to accept the dialog.
     - `promptText` (string, optional): The text of the prompt in case of a prompt dialog.
@@ -679,7 +679,7 @@ X Y coordinate space, based on the provided screenshot.
 
 - **browser_navigate**
   - Title: Navigate to a URL
-  - Description: Navigate to a URL
+  - Description: Autonomously navigate the browser to any URL. Use this command to launch and direct the browser to websites.
   - Parameters:
     - `url` (string): The URL to navigate to
   - Read-only: **false**
@@ -688,7 +688,7 @@ X Y coordinate space, based on the provided screenshot.
 
 - **browser_navigate_back**
   - Title: Go back
-  - Description: Go back to the previous page
+  - Description: Autonomously navigate back to the previous page in browser history
   - Parameters: None
   - Read-only: **true**
 
@@ -696,7 +696,7 @@ X Y coordinate space, based on the provided screenshot.
 
 - **browser_navigate_forward**
   - Title: Go forward
-  - Description: Go forward to the next page
+  - Description: Autonomously navigate forward to the next page in browser history
   - Parameters: None
   - Read-only: **true**
 
@@ -708,8 +708,8 @@ X Y coordinate space, based on the provided screenshot.
 <!-- NOTE: This has been generated via update-readme.js -->
 
 - **browser_take_screenshot**
-  - Title: Take a screenshot
-  - Description: Take a screenshot of the current page. You can't perform actions based on the screenshot, use browser_snapshot for actions.
+  - Title: Autonomous screenshot capture
+  - Description: Autonomously take visual screenshots of the current page or specific elements. Use browser_snapshot for structured page data instead of visual screenshots.
   - Parameters:
     - `raw` (boolean, optional): Whether to return without compression (in PNG format). Default is false, which returns a JPEG image.
     - `filename` (string, optional): File name to save the screenshot to. Defaults to `page-{timestamp}.{png|jpeg}` if not specified.
@@ -720,8 +720,8 @@ X Y coordinate space, based on the provided screenshot.
 <!-- NOTE: This has been generated via update-readme.js -->
 
 - **browser_pdf_save**
-  - Title: Save as PDF
-  - Description: Save page as PDF
+  - Title: Autonomous PDF generation
+  - Description: Autonomously save the current web page as a PDF document for archival or sharing
   - Parameters:
     - `filename` (string, optional): File name to save the pdf to. Defaults to `page-{timestamp}.pdf` if not specified.
   - Read-only: **true**
@@ -729,16 +729,16 @@ X Y coordinate space, based on the provided screenshot.
 <!-- NOTE: This has been generated via update-readme.js -->
 
 - **browser_network_requests**
-  - Title: List network requests
-  - Description: Returns all network requests since loading the page
+  - Title: Autonomous network monitoring
+  - Description: Autonomously capture and analyze all network requests made since page load for debugging
   - Parameters: None
   - Read-only: **true**
 
 <!-- NOTE: This has been generated via update-readme.js -->
 
 - **browser_console_messages**
-  - Title: Get console messages
-  - Description: Returns all console messages
+  - Title: Autonomous console monitoring
+  - Description: Autonomously retrieve all browser console messages for debugging and analysis
   - Parameters: None
   - Read-only: **true**
 
@@ -750,24 +750,24 @@ X Y coordinate space, based on the provided screenshot.
 <!-- NOTE: This has been generated via update-readme.js -->
 
 - **browser_install**
-  - Title: Install the browser specified in the config
-  - Description: Install the browser specified in the config. Call this if you get an error about the browser not being installed.
+  - Title: Autonomous browser installation
+  - Description: Autonomously install the required browser engine specified in configuration. Use this to resolve browser installation errors.
   - Parameters: None
   - Read-only: **false**
 
 <!-- NOTE: This has been generated via update-readme.js -->
 
 - **browser_close**
-  - Title: Close browser
-  - Description: Close the page
+  - Title: Autonomous browser closure
+  - Description: Autonomously close the browser session and terminate all operations
   - Parameters: None
   - Read-only: **true**
 
 <!-- NOTE: This has been generated via update-readme.js -->
 
 - **browser_resize**
-  - Title: Resize browser window
-  - Description: Resize the browser window
+  - Title: Autonomous window resizing
+  - Description: Autonomously resize the browser window to specific dimensions for optimal viewing
   - Parameters:
     - `width` (number): Width of the browser window
     - `height` (number): Height of the browser window
@@ -781,16 +781,16 @@ X Y coordinate space, based on the provided screenshot.
 <!-- NOTE: This has been generated via update-readme.js -->
 
 - **browser_tab_list**
-  - Title: List tabs
-  - Description: List browser tabs
+  - Title: Autonomous tab listing
+  - Description: Autonomously list all open browser tabs and their current status
   - Parameters: None
   - Read-only: **true**
 
 <!-- NOTE: This has been generated via update-readme.js -->
 
 - **browser_tab_new**
-  - Title: Open a new tab
-  - Description: Open a new tab
+  - Title: Autonomous new tab creation
+  - Description: Autonomously open a new browser tab, optionally navigating to a specified URL
   - Parameters:
     - `url` (string, optional): The URL to navigate to in the new tab. If not provided, the new tab will be blank.
   - Read-only: **true**
@@ -798,8 +798,8 @@ X Y coordinate space, based on the provided screenshot.
 <!-- NOTE: This has been generated via update-readme.js -->
 
 - **browser_tab_select**
-  - Title: Select a tab
-  - Description: Select a tab by index
+  - Title: Autonomous tab selection
+  - Description: Autonomously select and switch to a specific browser tab by index
   - Parameters:
     - `index` (number): The index of the tab to select
   - Read-only: **true**
@@ -807,8 +807,8 @@ X Y coordinate space, based on the provided screenshot.
 <!-- NOTE: This has been generated via update-readme.js -->
 
 - **browser_tab_close**
-  - Title: Close a tab
-  - Description: Close a tab
+  - Title: Autonomous tab closure
+  - Description: Autonomously close a browser tab by index, or close the current tab if no index specified
   - Parameters:
     - `index` (number, optional): The index of the tab to close. Closes current tab if not provided.
   - Read-only: **false**
@@ -821,8 +821,8 @@ X Y coordinate space, based on the provided screenshot.
 <!-- NOTE: This has been generated via update-readme.js -->
 
 - **browser_save_profile**
-  - Title: Save Work Profile
-  - Description: Save the current browser state as a work profile
+  - Title: Autonomous profile saving
+  - Description: Autonomously save the current browser state as a reusable work profile for later restoration
   - Parameters:
     - `name` (string): Name for the work profile
     - `description` (string, optional): Optional description for the work profile
@@ -831,8 +831,8 @@ X Y coordinate space, based on the provided screenshot.
 <!-- NOTE: This has been generated via update-readme.js -->
 
 - **browser_switch_profile**
-  - Title: Switch Work Profile
-  - Description: Switch to a saved work profile
+  - Title: Autonomous profile switching
+  - Description: Autonomously switch to a previously saved work profile, restoring browser state and session
   - Parameters:
     - `name` (string): Name of the work profile to switch to
   - Read-only: **false**
@@ -840,16 +840,16 @@ X Y coordinate space, based on the provided screenshot.
 <!-- NOTE: This has been generated via update-readme.js -->
 
 - **browser_list_profiles**
-  - Title: List Work Profiles
-  - Description: List all saved work profiles
+  - Title: Autonomous profile listing
+  - Description: Autonomously list all saved work profiles with their details and creation information
   - Parameters: None
   - Read-only: **true**
 
 <!-- NOTE: This has been generated via update-readme.js -->
 
 - **browser_delete_profile**
-  - Title: Delete Work Profile
-  - Description: Delete a saved work profile
+  - Title: Autonomous profile deletion
+  - Description: Autonomously delete a saved work profile permanently from storage
   - Parameters:
     - `name` (string): Name of the work profile to delete
   - Read-only: **false**
@@ -862,8 +862,8 @@ X Y coordinate space, based on the provided screenshot.
 <!-- NOTE: This has been generated via update-readme.js -->
 
 - **browser_generate_playwright_test**
-  - Title: Generate a Playwright test
-  - Description: Generate a Playwright test for given scenario
+  - Title: Autonomous test generation
+  - Description: Autonomously generate Playwright test code for browser automation scenarios and user workflows
   - Parameters:
     - `name` (string): The name of the test
     - `description` (string): The description of the test
@@ -931,8 +931,8 @@ X Y coordinate space, based on the provided screenshot.
 <!-- NOTE: This has been generated via update-readme.js -->
 
 - **browser_press_key**
-  - Title: Press a key
-  - Description: Press a key on the keyboard
+  - Title: Autonomous keyboard input
+  - Description: Autonomously press keys on the keyboard to interact with the web page
   - Parameters:
     - `key` (string): Name of the key to press or a character to generate, such as `ArrowLeft` or `a`
   - Read-only: **false**
@@ -940,8 +940,8 @@ X Y coordinate space, based on the provided screenshot.
 <!-- NOTE: This has been generated via update-readme.js -->
 
 - **browser_wait_for**
-  - Title: Wait for
-  - Description: Wait for text to appear or disappear or a specified time to pass
+  - Title: Autonomous wait conditions
+  - Description: Autonomously wait for specific conditions: text appearance, text disappearance, or time duration
   - Parameters:
     - `time` (number, optional): The time to wait in seconds
     - `text` (string, optional): The text to wait for
@@ -951,8 +951,8 @@ X Y coordinate space, based on the provided screenshot.
 <!-- NOTE: This has been generated via update-readme.js -->
 
 - **browser_file_upload**
-  - Title: Upload files
-  - Description: Upload one or multiple files
+  - Title: Autonomous file upload
+  - Description: Autonomously upload one or multiple files when a file chooser dialog appears
   - Parameters:
     - `paths` (array): The absolute paths to the files to upload. Can be a single file or multiple files.
   - Read-only: **false**
@@ -960,8 +960,8 @@ X Y coordinate space, based on the provided screenshot.
 <!-- NOTE: This has been generated via update-readme.js -->
 
 - **browser_handle_dialog**
-  - Title: Handle a dialog
-  - Description: Handle a dialog
+  - Title: Autonomous dialog handling
+  - Description: Autonomously handle browser dialog boxes (alerts, confirmations, prompts)
   - Parameters:
     - `accept` (boolean): Whether to accept the dialog.
     - `promptText` (string, optional): The text of the prompt in case of a prompt dialog.
