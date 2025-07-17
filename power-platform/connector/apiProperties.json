@@ -1,0 +1,27 @@
+{
+  "properties": {
+    "connectionParameters": {
+      "token": {
+        "type": "oauthSetting",
+        "oAuthSettings": {
+          "identityProvider": "aad",
+          "clientId": "YOUR_AZURE_CLIENT_ID",
+          "scopes": [
+            "https://your-darbot-instance.azurewebsites.net/browser.read",
+            "https://your-darbot-instance.azurewebsites.net/browser.write"
+          ],
+          "redirectMode": "Global",
+          "redirectUrl": "https://global.consent.azure-apim.net/redirect",
+          "properties": {
+            "IsFirstParty": "False",
+            "AzureActiveDirectoryResourceId": "https://your-darbot-instance.azurewebsites.net"
+          }
+        }
+      }
+    },
+    "iconBrandColor": "#0078D4",
+    "capabilities": [],
+    "publisher": "Darbot Labs",
+    "stackOwner": "Darbot Labs"
+  }
+}
