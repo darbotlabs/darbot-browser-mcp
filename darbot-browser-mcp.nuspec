@@ -2,18 +2,18 @@
 <package>
   <metadata>
     <id>DarbotLabs.Browser.MCP</id>
-    <version>0.1.0</version>
-    <title>Darbot Browser MCP</title>
+    <version>0.2.0</version>
+    <title>🤖 Darbot Browser MCP - Autonomous Browser Companion</title>
     <authors>DarbotLabs</authors>
-    <description>Autonomous browser tools for Model Context Protocol (MCP) servers. Provides AI-driven browser automation capabilities for MCP-enabled applications.</description>
-    <releaseNotes>Browser MCP server with comprehensive autonomous browser tools and AI-driven automation.</releaseNotes>
-    <summary>Autonomous browser MCP server with AI-driven browser tools</summary>
+    <description>🤖 Your Autonomous Browser Companion - 29 AI-driven autonomous browser tools for Model Context Protocol (MCP) servers. Provides intelligent autonomous browser capabilities for MCP-enabled applications with work profile support and VS Code GitHub Copilot agent mode integration.</description>
+    <releaseNotes>v0.2.0: Added VS Code extension with GitHub Copilot agent mode integration, enhanced test coverage, comprehensive documentation, and improved MCP server auto-configuration.</releaseNotes>
+    <summary>Autonomous browser MCP server with 29 AI-driven browser tools, work profiles, and GitHub Copilot integration</summary>
     <language>en-US</language>
     <projectUrl>https://github.com/darbotlabs/darbot-browser-mcp</projectUrl>
     <iconUrl>https://raw.githubusercontent.com/darbotlabs/darbot-browser-mcp/main/extension/icons/icon-128.png</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <license type="expression">Apache-2.0</license>
-    <copyright>Copyright 2024 DarbotLabs</copyright>
+    <copyright>Copyright 2025 DarbotLabs</copyright>
     <dependencies>
       <group targetFramework="net8.0">
         <dependency id="Microsoft.Extensions.Hosting" version="8.0.0" />
@@ -21,13 +21,16 @@
         <dependency id="System.Text.Json" version="8.0.0" />
       </group>
     </dependencies>
-    <tags>mcp browser autonomous darbot testing web-automation model-context-protocol ai</tags>
+    <tags>mcp browser autonomous darbot testing web-automation model-context-protocol ai copilot github-copilot vscode agent-mode work-profiles</tags>
   </metadata>
   <files>
     <file src="dotnet\**\*" target="lib\net8.0" />
+    <file src="vscode-extension\**\*" target="tools\vscode-extension" />
     <file src="cli.js" target="tools" />
     <file src="package.json" target="tools" />
     <file src="README.md" target="" />
+    <file src="DarbotGuide.md" target="docs" />
+    <file src="VSCODE_INSTALLATION.md" target="docs" />
     <file src="LICENSE" target="" />
   </files>
 </package>

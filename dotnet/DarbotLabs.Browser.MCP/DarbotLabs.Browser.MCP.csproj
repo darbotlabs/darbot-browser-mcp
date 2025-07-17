@@ -5,16 +5,16 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <PackageId>DarbotLabs.Browser.MCP</PackageId>
-    <Version>0.1.1</Version>
+    <Version>0.2.0</Version>
     <Authors>DarbotLabs</Authors>
     <Company>DarbotLabs</Company>
-    <Product>Darbot Browser MCP</Product>
-    <Description>🤖 Your Autonomous Browser Companion - 29 AI-driven autonomous browser tools for Model Context Protocol (MCP) servers. Provides intelligent autonomous browser capabilities for MCP-enabled applications with work profile support.</Description>
+    <Product>🤖 Darbot Browser MCP - Autonomous Browser Companion</Product>
+    <Description>🤖 Your Autonomous Browser Companion - 29 AI-driven autonomous browser tools for Model Context Protocol (MCP) servers. Provides intelligent autonomous browser capabilities for MCP-enabled applications with work profile support and VS Code GitHub Copilot agent mode integration.</Description>
     <Copyright>Copyright 2025 DarbotLabs</Copyright>
     <PackageProjectUrl>https://github.com/darbotlabs/darbot-browser-mcp</PackageProjectUrl>
     <PackageIcon>icon-128.png</PackageIcon>
     <PackageLicense>Apache-2.0</PackageLicense>
-    <PackageTags>mcp browser autonomous darbot testing web-automation model-context-protocol ai</PackageTags>
+    <PackageTags>mcp browser autonomous darbot testing web-automation model-context-protocol ai copilot github-copilot vscode agent-mode work-profiles</PackageTags>
     <RepositoryUrl>https://github.com/darbotlabs/darbot-browser-mcp</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageReadmeFile>README.md</PackageReadmeFile>
@@ -28,6 +28,8 @@
 
   <ItemGroup>
     <None Include="..\..\README.md" Pack="true" PackagePath="\"/>
+    <None Include="..\..\DarbotGuide.md" Pack="true" PackagePath="docs\"/>
+    <None Include="..\..\VSCODE_INSTALLATION.md" Pack="true" PackagePath="docs\"/>
     <None Include="..\..\extension\icons\icon-128.png" Pack="true" PackagePath="\"/>
   </ItemGroup>
 

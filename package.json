@@ -1,13 +1,38 @@
 {
   "name": "@darbotlabs/darbot-browser-mcp",
-  "version": "0.1.1",
-  "description": "🤖 Your Autonomous Browser Companion - 29 AI-driven browser tools with work profile support",
+  "version": "0.2.0",
+  "description": "🤖 Your Autonomous Browser Companion - 29 AI-driven browser tools with work profile support and VS Code GitHub Copilot agent mode integration",
   "type": "module",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/darbotlabs/darbot-browser-mcp.git"
   },
   "homepage": "https://github.com/darbotlabs/darbot-browser-mcp",
+  "keywords": [
+    "mcp",
+    "browser",
+    "autonomous",
+    "darbot",
+    "automation", 
+    "testing",
+    "screenshot",
+    "copilot",
+    "ai",
+    "edge",
+    "chrome",
+    "web-automation",
+    "playwright",
+    "selenium-alternative",
+    "browser-testing",
+    "accessibility",
+    "work-profiles",
+    "session-management",
+    "github-copilot",
+    "model-context-protocol",
+    "vscode-extension",
+    "agent-mode",
+    "copilot-integration"
+  ],
   "engines": {
     "node": ">=18"
   },
@@ -25,7 +50,9 @@
     "run-server": "node cli.js",
     "run-darbot": "node cli.js",
     "clean": "rmdir /s /q lib 2>nul || echo Clean completed",
-    "npm-publish": "npm run clean && npm run build && npm run test && npm publish"
+    "npm-publish": "npm run clean && npm run build && npm run test && npm publish",
+    "package": "npm run build && npm pack",
+    "prepublishOnly": "npm run clean && npm run build"
   },
   "exports": {
     "./package.json": "./package.json",
