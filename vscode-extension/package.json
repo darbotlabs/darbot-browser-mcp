@@ -1,11 +1,11 @@
 {
   "name": "darbot-browser-mcp",
   "displayName": "🤖 Darbot Browser MCP",
-  "description": "Your autonomous browser companion for VS Code. 29 AI-driven autonomous browser tools with Microsoft Edge work profile support and GitHub Copilot Chat integration.",
-  "version": "1.2.2",
+  "description": "Your autonomous browser companion for VS Code. 29 AI-driven autonomous browser tools with Microsoft Edge work profile support and enhanced GitHub Copilot Chat integration for agent mode.",
+  "version": "1.3.0",
   "publisher": "darbotlabs",
   "engines": {
-    "vscode": "^1.95.0"
+    "vscode": "^1.96.0"
   },
   "icon": "icon.png",
   "categories": [
@@ -130,7 +130,7 @@
     "watch": "tsc -watch -p ./"
   },
   "devDependencies": {
-    "@types/vscode": "^1.85.0",
+    "@types/vscode": "^1.96.0",
     "@types/node": "^22.13.10",
     "typescript": "^5.8.2"
   }
