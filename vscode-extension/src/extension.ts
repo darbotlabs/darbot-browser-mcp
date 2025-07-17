@@ -116,7 +116,10 @@ async function startServer() {
     });
 
     updateStatusBarItem(true);
-    void vscode.window.showInformationMessage(`Browser MCP Server started successfully\n${configDetails}`);
+    mcpOutputChannel.appendLine('Browser MCP Server started successfully.');
+    mcpOutputChannel.appendLine(`Configuration Details: ${configDetails}`);
+    mcpOutputChannel.show(true);
+    void vscode.window.showInformationMessage('Browser MCP Server started successfully. Check the "Browser MCP" output channel for details.');
   } catch (error) {
     void vscode.window.showErrorMessage(`Failed to start Browser MCP Server: ${error}`);
     updateStatusBarItem(false);
