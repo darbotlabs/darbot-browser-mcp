@@ -85,7 +85,7 @@ async function startServer() {
     // Display configuration to user
     const configDetails = `Browser: ${browser}, Headless: ${headless}, No Sandbox: ${noSandbox}`;
     // Log configuration for debugging
-    void configDetails; // Log to debugging output
+    console.debug(configDetails); // Log to debugging output
 
     mcpServerProcess = spawn(command, args, {
       stdio: 'pipe',
