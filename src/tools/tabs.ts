@@ -22,8 +22,8 @@ const listTabs = defineTool({
 
   schema: {
     name: 'browser_tab_list',
-    title: 'List tabs',
-    description: 'List browser tabs',
+    title: 'Autonomous tab listing',
+    description: 'Autonomously list all open browser tabs and their current status',
     inputSchema: z.object({}),
     type: 'readOnly',
   },
@@ -49,8 +49,8 @@ const selectTab: ToolFactory = captureSnapshot => defineTool({
 
   schema: {
     name: 'browser_tab_select',
-    title: 'Select a tab',
-    description: 'Select a tab by index',
+    title: 'Autonomous tab selection',
+    description: 'Autonomously select and switch to a specific browser tab by index',
     inputSchema: z.object({
       index: z.number().describe('The index of the tab to select'),
     }),
@@ -76,8 +76,8 @@ const newTab: ToolFactory = captureSnapshot => defineTool({
 
   schema: {
     name: 'browser_tab_new',
-    title: 'Open a new tab',
-    description: 'Open a new tab',
+    title: 'Autonomous new tab creation',
+    description: 'Autonomously open a new browser tab, optionally navigating to a specified URL',
     inputSchema: z.object({
       url: z.string().optional().describe('The URL to navigate to in the new tab. If not provided, the new tab will be blank.'),
     }),
@@ -105,8 +105,8 @@ const closeTab: ToolFactory = captureSnapshot => defineTool({
 
   schema: {
     name: 'browser_tab_close',
-    title: 'Close a tab',
-    description: 'Close a tab',
+    title: 'Autonomous tab closure',
+    description: 'Autonomously close a browser tab by index, or close the current tab if no index specified',
     inputSchema: z.object({
       index: z.number().optional().describe('The index of the tab to close. Closes current tab if not provided.'),
     }),

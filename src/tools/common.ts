@@ -22,8 +22,8 @@ const close = defineTool({
 
   schema: {
     name: 'browser_close',
-    title: 'Close browser',
-    description: 'Close the page',
+    title: 'Autonomous browser closure',
+    description: 'Autonomously close the browser session and terminate all operations',
     inputSchema: z.object({}),
     type: 'readOnly',
   },
@@ -42,8 +42,8 @@ const resize: ToolFactory = captureSnapshot => defineTool({
   capability: 'core',
   schema: {
     name: 'browser_resize',
-    title: 'Resize browser window',
-    description: 'Resize the browser window',
+    title: 'Autonomous window resizing',
+    description: 'Autonomously resize the browser window to specific dimensions for optimal viewing',
     inputSchema: z.object({
       width: z.number().describe('Width of the browser window'),
       height: z.number().describe('Height of the browser window'),

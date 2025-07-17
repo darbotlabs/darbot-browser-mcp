@@ -18,8 +18,13 @@ import { spawn, ChildProcess } from 'child_process';
 
 let mcpServerProcess: ChildProcess | null = null;
 let statusBarItem: vscode.StatusBarItem;
+let mcpOutputChannel: vscode.OutputChannel;
 
 export function activate(context: vscode.ExtensionContext) {
+  // Create output channel for logging
+  mcpOutputChannel = vscode.window.createOutputChannel('Darbot Browser MCP');
+  context.subscriptions.push(mcpOutputChannel);
+
   // Create status bar item
   statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
   statusBarItem.text = '$(browser) MCP: Stopped';
@@ -36,6 +41,9 @@ export function activate(context: vscode.ExtensionContext) {
 
   context.subscriptions.push(startServerCommand, stopServerCommand, restartServerCommand, showStatusCommand);
 
+  // Auto-configure MCP server on first activation
+  configureMCPServer();
+
   // Auto-start if configured
   const config = vscode.workspace.getConfiguration('darbot-browser-mcp');
   if (config.get('autoStart', false))
@@ -49,6 +57,77 @@ export function deactivate() {
   }
   if (statusBarItem)
     statusBarItem.dispose();
+  if (mcpOutputChannel)
+    mcpOutputChannel.dispose();
+}
+
+async function configureMCPServer() {
+  // Check if auto-configuration is enabled
+  const config = vscode.workspace.getConfiguration('darbot-browser-mcp');
+  const autoConfigureMCP = config.get('autoConfigureMCP', true);
+  
+  if (!autoConfigureMCP) {
+    mcpOutputChannel.appendLine('Auto-configuration disabled. Please manually configure MCP settings.');
+    return;
+  }
+
+  try {
+    // Check if MCP is enabled in VS Code settings
+    const mcpConfig = vscode.workspace.getConfiguration('chat.mcp');
+    const isMcpEnabled = mcpConfig.get('enabled', false);
+    
+    if (!isMcpEnabled) {
+      const enableResult = await vscode.window.showInformationMessage(
+        'Darbot Browser MCP requires the Model Context Protocol (MCP) to be enabled in VS Code. Would you like to enable it now?',
+        'Enable MCP',
+        'Not Now'
+      );
+      
+      if (enableResult === 'Enable MCP') {
+        await mcpConfig.update('enabled', true, vscode.ConfigurationTarget.Global);
+        mcpOutputChannel.appendLine('MCP enabled in VS Code settings.');
+      } else {
+        mcpOutputChannel.appendLine('MCP not enabled. Extension will not function fully until MCP is enabled.');
+        return;
+      }
+    }
+
+    // Check if this MCP server is already configured
+    const servers = mcpConfig.get('servers', {}) as Record<string, any>;
+    const serverName = 'darbot-browser-mcp';
+    
+    if (!servers[serverName]) {
+      // Auto-configure the MCP server
+      const serverConfig = {
+        command: 'npx',
+        args: ['@darbotlabs/darbot-browser-mcp@latest']
+      };
+      
+      servers[serverName] = serverConfig;
+      await mcpConfig.update('servers', servers, vscode.ConfigurationTarget.Global);
+      
+      mcpOutputChannel.appendLine('Darbot Browser MCP server configured automatically.');
+      mcpOutputChannel.appendLine(`Server name: ${serverName}`);
+      mcpOutputChannel.appendLine(`Command: ${serverConfig.command} ${serverConfig.args.join(' ')}`);
+      
+      const restartResult = await vscode.window.showInformationMessage(
+        'Darbot Browser MCP has been configured! Please restart VS Code to complete the setup, or use the Command Palette to start the server.',
+        'Restart VS Code',
+        'Start Server Now'
+      );
+      
+      if (restartResult === 'Restart VS Code') {
+        await vscode.commands.executeCommand('workbench.action.reloadWindow');
+      } else if (restartResult === 'Start Server Now') {
+        await startServer();
+      }
+    } else {
+      mcpOutputChannel.appendLine('Darbot Browser MCP server already configured.');
+    }
+  } catch (error) {
+    mcpOutputChannel.appendLine(`Error configuring MCP server: ${error}`);
+    void vscode.window.showErrorMessage(`Failed to configure Darbot Browser MCP: ${error}`);
+  }
 }
 
 async function startServer() {

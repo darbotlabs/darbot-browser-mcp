@@ -23,7 +23,7 @@ const navigate: ToolFactory = captureSnapshot => defineTool({
   schema: {
     name: 'browser_navigate',
     title: 'Navigate to a URL',
-    description: 'Navigate to a URL',
+    description: 'Autonomously navigate the browser to any URL. Use this command to launch and direct the browser to websites.',
     inputSchema: z.object({
       url: z.string().describe('The URL to navigate to'),
     }),
@@ -52,7 +52,7 @@ const goBack: ToolFactory = captureSnapshot => defineTool({
   schema: {
     name: 'browser_navigate_back',
     title: 'Go back',
-    description: 'Go back to the previous page',
+    description: 'Autonomously navigate back to the previous page in browser history',
     inputSchema: z.object({}),
     type: 'readOnly',
   },
@@ -78,7 +78,7 @@ const goForward: ToolFactory = captureSnapshot => defineTool({
   schema: {
     name: 'browser_navigate_forward',
     title: 'Go forward',
-    description: 'Go forward to the next page',
+    description: 'Autonomously navigate forward to the next page in browser history',
     inputSchema: z.object({}),
     type: 'readOnly',
   },

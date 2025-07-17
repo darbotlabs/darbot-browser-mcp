@@ -24,8 +24,8 @@ const requests = defineTool({
 
   schema: {
     name: 'browser_network_requests',
-    title: 'List network requests',
-    description: 'Returns all network requests since loading the page',
+    title: 'Autonomous network monitoring',
+    description: 'Autonomously capture and analyze all network requests made since page load for debugging',
     inputSchema: z.object({}),
     type: 'readOnly',
   },

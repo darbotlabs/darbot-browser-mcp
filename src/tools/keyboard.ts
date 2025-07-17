@@ -22,8 +22,8 @@ const pressKey: ToolFactory = captureSnapshot => defineTool({
 
   schema: {
     name: 'browser_press_key',
-    title: 'Press a key',
-    description: 'Press a key on the keyboard',
+    title: 'Autonomous keyboard input',
+    description: 'Autonomously press keys on the keyboard to interact with the web page',
     inputSchema: z.object({
       key: z.string().describe('Name of the key to press or a character to generate, such as `ArrowLeft` or `a`'),
     }),

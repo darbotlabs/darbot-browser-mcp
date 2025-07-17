@@ -26,8 +26,8 @@ const install = defineTool({
   capability: 'install',
   schema: {
     name: 'browser_install',
-    title: 'Install the browser specified in the config',
-    description: 'Install the browser specified in the config. Call this if you get an error about the browser not being installed.',
+    title: 'Autonomous browser installation',
+    description: 'Autonomously install the required browser engine specified in configuration. Use this to resolve browser installation errors.',
     inputSchema: z.object({}),
     type: 'destructive',
   },

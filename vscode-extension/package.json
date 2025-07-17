@@ -1,21 +1,41 @@
 {
   "name": "darbot-browser-mcp",
-  "displayName": "Darbot Browser MCP",
-  "description": "Browser automation tools for Model Context Protocol (MCP) servers",
-  "version": "0.0.29",
+  "displayName": "🤖 Darbot Browser MCP",
+  "description": "Your autonomous browser companion for VS Code. 29 AI-driven autonomous browser tools with Microsoft Edge work profile support and GitHub Copilot Chat integration.",
+  "version": "1.2.2",
   "publisher": "darbotlabs",
   "engines": {
-    "vscode": "^1.85.0"
+    "vscode": "^1.95.0"
   },
+  "icon": "icon.png",
   "categories": [
-    "AI", "Other"
+    "AI",
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
   ],
   "keywords": [
     "mcp",
     "browser",
+    "autonomous",
+    "darbot",
     "automation",
+    "testing",
+    "screenshot",
+    "copilot",
+    "ai",
+    "edge",
+    "chrome",
+    "web-automation",
     "playwright",
-    "testing"
+    "selenium-alternative",
+    "browser-testing",
+    "accessibility",
+    "work-profiles",
+    "session-management",
+    "github-copilot",
+    "model-context-protocol"
   ],
   "repository": {
     "type": "git",
@@ -69,9 +89,19 @@
           "default": false,
           "description": "Automatically start the Browser MCP server when VS Code starts"
         },
+        "darbot-browser-mcp.autoConfigureMCP": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically configure MCP settings when the extension is first activated"
+        },
         "darbot-browser-mcp.logLevel": {
           "type": "string",
-          "enum": ["error", "warn", "info", "debug"],
+          "enum": [
+            "error",
+            "warn",
+            "info",
+            "debug"
+          ],
           "default": "info",
           "description": "Log level for the Browser MCP server"
         },

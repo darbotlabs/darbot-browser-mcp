@@ -29,8 +29,8 @@ const pdf = defineTool({
 
   schema: {
     name: 'browser_pdf_save',
-    title: 'Save as PDF',
-    description: 'Save page as PDF',
+    title: 'Autonomous PDF generation',
+    description: 'Autonomously save the current web page as a PDF document for archival or sharing',
     inputSchema: pdfSchema,
     type: 'readOnly',
   },

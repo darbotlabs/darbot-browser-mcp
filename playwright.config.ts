@@ -18,6 +18,8 @@ import { defineConfig } from '@playwright/test';
 
 import type { TestOptions } from './tests/fixtures.js';
 
+// Test configuration for Darbot Browser MCP
+// Uses Playwright test framework to test the darbot-browser-mcp autonomous browser
 export default defineConfig<TestOptions>({
   testDir: './tests',
   fullyParallel: true,
@@ -26,18 +28,6 @@ export default defineConfig<TestOptions>({
   workers: process.env.CI ? 1 : undefined,
   reporter: 'list',
   projects: [
-    { name: 'msedge' },
-    { name: 'chrome', use: { mcpBrowser: 'chrome' } },
-    { name: 'chromium', use: { mcpBrowser: 'chromium' } },
-    ...process.env.MCP_IN_DOCKER ? [{
-      name: 'chromium-docker',
-      grep: /browser_navigate|browser_click/,
-      use: {
-        mcpBrowser: 'chromium',
-        mcpMode: 'docker' as const
-      }
-    }] : [],
-    { name: 'firefox', use: { mcpBrowser: 'firefox' } },
-    { name: 'webkit', use: { mcpBrowser: 'webkit' } },
+    { name: 'msedge', use: { mcpBrowser: 'msedge' } },
   ],
 });

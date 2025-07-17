@@ -28,8 +28,8 @@ const generateTest = defineTool({
 
   schema: {
     name: 'browser_generate_playwright_test',
-    title: 'Generate a Playwright test',
-    description: 'Generate a Playwright test for given scenario',
+    title: 'Autonomous test generation',
+    description: 'Autonomously generate Playwright test code for browser automation scenarios and user workflows',
     inputSchema: generateTestSchema,
     type: 'readOnly',
   },
