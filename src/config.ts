@@ -82,7 +82,36 @@ const defaultConfig: FullConfig = {
     allowedOrigins: undefined,
     blockedOrigins: undefined,
   },
-  server: {},
+  server: {
+    baseUrl: process.env.SERVER_BASE_URL,
+    https: {
+      enabled: false
+    },
+    rateLimit: {
+      enabled: false,
+      windowMs: 15 * 60 * 1000, // 15 minutes
+      maxRequests: 100
+    }
+  },
+  copilotStudio: {
+    enabled: process.env.COPILOT_STUDIO_ENABLED === 'true',
+    callbackUrl: process.env.COPILOT_STUDIO_CALLBACK_URL,
+    maxConcurrentSessions: parseInt(process.env.MAX_CONCURRENT_SESSIONS || '10'),
+    sessionTimeoutMs: parseInt(process.env.SESSION_TIMEOUT_MS || '1800000'), // 30 minutes
+    auditLogging: process.env.AUDIT_LOGGING_ENABLED === 'true'
+  },
+  auth: {
+    entraId: {
+      enabled: process.env.ENTRA_AUTH_ENABLED === 'true',
+      tenantId: process.env.AZURE_TENANT_ID,
+      clientId: process.env.AZURE_CLIENT_ID,
+      clientSecret: process.env.AZURE_CLIENT_SECRET
+    },
+    apiKey: {
+      enabled: process.env.API_KEY_AUTH_ENABLED === 'true',
+      keys: process.env.API_KEYS?.split(',') || []
+    }
+  },
   outputDir: path.join(os.tmpdir(), 'darbot-browser-mcp-output', sanitizeForFilePath(new Date().toISOString())),
 };
 
@@ -96,7 +125,15 @@ export type FullConfig = Config & {
   },
   network: NonNullable<Config['network']>,
   outputDir: string;
-  server: NonNullable<Config['server']>,
+  server: NonNullable<Config['server']> & {
+    https: NonNullable<NonNullable<Config['server']>['https']>;
+    rateLimit: NonNullable<NonNullable<Config['server']>['rateLimit']>;
+  };
+  copilotStudio: NonNullable<Config['copilotStudio']>;
+  auth: NonNullable<Config['auth']> & {
+    entraId: NonNullable<NonNullable<Config['auth']>['entraId']>;
+    apiKey: NonNullable<NonNullable<Config['auth']>['apiKey']>;
+  };
 };
 
 export async function resolveConfig(config: Config): Promise<FullConfig> {
@@ -276,6 +313,30 @@ function mergeConfig(base: FullConfig, overrides: Config): FullConfig {
     server: {
       ...pickDefined(base.server),
       ...pickDefined(overrides.server),
+      https: {
+        ...pickDefined(base.server?.https),
+        ...pickDefined(overrides.server?.https),
+      },
+      rateLimit: {
+        ...pickDefined(base.server?.rateLimit),
+        ...pickDefined(overrides.server?.rateLimit),
+      }
     },
+    copilotStudio: {
+      ...pickDefined(base.copilotStudio),
+      ...pickDefined(overrides.copilotStudio),
+    },
+    auth: {
+      ...pickDefined(base.auth),
+      ...pickDefined(overrides.auth),
+      entraId: {
+        ...pickDefined(base.auth?.entraId),
+        ...pickDefined(overrides.auth?.entraId),
+      },
+      apiKey: {
+        ...pickDefined(base.auth?.apiKey),
+        ...pickDefined(overrides.auth?.apiKey),
+      }
+    }
   } as FullConfig;
 }

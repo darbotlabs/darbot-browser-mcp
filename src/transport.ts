@@ -113,25 +113,125 @@ export async function startHttpServer(config: { host?: string, port?: number }):
 export function startHttpTransport(httpServer: http.Server, mcpServer: Server) {
   const sseSessions = new Map<string, SSEServerTransport>();
   const streamableSessions = new Map<string, StreamableHTTPServerTransport>();
+  
   httpServer.on('request', async (req, res) => {
     const url = new URL(`http://localhost${req.url}`);
-    if (url.pathname.startsWith('/mcp'))
+    
+    // Handle CORS preflight requests
+    if (req.method === 'OPTIONS') {
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-API-Key');
+      res.statusCode = 200;
+      res.end();
+      return;
+    }
+
+    // Add CORS headers to all responses
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-API-Key');
+
+    // Health check endpoints
+    if (url.pathname === '/health') {
+      try {
+        const { createHealthCheckService } = await import('./health.js');
+        const healthService = createHealthCheckService();
+        await healthService.handleHealthCheck(req, res);
+      } catch (error) {
+        res.statusCode = 500;
+        res.end('Health check service unavailable');
+      }
+      return;
+    }
+
+    if (url.pathname === '/ready') {
+      try {
+        const { createHealthCheckService } = await import('./health.js');
+        const healthService = createHealthCheckService();
+        await healthService.handleReadinessCheck(req, res);
+      } catch (error) {
+        res.statusCode = 503;
+        res.end('Service unavailable');
+      }
+      return;
+    }
+
+    if (url.pathname === '/live') {
+      try {
+        const { createHealthCheckService } = await import('./health.js');
+        const healthService = createHealthCheckService();
+        await healthService.handleLivenessCheck(req, res);
+      } catch (error) {
+        res.statusCode = 503;
+        res.end('Service unavailable');
+      }
+      return;
+    }
+
+    // OpenAPI specification endpoint
+    if (url.pathname === '/openapi.json' || url.pathname === '/swagger.json') {
+      try {
+        const { createOpenAPIGenerator } = await import('./openapi.js');
+        // Dynamically retrieve tools from the server's tool registry
+        const tools = server.getToolRegistry ? server.getToolRegistry() : [];
+        const openApiGenerator = createOpenAPIGenerator(tools);
+        openApiGenerator.handleOpenAPISpec(req, res);
+      } catch (error) {
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json');
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        res.end(JSON.stringify({ error: 'Failed to generate OpenAPI spec', message: errorMessage }));
+      }
+      return;
+    }
+
+    // MCP endpoints with authentication
+    if (url.pathname.startsWith('/mcp')) {
+      // TODO: Add authentication middleware here when needed
       await handleStreamable(mcpServer, req, res, streamableSessions);
-    else
-      await handleSSE(mcpServer, req, res, url, sseSessions);
+      return;
+    }
+
+    // API endpoints for tools (REST-style access)
+    if (url.pathname.startsWith('/api/v1/')) {
+      // TODO: Implement REST API endpoints for individual tools
+      res.statusCode = 501;
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify({
+        error: 'REST API endpoints not yet implemented',
+        message: 'These endpoints are placeholders for future functionality. Planned features include tool-specific operations and data retrieval. Refer to the API documentation for updates.',
+        documentation_url: 'https://example.com/api-docs'
+      }));
+      return;
+    }
+
+    // Default SSE endpoint
+    await handleSSE(mcpServer, req, res, url, sseSessions);
   });
+  
   const url = httpAddressToString(httpServer.address());
   const message = [
-    `Listening on ${url}`,
-    'Put this in your client config:',
+    `Darbot Browser MCP Server listening on ${url}`,
+    '',
+    'Available endpoints:',
+    `  Health Check: ${url}/health`,
+    `  Readiness:    ${url}/ready`,
+    `  Liveness:     ${url}/live`,
+    `  OpenAPI:      ${url}/openapi.json`,
+    `  MCP:          ${url}/mcp`,
+    `  SSE:          ${url}/sse`,
+    '',
+    'Client configuration (MCP):',
     JSON.stringify({
       'mcpServers': {
-        'playwright': {
+        'darbot-browser': {
           'url': `${url}/sse`
         }
       }
     }, undefined, 2),
-    'If your client supports streamable HTTP, you can use the /mcp endpoint instead.',
+    '',
+    'Copilot Studio integration ready! 🚀',
   ].join('\n');
     // eslint-disable-next-line no-console
   console.error(message);

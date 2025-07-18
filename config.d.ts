@@ -80,6 +80,82 @@ export type Config = {
      * The host to bind the server to. Default is localhost. Use 0.0.0.0 to bind to all interfaces.
      */
     host?: string;
+
+    /**
+     * Base URL for the server, used in OpenAPI specification generation.
+     */
+    baseUrl?: string;
+
+    /**
+     * Enable HTTPS with SSL certificates.
+     */
+    https?: {
+      enabled: boolean;
+      keyPath?: string;
+      certPath?: string;
+    };
+
+    /**
+     * Rate limiting configuration for enterprise use.
+     */
+    rateLimit?: {
+      enabled: boolean;
+      windowMs?: number;
+      maxRequests?: number;
+    };
+  },
+
+  /**
+   * Microsoft Copilot Studio integration settings.
+   */
+  copilotStudio?: {
+    /**
+     * Enable Copilot Studio specific features.
+     */
+    enabled?: boolean;
+
+    /**
+     * Callback URL for OAuth authentication flow.
+     */
+    callbackUrl?: string;
+
+    /**
+     * Maximum number of concurrent browser sessions for enterprise workloads.
+     */
+    maxConcurrentSessions?: number;
+
+    /**
+     * Session timeout in milliseconds.
+     */
+    sessionTimeoutMs?: number;
+
+    /**
+     * Enable audit logging for compliance.
+     */
+    auditLogging?: boolean;
+  },
+
+  /**
+   * Authentication configuration.
+   */
+  auth?: {
+    /**
+     * Microsoft Entra ID authentication settings.
+     */
+    entraId?: {
+      enabled?: boolean;
+      tenantId?: string;
+      clientId?: string;
+      clientSecret?: string;
+    };
+
+    /**
+     * API key authentication settings.
+     */
+    apiKey?: {
+      enabled?: boolean;
+      keys?: string[];
+    };
   },
 
   /**

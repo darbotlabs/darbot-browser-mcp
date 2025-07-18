@@ -1,0 +1,256 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "appName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the Darbot Browser MCP application"
+      }
+    },
+    "location": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]",
+      "metadata": {
+        "description": "Location for all resources"
+      }
+    },
+    "sku": {
+      "type": "string",
+      "defaultValue": "S1",
+      "allowedValues": [
+        "F1",
+        "D1",
+        "B1",
+        "S1",
+        "S2",
+        "S3",
+        "P1",
+        "P2",
+        "P3"
+      ],
+      "metadata": {
+        "description": "SKU for the App Service Plan"
+      }
+    },
+    "dockerImage": {
+      "type": "string",
+      "defaultValue": "darbotlabs/darbot-browser-mcp:latest",
+      "metadata": {
+        "description": "Docker image to deploy"
+      }
+    },
+    "azureTenantId": {
+      "type": "string",
+      "metadata": {
+        "description": "Azure tenant ID for Entra ID authentication"
+      }
+    },
+    "azureClientId": {
+      "type": "string",
+      "metadata": {
+        "description": "Azure client ID for Entra ID authentication"
+      }
+    },
+    "copilotStudioCallbackUrl": {
+      "type": "string",
+      "metadata": {
+        "description": "Copilot Studio OAuth callback URL"
+      }
+    }
+  },
+  "variables": {
+    "appServicePlanName": "[concat(parameters('appName'), '-plan')]",
+    "appServiceName": "[parameters('appName')]",
+    "appInsightsName": "[concat(parameters('appName'), '-insights')]",
+    "keyVaultName": "[concat(parameters('appName'), '-kv')]",
+    "storageAccountName": "[concat(toLower(parameters('appName')), 'storage')]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Web/serverfarms",
+      "apiVersion": "2021-02-01",
+      "name": "[variables('appServicePlanName')]",
+      "location": "[parameters('location')]",
+      "kind": "linux",
+      "properties": {
+        "reserved": true
+      },
+      "sku": {
+        "name": "[parameters('sku')]"
+      }
+    },
+    {
+      "type": "Microsoft.Web/sites",
+      "apiVersion": "2021-02-01",
+      "name": "[variables('appServiceName')]",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]",
+        "[resourceId('Microsoft.Insights/components', variables('appInsightsName'))]",
+        "[resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))]"
+      ],
+      "kind": "app,linux,container",
+      "properties": {
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]",
+        "siteConfig": {
+          "linuxFxVersion": "[concat('DOCKER|', parameters('dockerImage'))]",
+          "alwaysOn": true,
+          "appSettings": [
+            {
+              "name": "WEBSITES_ENABLE_APP_SERVICE_STORAGE",
+              "value": "false"
+            },
+            {
+              "name": "DOCKER_REGISTRY_SERVER_URL",
+              "value": "https://index.docker.io"
+            },
+            {
+              "name": "AZURE_TENANT_ID",
+              "value": "[parameters('azureTenantId')]"
+            },
+            {
+              "name": "AZURE_CLIENT_ID",
+              "value": "[parameters('azureClientId')]"
+            },
+            {
+              "name": "AZURE_CLIENT_SECRET",
+              "value": "[concat('@Microsoft.KeyVault(SecretUri=', reference(resourceId('Microsoft.KeyVault/vaults', variables('keyVaultName'))).vaultUri, 'secrets/azure-client-secret/)')]"
+            },
+            {
+              "name": "COPILOT_STUDIO_ENABLED",
+              "value": "true"
+            },
+            {
+              "name": "COPILOT_STUDIO_CALLBACK_URL",
+              "value": "[parameters('copilotStudioCallbackUrl')]"
+            },
+            {
+              "name": "ENTRA_AUTH_ENABLED",
+              "value": "true"
+            },
+            {
+              "name": "SERVER_BASE_URL",
+              "value": "[concat('https://', variables('appServiceName'), '.azurewebsites.net')]"
+            },
+            {
+              "name": "AUDIT_LOGGING_ENABLED",
+              "value": "true"
+            },
+            {
+              "name": "MAX_CONCURRENT_SESSIONS",
+              "value": "20"
+            },
+            {
+              "name": "SESSION_TIMEOUT_MS",
+              "value": "1800000"
+            },
+            {
+              "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+              "value": "[reference(resourceId('Microsoft.Insights/components', variables('appInsightsName')), '2015-05-01').InstrumentationKey]"
+            },
+            {
+              "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
+              "value": "[reference(resourceId('Microsoft.Insights/components', variables('appInsightsName')), '2015-05-01').ConnectionString]"
+            }
+          ]
+        },
+        "httpsOnly": true
+      }
+    },
+    {
+      "type": "Microsoft.Insights/components",
+      "apiVersion": "2020-02-02",
+      "name": "[variables('appInsightsName')]",
+      "location": "[parameters('location')]",
+      "kind": "web",
+      "properties": {
+        "Application_Type": "web",
+        "WorkspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces', concat(parameters('appName'), '-workspace'))]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.OperationalInsights/workspaces', concat(parameters('appName'), '-workspace'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.OperationalInsights/workspaces",
+      "apiVersion": "2021-06-01",
+      "name": "[concat(parameters('appName'), '-workspace')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "sku": {
+          "name": "PerGB2018"
+        },
+        "retentionInDays": 30
+      }
+    },
+    {
+      "type": "Microsoft.KeyVault/vaults",
+      "apiVersion": "2021-11-01-preview",
+      "name": "[variables('keyVaultName')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "sku": {
+          "family": "A",
+          "name": "standard"
+        },
+        "tenantId": "[subscription().tenantId]",
+        "accessPolicies": [
+          {
+            "tenantId": "[subscription().tenantId]",
+            "objectId": "[reference(resourceId('Microsoft.Web/sites', variables('appServiceName')), '2021-02-01', 'Full').identity.principalId]",
+            "permissions": {
+              "secrets": [
+                "get"
+              ]
+            }
+          }
+        ],
+        "enabledForDeployment": false,
+        "enabledForDiskEncryption": false,
+        "enabledForTemplateDeployment": true,
+        "enableSoftDelete": true,
+        "softDeleteRetentionInDays": 7
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', variables('appServiceName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts",
+      "apiVersion": "2021-09-01",
+      "name": "[variables('storageAccountName')]",
+      "location": "[parameters('location')]",
+      "sku": {
+        "name": "Standard_LRS"
+      },
+      "kind": "StorageV2",
+      "properties": {
+        "supportsHttpsTrafficOnly": true,
+        "minimumTlsVersion": "TLS1_2"
+      }
+    }
+  ],
+  "outputs": {
+    "appServiceUrl": {
+      "type": "string",
+      "value": "[concat('https://', variables('appServiceName'), '.azurewebsites.net')]"
+    },
+    "healthCheckUrl": {
+      "type": "string",
+      "value": "[concat('https://', variables('appServiceName'), '.azurewebsites.net/health')]"
+    },
+    "openApiUrl": {
+      "type": "string",
+      "value": "[concat('https://', variables('appServiceName'), '.azurewebsites.net/openapi.json')]"
+    },
+    "keyVaultName": {
+      "type": "string",
+      "value": "[variables('keyVaultName')]"
+    },
+    "appInsightsName": {
+      "type": "string",
+      "value": "[variables('appInsightsName')]"
+    }
+  ]
+}
