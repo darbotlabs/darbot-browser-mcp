@@ -198,7 +198,11 @@ export function startHttpTransport(httpServer: http.Server, mcpServer: Server) {
       // TODO: Implement REST API endpoints for individual tools
       res.statusCode = 501;
       res.setHeader('Content-Type', 'application/json');
-      res.end(JSON.stringify({ error: 'REST API endpoints not yet implemented' }));
+      res.end(JSON.stringify({
+        error: 'REST API endpoints not yet implemented',
+        message: 'These endpoints are placeholders for future functionality. Planned features include tool-specific operations and data retrieval. Refer to the API documentation for updates.',
+        documentation_url: 'https://example.com/api-docs'
+      }));
       return;
     }
 
