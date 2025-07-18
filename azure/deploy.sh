@@ -79,8 +79,14 @@ if [ -z "$CLIENT_ID" ]; then
         --query "password" -o tsv)
 else
     print_warning "Using provided Client ID: $CLIENT_ID"
-    print_warning "Please ensure client secret is available for deployment"
-    CLIENT_SECRET="PLACEHOLDER_SECRET"
+    if [ -z "$CLIENT_SECRET" ]; then
+        print_error "Client secret is required when using a provided Client ID. Please set it securely."
+        read -p "Enter Client Secret: " CLIENT_SECRET
+        if [ -z "$CLIENT_SECRET" ]; then
+            print_error "Client secret cannot be empty. Exiting deployment."
+            exit 1
+        fi
+    fi
 fi
 
 # Deploy using Bicep template
