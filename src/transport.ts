@@ -173,8 +173,8 @@ export function startHttpTransport(httpServer: http.Server, mcpServer: Server) {
     if (url.pathname === '/openapi.json' || url.pathname === '/swagger.json') {
       try {
         const { createOpenAPIGenerator } = await import('./openapi.js');
-        // For now, provide empty tools array - this will be improved in a future iteration
-        const tools: any[] = [];
+        // Dynamically retrieve tools from the server's tool registry
+        const tools = server.getToolRegistry ? server.getToolRegistry() : [];
         const openApiGenerator = createOpenAPIGenerator(tools);
         openApiGenerator.handleOpenAPISpec(req, res);
       } catch (error) {
