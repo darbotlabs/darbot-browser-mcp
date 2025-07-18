@@ -107,14 +107,24 @@ if pac connector list | grep -q "$CONNECTOR_NAME"; then
             --connector-id "$CONNECTOR_ID" \
             --api-definition-file apiDefinition.swagger.json \
             --api-properties-file apiProperties.json \
-            --icon icon.png 2>/dev/null || true
+            --icon icon.png
+        if [ $? -ne 0 ]; then
+            echo -e "${RED}[ERROR]${NC} Failed to update connector. Please check the logs for details."
+        else
+            print_status "✓ Connector updated successfully"
+        fi
         print_status "✓ Connector updated successfully"
     else
         print_warning "Could not find existing connector. Creating new one..."
         pac connector create \
             --api-definition-file apiDefinition.swagger.json \
             --api-properties-file apiProperties.json \
-            --icon icon.png 2>/dev/null || true
+            --icon icon.png
+        if [ $? -ne 0 ]; then
+            echo -e "${RED}[ERROR]${NC} Failed to create connector. Please check the logs for details."
+        else
+            print_status "✓ Connector created successfully"
+        fi
         print_status "✓ Connector created successfully"
     fi
 else
