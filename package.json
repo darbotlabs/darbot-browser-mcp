@@ -13,7 +13,7 @@
     "browser",
     "autonomous",
     "darbot",
-    "automation", 
+    "automation",
     "testing",
     "screenshot",
     "copilot",
@@ -69,6 +69,7 @@
     "playwright": "1.55.0-alpha-1752540053000",
     "playwright-core": "1.55.0-alpha-1752540053000",
     "ws": "^8.18.1",
+    "zod": "^3.25.76",
     "zod-to-json-schema": "^3.24.4"
   },
   "devDependencies": {
