@@ -31,6 +31,7 @@ import testing from './tools/testing.js';
 import vision from './tools/vision.js';
 import wait from './tools/wait.js';
 import aiNative from './tools/ai-native.js';
+import autonomous from './tools/autonomous.js';
 
 import type { Tool } from './tools/tool.js';
 
@@ -54,6 +55,7 @@ export const snapshotTools: Tool<any>[] = [
   ...testing,
   ...wait(true),
   ...aiNative,
+  ...autonomous,
 ];
 
 export const visionTools: Tool<any>[] = [
@@ -75,4 +77,5 @@ export const visionTools: Tool<any>[] = [
   ...vision,
   ...wait(false),
   ...aiNative,
+  ...autonomous,
 ];

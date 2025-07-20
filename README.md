@@ -17,7 +17,10 @@ A Model Context Protocol (MCP) server that provides intelligent autonomous brows
 - **🧠 AI-friendly** - No vision models needed, operates purely on structured data  
 - **🎯 Deterministic** - Avoids ambiguity common with screenshot-based approaches
 - **🔄 Work Profiles** - Save and restore complete browser sessions
-- **🛠️ 29 Autonomous Tools** - Comprehensive autonomous browser capabilities
+- **🛠️ 31 Autonomous Tools** - Comprehensive autonomous browser capabilities
+- **🤖 Autonomous Crawling** - BFS strategy with memory, guardrails, and reporting
+- **🧠 Memory System** - State tracking and deduplication with darbot-memory-mcp integration
+- **📊 HTML Reports** - Comprehensive crawl reports with screenshots and statistics
 - **⚡ Multi-Platform** - Available as NPM package, VS Code extension, NuGet package, and browser extension
 
 ## 📋 Requirements
@@ -72,7 +75,7 @@ Install the **Browser MCP Bridge** extension from the Chrome Web Store to share 
 | ❌ Browser-specific code | ✅ Universal MCP protocol |
 | ❌ No session management | ✅ Advanced autonomous work profiles |
 
-### 🛠️ Complete Autonomous Toolkit (29 Tools)
+### 🛠️ Complete Autonomous Toolkit (31 Tools)
 
 <details>
 <summary><b>🔧 Core Autonomous Operations</b></summary>
@@ -82,6 +85,16 @@ Install the **Browser MCP Bridge** extension from the Chrome Web Store to share 
 - `browser_type` - Autonomous smart text input with submit options
 - `browser_snapshot` - AI-optimized autonomous accessibility snapshots
 - `browser_wait_for` - Autonomous intelligent waiting conditions
+
+</details>
+
+<details>
+<summary><b>🤖 Autonomous Crawling & Intelligence</b></summary>
+
+- `browser_start_autonomous_crawl` - Start intelligent BFS crawling with memory and reporting
+- `browser_configure_memory` - Configure memory system with darbot-memory-mcp integration
+- Built-in guardrail system for safe autonomous operation
+- Comprehensive HTML reporting with screenshots and statistics
 
 </details>
 
@@ -1001,3 +1014,18 @@ X Y coordinate space, based on the provided screenshot.
 - `/extension/` - Browser extension source
 - `/src/` - Main MCP server source code
 - `/tests/` - Test suite
+
+## 🤖 Autonomous Features
+
+For detailed information about the autonomous crawling capabilities, including memory system, BFS planner, guardrails, and reporting, see [AUTONOMOUS_FEATURES.md](./AUTONOMOUS_FEATURES.md).
+
+**Key Autonomous Capabilities:**
+- Intelligent BFS crawling with memory and state tracking
+- Darbot-memory-mcp integration for persistent memory  
+- Comprehensive guardrail system for safe operation
+- HTML report generation with screenshots and statistics
+- Configurable domain filtering and safety policies
+
+## Contributing
+
+Contributions are welcome! Please see our contributing guidelines and code of conduct.
