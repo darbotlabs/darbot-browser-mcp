@@ -20,7 +20,6 @@ import { BFSPlanner, type PlannerConfig, type CrawlAction, type PlannerObservati
 import { CrawlReporter, type ReporterConfig } from './reporter.js';
 import { GuardrailSystem, type GuardrailConfig, type ActionContext } from './guardrails.js';
 import { Context } from './context.js';
-import type { Tool } from './tools/tool.js';
 
 const log = debug('darbot:orchestrator');
 
@@ -31,12 +30,12 @@ export interface OrchestratorConfig {
   maxDepth?: number;
   maxPages?: number;
   timeoutMs?: number;
-  
+
   memory?: MemoryConfig;
   planner?: Partial<PlannerConfig>;
   reporter?: Partial<ReporterConfig>;
   guardrails?: Partial<GuardrailConfig>;
-  
+
   generateReport?: boolean;
   takeScreenshots?: boolean;
   allowedDomains?: string[];
@@ -66,7 +65,7 @@ export class CrawlOrchestrator {
   private readonly reporter: CrawlReporter;
   private readonly guardrails: GuardrailSystem;
   private readonly context: Context;
-  
+
   private session: CrawlSession;
   private isRunning: boolean = false;
   private shouldStop: boolean = false;
@@ -86,7 +85,7 @@ export class CrawlOrchestrator {
 
     // Initialize subsystems
     this.memory = new MemoryManager(this.config.memory || { enabled: true });
-    
+
     const plannerConfig: PlannerConfig = {
       maxDepth: this.config.maxDepth!,
       maxPages: this.config.maxPages!,
@@ -131,38 +130,38 @@ export class CrawlOrchestrator {
    * Start autonomous crawling session
    */
   async startCrawling(): Promise<CrawlSession> {
-    if (this.isRunning) {
+    if (this.isRunning)
       throw new Error('Crawling session already running');
-    }
+
 
     this.isRunning = true;
     this.shouldStop = false;
 
     try {
       log('Starting autonomous crawling session:', this.session.sessionId);
-      
+
       // Initialize planner with start URL
       await this.planner.initialize(this.config.startUrl);
-      
+
       // Navigate to start URL
       await this.navigateToUrl(this.config.startUrl);
-      
+
       // Main crawling loop
       while (!this.shouldStop && this.isRunning) {
         try {
           const success = await this.performCrawlStep();
-          if (!success) {
+          if (!success)
             break;
-          }
-          
+
+
           // Small delay between actions
           await this.sleep(1000);
-          
+
         } catch (error) {
           log('Error in crawl step:', error);
           this.reporter.addError(this.getCurrentUrl(), String(error));
           this.session.stats.errorsEncountered++;
-          
+
           // Continue with next action after error
           await this.sleep(2000);
         }
@@ -195,38 +194,38 @@ export class CrawlOrchestrator {
     try {
       // Get current page observation
       const observation = await this.getCurrentObservation();
-      
+
       // Plan next action
       const action = await this.planner.planNextAction(observation);
-      
+
       log('Planned action:', action.type, action.target || action.url || action.reason);
-      
+
       // Validate action with guardrails
       const actionContext = this.getActionContext();
       const validation = await this.guardrails.validateAction(action, actionContext);
-      
+
       if (!validation.allowed) {
         log('Action blocked by guardrails:', validation.reason);
         this.reporter.addError(observation.url, `Action blocked: ${validation.reason}`);
         return false;
       }
-      
+
       // Execute action
       const success = await this.executeAction(action);
-      
+
       if (success) {
         this.session.stats.actionsPerformed++;
         this.guardrails.recordAction(action, observation.url);
       }
-      
+
       // Check if we should finish
       if (action.type === 'finish') {
         log('Crawling finished:', action.reason);
         return false;
       }
-      
+
       return success;
-      
+
     } catch (error) {
       log('Error in crawl step:', error);
       throw error;
@@ -238,26 +237,26 @@ export class CrawlOrchestrator {
    */
   private async getCurrentObservation(): Promise<PlannerObservation> {
     const tab = this.context.currentTabOrDie();
-    if (!tab) {
+    if (!tab)
       throw new Error('No active tab available');
-    }
+
 
     const page = tab.page;
     const url = page.url();
-    
+
     // Get page title
     const title = await page.title().catch(() => 'Untitled');
-    
+
     // Get accessibility snapshot
     const snapshot = await page.accessibility.snapshot() || {};
     const domSnapshot = JSON.stringify(snapshot);
-    
+
     // Extract links
     const links = await this.extractLinks(page);
-    
+
     // Extract clickable elements
     const clickableElements = await this.extractClickableElements(page);
-    
+
     return {
       url,
       title,
@@ -275,11 +274,11 @@ export class CrawlOrchestrator {
       return await page.evaluate(() => {
         const links: Array<{ text: string; href: string; selector: string }> = [];
         const anchorElements = document.querySelectorAll('a[href]');
-        
+
         anchorElements.forEach((element, index) => {
           const href = element.getAttribute('href');
           const text = element.textContent?.trim() || '';
-          
+
           if (href && text) {
             links.push({
               text: text.substring(0, 100), // Limit text length
@@ -288,7 +287,7 @@ export class CrawlOrchestrator {
             });
           }
         });
-        
+
         return links.slice(0, 50); // Limit number of links
       });
     } catch (error) {
@@ -306,11 +305,11 @@ export class CrawlOrchestrator {
         const elements: Array<{ text: string; selector: string; tag: string }> = [];
         const clickableSelectors = 'button, input[type="button"], input[type="submit"], [role="button"], .btn, .button';
         const clickableElements = document.querySelectorAll(clickableSelectors);
-        
+
         clickableElements.forEach((element, index) => {
           const text = element.textContent?.trim() || element.getAttribute('value') || element.getAttribute('aria-label') || '';
           const tagName = element.tagName.toLowerCase();
-          
+
           if (text && (element as any).offsetParent !== null) { // Only visible elements
             elements.push({
               text: text.substring(0, 50), // Limit text length
@@ -319,7 +318,7 @@ export class CrawlOrchestrator {
             });
           }
         });
-        
+
         return elements.slice(0, 20); // Limit number of elements
       });
     } catch (error) {
@@ -335,34 +334,34 @@ export class CrawlOrchestrator {
     try {
       switch (action.type) {
         case 'navigate':
-          if (action.url) {
+          if (action.url)
             return await this.navigateToUrl(action.url);
-          }
+
           break;
-          
+
         case 'click':
-          if (action.target) {
+          if (action.target)
             return await this.clickElement(action.target);
-          }
+
           break;
-          
+
         case 'type':
-          if (action.target && action.text) {
+          if (action.target && action.text)
             return await this.typeText(action.target, action.text);
-          }
+
           break;
-          
+
         case 'wait':
           await this.sleep(2000);
           return true;
-          
+
         case 'snapshot':
           return await this.takeSnapshot();
-          
+
         case 'finish':
           return true;
       }
-      
+
       return false;
     } catch (error) {
       log('Error executing action:', error);
@@ -376,35 +375,35 @@ export class CrawlOrchestrator {
   private async navigateToUrl(url: string): Promise<boolean> {
     try {
       const tab = this.context.currentTabOrDie();
-      if (!tab) {
+      if (!tab)
         throw new Error('No active tab available');
-      }
+
 
       log('Navigating to:', url);
-      await tab.page.goto(url, { 
+      await tab.page.goto(url, {
         waitUntil: 'domcontentloaded',
-        timeout: 30000 
+        timeout: 30000
       });
-      
+
       this.session.stats.pagesVisited++;
-      
+
       // Take screenshot if enabled
-      if (this.config.takeScreenshots) {
+      if (this.config.takeScreenshots)
         await this.takeScreenshot();
-      }
-      
+
+
       // Store state in memory
       const observation = await this.getCurrentObservation();
       if (this.memory.enabled) {
         await this.memory.storeState(
-          url,
-          observation.title,
-          observation.domSnapshot,
-          undefined, // Screenshot handled separately
-          observation.links.map(link => link.href)
+            url,
+            observation.title,
+            observation.domSnapshot,
+            undefined, // Screenshot handled separately
+            observation.links.map(link => link.href)
         );
       }
-      
+
       // Add to report
       this.reporter.addState({
         url,
@@ -414,7 +413,7 @@ export class CrawlOrchestrator {
         links: observation.links.map(link => link.href),
         visited: true
       });
-      
+
       return true;
     } catch (error) {
       log('Navigation error:', error);
@@ -429,14 +428,14 @@ export class CrawlOrchestrator {
   private async clickElement(selector: string): Promise<boolean> {
     try {
       const tab = this.context.currentTabOrDie();
-      if (!tab) {
+      if (!tab)
         throw new Error('No active tab available');
-      }
+
 
       log('Clicking element:', selector);
       await tab.page.click(selector, { timeout: 10000 });
       await tab.page.waitForTimeout(2000); // Wait for potential page changes
-      
+
       return true;
     } catch (error) {
       log('Click error:', error);
@@ -450,13 +449,13 @@ export class CrawlOrchestrator {
   private async typeText(selector: string, text: string): Promise<boolean> {
     try {
       const tab = this.context.currentTabOrDie();
-      if (!tab) {
+      if (!tab)
         throw new Error('No active tab available');
-      }
+
 
       log('Typing text into:', selector);
       await tab.page.fill(selector, text);
-      
+
       return true;
     } catch (error) {
       log('Type error:', error);
@@ -470,30 +469,30 @@ export class CrawlOrchestrator {
   private async takeScreenshot(): Promise<boolean> {
     try {
       const tab = this.context.currentTabOrDie();
-      if (!tab) {
+      if (!tab)
         return false;
-      }
 
-      const screenshot = await tab.page.screenshot({ 
+
+      const screenshot = await tab.page.screenshot({
         type: 'png',
-        fullPage: false 
+        fullPage: false
       });
-      
+
       // Store screenshot in memory system
       const url = tab.page.url();
       const title = await tab.page.title().catch(() => 'Untitled');
       const observation = await this.getCurrentObservation();
-      
+
       if (this.memory.enabled) {
         await this.memory.storeState(
-          url,
-          title,
-          observation.domSnapshot,
-          screenshot,
-          observation.links.map(link => link.href)
+            url,
+            title,
+            observation.domSnapshot,
+            screenshot,
+            observation.links.map(link => link.href)
         );
       }
-      
+
       return true;
     } catch (error) {
       log('Screenshot error:', error);
@@ -520,7 +519,7 @@ export class CrawlOrchestrator {
    */
   private getActionContext(): ActionContext {
     const stats = this.planner.getStats();
-    
+
     return {
       currentUrl: this.getCurrentUrl(),
       visitedUrls: stats.visitedUrls || [],
@@ -548,11 +547,11 @@ export class CrawlOrchestrator {
   private async finalizeCrawling(): Promise<void> {
     this.isRunning = false;
     this.session.endTime = Date.now();
-    
-    if (this.session.status === 'running') {
+
+    if (this.session.status === 'running')
       this.session.status = 'completed';
-    }
-    
+
+
     // Generate report if enabled
     if (this.config.generateReport) {
       try {
@@ -563,7 +562,7 @@ export class CrawlOrchestrator {
         log('Error generating report:', error);
       }
     }
-    
+
     log('Crawling session finalized:', this.session);
   }
 

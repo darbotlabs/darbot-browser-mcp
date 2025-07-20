@@ -125,9 +125,9 @@ export class CrawlReporter {
     this.report.stats.duration = this.report.endTime - this.report.startTime;
 
     const reportDir = path.join(this.config.outputDir, this.report.sessionId);
-    if (!fs.existsSync(reportDir)) {
+    if (!fs.existsSync(reportDir))
       fs.mkdirSync(reportDir, { recursive: true });
-    }
+
 
     let reportPath = '';
 
@@ -147,9 +147,9 @@ export class CrawlReporter {
     }
 
     // Copy screenshots to report directory if enabled
-    if (this.config.includeScreenshots) {
+    if (this.config.includeScreenshots)
       await this.copyScreenshots(reportDir);
-    }
+
 
     return reportPath;
   }
@@ -198,26 +198,26 @@ export class CrawlReporter {
    * Generate HTML report content
    */
   private generateHTML(): string {
-    const template = this.config.templatePath ? 
-      this.loadTemplate() : 
+    const template = this.config.templatePath ?
+      this.loadTemplate() :
       this.getDefaultTemplate();
 
     return template
-      .replace('{{SESSION_ID}}', this.report.sessionId)
-      .replace('{{START_URL}}', this.report.startUrl)
-      .replace('{{GOAL}}', this.report.goal || 'Autonomous exploration')
-      .replace('{{START_TIME}}', new Date(this.report.startTime).toISOString())
-      .replace('{{END_TIME}}', new Date(this.report.endTime).toISOString())
-      .replace('{{DURATION}}', this.formatDuration(this.report.stats.duration))
-      .replace('{{PAGES_VISITED}}', this.report.stats.pagesVisited.toString())
-      .replace('{{TOTAL_LINKS}}', this.report.stats.totalLinks.toString())
-      .replace('{{MAX_DEPTH}}', this.report.stats.maxDepth.toString())
-      .replace('{{SCREENSHOTS}}', this.report.stats.screenshots.toString())
-      .replace('{{ERRORS}}', this.report.stats.errors.toString())
-      .replace('{{STATES_TABLE}}', this.generateStatesTable())
-      .replace('{{ERRORS_TABLE}}', this.generateErrorsTable())
-      .replace('{{GRAPH_DATA}}', JSON.stringify(this.report.graph))
-      .replace('{{SCREENSHOT_GALLERY}}', this.generateScreenshotGallery());
+        .replace('{{SESSION_ID}}', this.report.sessionId)
+        .replace('{{START_URL}}', this.report.startUrl)
+        .replace('{{GOAL}}', this.report.goal || 'Autonomous exploration')
+        .replace('{{START_TIME}}', new Date(this.report.startTime).toISOString())
+        .replace('{{END_TIME}}', new Date(this.report.endTime).toISOString())
+        .replace('{{DURATION}}', this.formatDuration(this.report.stats.duration))
+        .replace('{{PAGES_VISITED}}', this.report.stats.pagesVisited.toString())
+        .replace('{{TOTAL_LINKS}}', this.report.stats.totalLinks.toString())
+        .replace('{{MAX_DEPTH}}', this.report.stats.maxDepth.toString())
+        .replace('{{SCREENSHOTS}}', this.report.stats.screenshots.toString())
+        .replace('{{ERRORS}}', this.report.stats.errors.toString())
+        .replace('{{STATES_TABLE}}', this.generateStatesTable())
+        .replace('{{ERRORS_TABLE}}', this.generateErrorsTable())
+        .replace('{{GRAPH_DATA}}', JSON.stringify(this.report.graph))
+        .replace('{{SCREENSHOT_GALLERY}}', this.generateScreenshotGallery());
   }
 
   /**
@@ -412,9 +412,9 @@ export class CrawlReporter {
    * Generate states table HTML
    */
   private generateStatesTable(): string {
-    if (this.report.states.length === 0) {
+    if (this.report.states.length === 0)
       return '<p>No pages visited.</p>';
-    }
+
 
     let html = `<table>
       <thead>
@@ -447,9 +447,9 @@ export class CrawlReporter {
    * Generate errors table HTML
    */
   private generateErrorsTable(): string {
-    if (this.report.errors.length === 0) {
+    if (this.report.errors.length === 0)
       return '<p>No errors encountered during crawling.</p>';
-    }
+
 
     let html = `<table>
       <thead>
@@ -479,13 +479,13 @@ export class CrawlReporter {
    */
   private generateScreenshotGallery(): string {
     const statesWithScreenshots = this.report.states.filter(s => s.screenshot);
-    
-    if (statesWithScreenshots.length === 0) {
+
+    if (statesWithScreenshots.length === 0)
       return '<p>No screenshots available.</p>';
-    }
+
 
     let html = '<div class="screenshot-gallery">';
-    
+
     statesWithScreenshots.forEach(state => {
       const screenshotName = path.basename(state.screenshot!);
       html += `
@@ -498,7 +498,7 @@ export class CrawlReporter {
           </div>
         </div>`;
     });
-    
+
     html += '</div>';
     return html;
   }
@@ -508,9 +508,9 @@ export class CrawlReporter {
    */
   private async copyScreenshots(reportDir: string): Promise<void> {
     const screenshotsDir = path.join(reportDir, 'screenshots');
-    if (!fs.existsSync(screenshotsDir)) {
+    if (!fs.existsSync(screenshotsDir))
       fs.mkdirSync(screenshotsDir, { recursive: true });
-    }
+
 
     for (const state of this.report.states) {
       if (state.screenshot && fs.existsSync(state.screenshot)) {
@@ -529,9 +529,9 @@ export class CrawlReporter {
    * Ensure output directory exists
    */
   private ensureOutputDirectory(): void {
-    if (!fs.existsSync(this.config.outputDir)) {
+    if (!fs.existsSync(this.config.outputDir))
       fs.mkdirSync(this.config.outputDir, { recursive: true });
-    }
+
   }
 
   /**
@@ -542,13 +542,13 @@ export class CrawlReporter {
     const minutes = Math.floor(seconds / 60);
     const hours = Math.floor(minutes / 60);
 
-    if (hours > 0) {
+    if (hours > 0)
       return `${hours}h ${minutes % 60}m ${seconds % 60}s`;
-    } else if (minutes > 0) {
+    else if (minutes > 0)
       return `${minutes}m ${seconds % 60}s`;
-    } else {
+    else
       return `${seconds}s`;
-    }
+
   }
 
   /**

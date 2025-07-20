@@ -56,9 +56,9 @@ export class EntraIDAuthenticator {
     }
 
     const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    if (!authHeader || !authHeader.startsWith('Bearer '))
       return null;
-    }
+
 
     const token = authHeader.substring(7);
     return await this.validateToken(token);
@@ -74,7 +74,7 @@ export class EntraIDAuthenticator {
       // 2. Check token expiration
       // 3. Validate audience and issuer
       // 4. Extract user claims
-      
+
       // For now, return a mock user for development
       // TODO: Implement actual JWT validation using jsonwebtoken or msal-node
       if (token === 'mock-valid-token') {
@@ -88,6 +88,8 @@ export class EntraIDAuthenticator {
 
       return null;
     } catch (error) {
+      // TODO: Replace with proper logging system
+      // eslint-disable-next-line no-console
       console.error('Token validation failed:', error);
       return null;
     }

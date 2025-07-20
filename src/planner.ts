@@ -92,11 +92,11 @@ export class BFSPlanner {
       // Store current state in memory
       if (this.memory.enabled) {
         await this.memory.storeState(
-          observation.url,
-          observation.title,
-          observation.domSnapshot,
-          undefined, // Screenshots handled separately
-          observation.links.map(link => link.href)
+            observation.url,
+            observation.title,
+            observation.domSnapshot,
+            undefined, // Screenshots handled separately
+            observation.links.map(link => link.href)
         );
       }
 
@@ -155,10 +155,10 @@ export class BFSPlanner {
    */
   private async extractAndQueueLinks(observation: PlannerObservation): Promise<void> {
     const currentDepth = this.getCurrentDepth(observation.url);
-    
+
     for (const link of observation.links) {
       const normalizedUrl = this.normalizeUrl(link.href, observation.url);
-      
+
       if (this.shouldVisitUrl(normalizedUrl, currentDepth + 1)) {
         if (!this.visited.has(normalizedUrl) && !this.isQueued(normalizedUrl)) {
           this.visitQueue.push({
@@ -173,7 +173,8 @@ export class BFSPlanner {
 
     // Sort queue by priority (breadth-first)
     this.visitQueue.sort((a, b) => {
-      if (a.depth !== b.depth) return a.depth - b.depth;
+      if (a.depth !== b.depth)
+        return a.depth - b.depth;
       return this.calculatePriority(b.url) - this.calculatePriority(a.url);
     });
   }
@@ -184,9 +185,9 @@ export class BFSPlanner {
   private getNextTarget(): { url: string; depth: number; parent?: string } | null {
     while (this.visitQueue.length > 0) {
       const target = this.visitQueue.shift()!;
-      if (!this.visited.has(target.url) && this.shouldVisitUrl(target.url, target.depth)) {
+      if (!this.visited.has(target.url) && this.shouldVisitUrl(target.url, target.depth))
         return target;
-      }
+
     }
     return null;
   }
@@ -196,8 +197,8 @@ export class BFSPlanner {
    */
   private findBestClickTarget(observation: PlannerObservation): { selector: string; text: string } | null {
     const clickableElements = observation.clickableElements
-      .filter(el => this.isInterestingElement(el))
-      .sort((a, b) => this.calculateElementPriority(b) - this.calculateElementPriority(a));
+        .filter(el => this.isInterestingElement(el))
+        .sort((a, b) => this.calculateElementPriority(b) - this.calculateElementPriority(a));
 
     return clickableElements.length > 0 ? clickableElements[0] : null;
   }
@@ -215,14 +216,14 @@ export class BFSPlanner {
       /advertisement/i, /ad/i, /sponsor/i, /cookie/i, /privacy/i
     ];
 
-    if (avoidPatterns.some(pattern => pattern.test(text))) {
+    if (avoidPatterns.some(pattern => pattern.test(text)))
       return false;
-    }
+
 
     // Prefer buttons and links with meaningful text
-    if (['button', 'a', 'input'].includes(tag) && text.length > 2) {
+    if (['button', 'a', 'input'].includes(tag) && text.length > 2)
       return true;
-    }
+
 
     return false;
   }
@@ -240,18 +241,18 @@ export class BFSPlanner {
       /next/i, /continue/i, /load/i, /see.?all/i
     ];
 
-    if (highPriorityPatterns.some(pattern => pattern.test(text))) {
+    if (highPriorityPatterns.some(pattern => pattern.test(text)))
       priority += 10;
-    }
+
 
     // Medium priority for navigation
     const mediumPriorityPatterns = [
       /menu/i, /navigation/i, /search/i, /filter/i, /category/i
     ];
 
-    if (mediumPriorityPatterns.some(pattern => pattern.test(text))) {
+    if (mediumPriorityPatterns.some(pattern => pattern.test(text)))
       priority += 5;
-    }
+
 
     return priority;
   }
@@ -277,13 +278,13 @@ export class BFSPlanner {
       /terms/i, /privacy/i, /legal/i, /contact/i, /about/i
     ];
 
-    if (highPriorityPatterns.some(pattern => pattern.test(url))) {
+    if (highPriorityPatterns.some(pattern => pattern.test(url)))
       priority += 10;
-    } else if (mediumPriorityPatterns.some(pattern => pattern.test(url))) {
+    else if (mediumPriorityPatterns.some(pattern => pattern.test(url)))
       priority += 5;
-    } else if (lowPriorityPatterns.some(pattern => pattern.test(url))) {
+    else if (lowPriorityPatterns.some(pattern => pattern.test(url)))
       priority -= 5;
-    }
+
 
     return priority;
   }
@@ -292,24 +293,24 @@ export class BFSPlanner {
    * Check if we should visit a URL
    */
   private shouldVisitUrl(url: string, depth: number): boolean {
-    if (depth > this.config.maxDepth) {
+    if (depth > this.config.maxDepth)
       return false;
-    }
 
-    if (this.pagesVisited >= this.config.maxPages) {
+
+    if (this.pagesVisited >= this.config.maxPages)
       return false;
-    }
+
 
     // Check allowed domains
     if (this.config.allowedDomains && this.config.allowedDomains.length > 0) {
       try {
         const urlObj = new URL(url);
-        const allowed = this.config.allowedDomains.some(domain => 
+        const allowed = this.config.allowedDomains.some(domain =>
           urlObj.hostname === domain || urlObj.hostname.endsWith('.' + domain)
         );
-        if (!allowed) {
+        if (!allowed)
           return false;
-        }
+
       } catch {
         return false;
       }
@@ -317,16 +318,16 @@ export class BFSPlanner {
 
     // Check exclude patterns
     if (this.config.excludePatterns) {
-      if (this.config.excludePatterns.some(pattern => pattern.test(url))) {
+      if (this.config.excludePatterns.some(pattern => pattern.test(url)))
         return false;
-      }
+
     }
 
     // Exclude common file types and non-HTML resources
     const fileExtensionPattern = /\.(pdf|doc|docx|xls|xlsx|ppt|pptx|zip|rar|exe|dmg|mp4|mp3|jpg|jpeg|png|gif|svg|css|js|json|xml)$/i;
-    if (fileExtensionPattern.test(url)) {
+    if (fileExtensionPattern.test(url))
       return false;
-    }
+
 
     return true;
   }
@@ -361,13 +362,13 @@ export class BFSPlanner {
    * Check if we should finish crawling
    */
   private shouldFinish(observation: PlannerObservation): boolean {
-    if (this.pagesVisited >= this.config.maxPages) {
+    if (this.pagesVisited >= this.config.maxPages)
       return true;
-    }
 
-    if (this.visitQueue.length === 0 && observation.clickableElements.length === 0) {
+
+    if (this.visitQueue.length === 0 && observation.clickableElements.length === 0)
       return true;
-    }
+
 
     return false;
   }
@@ -376,13 +377,13 @@ export class BFSPlanner {
    * Get reason for finishing
    */
   private getFinishReason(): string {
-    if (this.pagesVisited >= this.config.maxPages) {
+    if (this.pagesVisited >= this.config.maxPages)
       return `Reached maximum page limit (${this.config.maxPages})`;
-    }
 
-    if (this.visitQueue.length === 0) {
+
+    if (this.visitQueue.length === 0)
       return 'No more URLs to visit in the queue';
-    }
+
 
     return 'Crawling complete';
   }

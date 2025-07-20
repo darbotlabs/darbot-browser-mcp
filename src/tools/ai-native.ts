@@ -161,10 +161,6 @@ const browserExecuteWorkflow = defineTool({
   },
 
   handle: async (context, params) => {
-    const currentTab = context.currentTabOrDie();
-    // Session ID used for tracking workflow execution
-    const _sessionId = currentTab.page.url() || 'default';
-
     try {
       // Execute the workflow
       const execution = await workflowEngine.executeWorkflow(context, params.intent, params.parameters);

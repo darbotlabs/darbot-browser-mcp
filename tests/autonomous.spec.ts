@@ -1,5 +1,20 @@
+/**
+ * Copyright (c) Microsoft Corporation.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 import { test, expect } from '@playwright/test';
-import { MemoryManager, LocalMemoryStorage } from '../src/memory';
+import { MemoryManager } from '../src/memory.js';
 
 test.describe('Memory System', () => {
   test('should generate consistent state hashes', async () => {
@@ -17,8 +32,6 @@ test.describe('Memory System', () => {
   });
 
   test('should store and retrieve states', async () => {
-    const storage = new LocalMemoryStorage({ storagePath: '/tmp/test-memory' });
-    
     const url = 'https://example.com';
     const title = 'Example Page';
     const domSnapshot = '<html><body><h1>Test</h1></body></html>';
@@ -41,7 +54,7 @@ test.describe('Memory System', () => {
 
   test('should handle disabled memory gracefully', async () => {
     const memory = new MemoryManager({ enabled: false });
-    
+
     const stateHash = await memory.storeState('http://test.com', 'Test', '<html></html>');
     expect(stateHash).toBe('');
 
@@ -57,21 +70,21 @@ test.describe('Autonomous Tools', () => {
   test('should configure autonomous crawling', async () => {
     // This would test the tool configuration
     // For now, just verify the tool exports exist
-    const { default: autonomousTools } = await import('../src/tools/autonomous');
-    
+    const { default: autonomousTools } = await import('../src/tools/autonomous.js');
+
     expect(autonomousTools).toBeDefined();
     expect(autonomousTools).toHaveLength(2); // browserStartAutonomousCrawl, browserConfigureMemory
-    
+
     const toolNames = autonomousTools.map(tool => tool.schema.name);
     expect(toolNames).toContain('browser_start_autonomous_crawl');
     expect(toolNames).toContain('browser_configure_memory');
   });
 
   test('should validate autonomous crawl parameters', async () => {
-    const { browserStartAutonomousCrawl } = await import('../src/tools/autonomous');
-    
+    const { browserStartAutonomousCrawl } = await import('../src/tools/autonomous.js');
+
     const schema = browserStartAutonomousCrawl.schema.inputSchema;
-    
+
     // Valid parameters
     const validParams = {
       startUrl: 'https://example.com',
@@ -79,16 +92,16 @@ test.describe('Autonomous Tools', () => {
       maxPages: 50,
       memoryEnabled: true
     };
-    
+
     const result = schema.safeParse(validParams);
     expect(result.success).toBe(true);
-    
+
     // Invalid URL
     const invalidParams = {
       startUrl: 'not-a-url',
       maxDepth: 3
     };
-    
+
     const invalidResult = schema.safeParse(invalidParams);
     expect(invalidResult.success).toBe(false);
   });

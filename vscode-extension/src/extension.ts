@@ -39,18 +39,18 @@ class DarbotBrowserMCPProvider implements vscode.McpServerDefinitionProvider {
     const args = [...parts.slice(1)];
 
     // Add browser configuration options
-    if (browser !== 'msedge') {
+    if (browser !== 'msedge')
       args.push('--browser', browser);
-    }
-    if (headless) {
+
+    if (headless)
       args.push('--headless');
-    }
-    if (noSandbox) {
+
+    if (noSandbox)
       args.push('--no-sandbox');
-    }
-    if (logLevel !== 'info') {
+
+    if (logLevel !== 'info')
       args.push('--log-level', logLevel);
-    }
+
 
     return [{
       label: 'Darbot Browser MCP',
@@ -102,7 +102,7 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(startServerCommand, stopServerCommand, restartServerCommand, showStatusCommand);
 
   // Auto-configure MCP server on first activation
-  configureMCPServer();
+  void configureMCPServer();
 
   // Auto-start if configured
   const config = vscode.workspace.getConfiguration('darbot-browser-mcp');
@@ -125,7 +125,7 @@ async function configureMCPServer() {
   // Check if auto-configuration is enabled
   const config = vscode.workspace.getConfiguration('darbot-browser-mcp');
   const autoConfigureMCP = config.get('autoConfigureMCP', true);
-  
+
   if (!autoConfigureMCP) {
     mcpOutputChannel.appendLine('Auto-configuration disabled. Please manually configure MCP settings.');
     return;
@@ -135,14 +135,14 @@ async function configureMCPServer() {
     // Check if MCP is enabled in VS Code settings
     const mcpConfig = vscode.workspace.getConfiguration('chat.mcp');
     const isMcpEnabled = mcpConfig.get('enabled', false);
-    
+
     if (!isMcpEnabled) {
       const enableResult = await vscode.window.showInformationMessage(
-        'Darbot Browser MCP requires the Model Context Protocol (MCP) to be enabled in VS Code. Would you like to enable it now?',
-        'Enable MCP',
-        'Not Now'
+          'Darbot Browser MCP requires the Model Context Protocol (MCP) to be enabled in VS Code. Would you like to enable it now?',
+          'Enable MCP',
+          'Not Now'
       );
-      
+
       if (enableResult === 'Enable MCP') {
         await mcpConfig.update('enabled', true, vscode.ConfigurationTarget.Global);
         mcpOutputChannel.appendLine('MCP enabled in VS Code settings.');
@@ -155,7 +155,7 @@ async function configureMCPServer() {
     // Check if this MCP server is already configured
     const servers = mcpConfig.get('servers', {}) as Record<string, any>;
     const serverName = 'darbot-browser-mcp';
-    
+
     if (!servers[serverName]) {
       // Auto-configure the MCP server with enhanced configuration
       const darbotConfig = vscode.workspace.getConfiguration('darbot-browser-mcp');
@@ -165,20 +165,20 @@ async function configureMCPServer() {
       const logLevel = darbotConfig.get('logLevel', 'info');
 
       const args = ['@darbotlabs/darbot-browser-mcp@latest'];
-      
+
       // Add browser configuration options
-      if (browser !== 'msedge') {
+      if (browser !== 'msedge')
         args.push('--browser', browser);
-      }
-      if (headless) {
+
+      if (headless)
         args.push('--headless');
-      }
-      if (noSandbox) {
+
+      if (noSandbox)
         args.push('--no-sandbox');
-      }
-      if (logLevel !== 'info') {
+
+      if (logLevel !== 'info')
         args.push('--log-level', logLevel);
-      }
+
 
       const serverConfig = {
         command: 'npx',
@@ -187,15 +187,15 @@ async function configureMCPServer() {
           NODE_ENV: 'production'
         }
       };
-      
+
       servers[serverName] = serverConfig;
       await mcpConfig.update('servers', servers, vscode.ConfigurationTarget.Global);
-      
+
       mcpOutputChannel.appendLine('Darbot Browser MCP server configured automatically for GitHub Copilot agent mode.');
       mcpOutputChannel.appendLine(`Server name: ${serverName}`);
       mcpOutputChannel.appendLine(`Command: ${serverConfig.command} ${serverConfig.args.join(' ')}`);
       mcpOutputChannel.appendLine('This server will be available as a selectable tool in GitHub Copilot agent mode.');
-      
+
       // Also try to configure the GitHub Copilot Chat MCP settings if available
       try {
         const copilotConfig = vscode.workspace.getConfiguration('github.copilot.chat.mcp');
@@ -210,14 +210,14 @@ async function configureMCPServer() {
       } catch (copilotError) {
         mcpOutputChannel.appendLine(`GitHub Copilot Chat MCP configuration not available: ${copilotError}`);
       }
-      
+
       const restartResult = await vscode.window.showInformationMessage(
-        'Darbot Browser MCP has been configured for GitHub Copilot agent mode! Please restart VS Code to complete the setup, or use the Command Palette to start the server.',
-        'Restart VS Code',
-        'Start Server Now',
-        'Show Configuration'
+          'Darbot Browser MCP has been configured for GitHub Copilot agent mode! Please restart VS Code to complete the setup, or use the Command Palette to start the server.',
+          'Restart VS Code',
+          'Start Server Now',
+          'Show Configuration'
       );
-      
+
       if (restartResult === 'Restart VS Code') {
         await vscode.commands.executeCommand('workbench.action.reloadWindow');
       } else if (restartResult === 'Start Server Now') {
@@ -270,6 +270,7 @@ async function startServer() {
     // Display configuration to user
     const configDetails = `Browser: ${browser}, Headless: ${headless}, No Sandbox: ${noSandbox}`;
     // Log configuration for debugging
+    // eslint-disable-next-line no-console
     console.debug(configDetails); // Log to debugging output
 
     mcpServerProcess = spawn(command, args, {
