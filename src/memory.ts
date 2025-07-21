@@ -61,9 +61,9 @@ export class LocalMemoryStorage implements MemoryStorage {
   }
 
   private ensureStorageDirectory() {
-    if (!fs.existsSync(this.storagePath)) {
+    if (!fs.existsSync(this.storagePath))
       fs.mkdirSync(this.storagePath, { recursive: true });
-    }
+
   }
 
   private getStatePath(stateHash: string): string {
@@ -75,7 +75,7 @@ export class LocalMemoryStorage implements MemoryStorage {
       const statePath = this.getStatePath(state.stateHash);
       await fs.promises.writeFile(statePath, JSON.stringify(state, null, 2));
       log('Stored state:', state.stateHash, state.url);
-      
+
       // Clean up old states if we exceed the limit
       await this.cleanupOldStates();
     } catch (error) {
@@ -87,9 +87,9 @@ export class LocalMemoryStorage implements MemoryStorage {
   async getState(stateHash: string): Promise<CrawlState | null> {
     try {
       const statePath = this.getStatePath(stateHash);
-      if (!fs.existsSync(statePath)) {
+      if (!fs.existsSync(statePath))
         return null;
-      }
+
       const data = await fs.promises.readFile(statePath, 'utf-8');
       return JSON.parse(data);
     } catch (error) {
@@ -107,7 +107,7 @@ export class LocalMemoryStorage implements MemoryStorage {
     try {
       const files = await fs.promises.readdir(this.storagePath);
       const states: CrawlState[] = [];
-      
+
       for (const file of files) {
         if (file.endsWith('.json')) {
           const filePath = path.join(this.storagePath, file);
@@ -119,7 +119,7 @@ export class LocalMemoryStorage implements MemoryStorage {
           }
         }
       }
-      
+
       return states.sort((a, b) => a.timestamp - b.timestamp);
     } catch (error) {
       log('Error reading states:', error);
@@ -131,15 +131,15 @@ export class LocalMemoryStorage implements MemoryStorage {
     const states = await this.getAllStates();
     const visited = new Set(states.filter(s => s.visited).map(s => s.url));
     const allLinks = new Set<string>();
-    
+
     states.forEach(state => {
       state.links.forEach(link => {
-        if (!visited.has(link)) {
+        if (!visited.has(link))
           allLinks.add(link);
-        }
+
       });
     });
-    
+
     return Array.from(allLinks);
   }
 
@@ -147,9 +147,9 @@ export class LocalMemoryStorage implements MemoryStorage {
     try {
       const files = await fs.promises.readdir(this.storagePath);
       await Promise.all(
-        files.map(file => 
-          fs.promises.unlink(path.join(this.storagePath, file))
-        )
+          files.map(file =>
+            fs.promises.unlink(path.join(this.storagePath, file))
+          )
       );
       log('Cleared memory storage');
     } catch (error) {
@@ -160,16 +160,16 @@ export class LocalMemoryStorage implements MemoryStorage {
 
   private async cleanupOldStates(): Promise<void> {
     const states = await this.getAllStates();
-    if (states.length <= this.maxStates) {
+    if (states.length <= this.maxStates)
       return;
-    }
+
 
     // Remove oldest states
     const toRemove = states.slice(0, states.length - this.maxStates);
     await Promise.all(
-      toRemove.map(state =>
-        fs.promises.unlink(this.getStatePath(state.stateHash)).catch(() => {})
-      )
+        toRemove.map(state =>
+          fs.promises.unlink(this.getStatePath(state.stateHash)).catch(() => {})
+        )
     );
     log(`Cleaned up ${toRemove.length} old states`);
   }
@@ -224,7 +224,7 @@ export class MemoryManager {
 
   constructor(config: MemoryConfig = { enabled: true }) {
     this.config = config;
-    
+
     if (!config.enabled) {
       this.storage = new LocalMemoryStorage(); // Dummy storage that won't be used
       return;
@@ -236,17 +236,17 @@ export class MemoryManager {
           this.storage = new DarbotMemoryStorage();
         } catch (error) {
           log('Failed to initialize darbot-memory-mcp connector, falling back to local storage:', error);
-          this.storage = new LocalMemoryStorage({ 
+          this.storage = new LocalMemoryStorage({
             storagePath: config.storagePath,
-            maxStates: config.maxStates 
+            maxStates: config.maxStates
           });
         }
         break;
       case 'local':
       default:
-        this.storage = new LocalMemoryStorage({ 
+        this.storage = new LocalMemoryStorage({
           storagePath: config.storagePath,
-          maxStates: config.maxStates 
+          maxStates: config.maxStates
         });
         break;
     }
@@ -263,15 +263,15 @@ export class MemoryManager {
    * Store a crawl state with screenshot
    */
   async storeState(
-    url: string, 
-    title: string, 
-    domSnapshot: string, 
+    url: string,
+    title: string,
+    domSnapshot: string,
     screenshot?: Buffer,
     links: string[] = []
   ): Promise<string> {
-    if (!this.config.enabled) {
+    if (!this.config.enabled)
       return '';
-    }
+
 
     const stateHash = MemoryManager.stateHash(domSnapshot);
     let screenshotPath: string | undefined;
@@ -279,9 +279,9 @@ export class MemoryManager {
     // Save screenshot if provided
     if (screenshot) {
       const screenshotDir = path.join(process.cwd(), '.darbot', 'screenshots');
-      if (!fs.existsSync(screenshotDir)) {
+      if (!fs.existsSync(screenshotDir))
         fs.mkdirSync(screenshotDir, { recursive: true });
-      }
+
       screenshotPath = path.join(screenshotDir, `${stateHash}.png`);
       await fs.promises.writeFile(screenshotPath, screenshot);
     }
@@ -304,9 +304,9 @@ export class MemoryManager {
    * Check if we've seen this state before
    */
   async hasState(domSnapshot: string): Promise<boolean> {
-    if (!this.config.enabled) {
+    if (!this.config.enabled)
       return false;
-    }
+
 
     const stateHash = MemoryManager.stateHash(domSnapshot);
     return await this.storage.hasState(stateHash);
@@ -316,9 +316,9 @@ export class MemoryManager {
    * Get a stored state by hash
    */
   async getState(stateHash: string): Promise<CrawlState | null> {
-    if (!this.config.enabled) {
+    if (!this.config.enabled)
       return null;
-    }
+
 
     return await this.storage.getState(stateHash);
   }
@@ -327,9 +327,9 @@ export class MemoryManager {
    * Get all stored states
    */
   async getAllStates(): Promise<CrawlState[]> {
-    if (!this.config.enabled) {
+    if (!this.config.enabled)
       return [];
-    }
+
 
     return await this.storage.getAllStates();
   }
@@ -338,9 +338,9 @@ export class MemoryManager {
    * Get unvisited links for BFS crawling
    */
   async getUnvisitedLinks(): Promise<string[]> {
-    if (!this.config.enabled) {
+    if (!this.config.enabled)
       return [];
-    }
+
 
     return await this.storage.getUnvisitedLinks();
   }
@@ -349,9 +349,9 @@ export class MemoryManager {
    * Clear all stored states
    */
   async clear(): Promise<void> {
-    if (!this.config.enabled) {
+    if (!this.config.enabled)
       return;
-    }
+
 
     await this.storage.clear();
   }

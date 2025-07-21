@@ -113,10 +113,10 @@ export async function startHttpServer(config: { host?: string, port?: number }):
 export function startHttpTransport(httpServer: http.Server, mcpServer: Server) {
   const sseSessions = new Map<string, SSEServerTransport>();
   const streamableSessions = new Map<string, StreamableHTTPServerTransport>();
-  
+
   httpServer.on('request', async (req, res) => {
     const url = new URL(`http://localhost${req.url}`);
-    
+
     // Handle CORS preflight requests
     if (req.method === 'OPTIONS') {
       res.setHeader('Access-Control-Allow-Origin', '*');
@@ -210,7 +210,7 @@ export function startHttpTransport(httpServer: http.Server, mcpServer: Server) {
     // Default SSE endpoint
     await handleSSE(mcpServer, req, res, url, sseSessions);
   });
-  
+
   const url = httpAddressToString(httpServer.address());
   const message = [
     `Darbot Browser MCP Server listening on ${url}`,

@@ -87,8 +87,8 @@ export class HealthCheckService {
   async handleHealthCheck(req: IncomingMessage, res: ServerResponse) {
     try {
       const health = await this.runChecks();
-      const statusCode = health.status === 'healthy' ? 200 : 
-                        health.status === 'degraded' ? 200 : 503;
+      const statusCode = health.status === 'healthy' ? 200 :
+        health.status === 'degraded' ? 200 : 503;
 
       res.statusCode = statusCode;
       res.setHeader('Content-Type', 'application/json');
@@ -143,7 +143,7 @@ export class HealthCheckService {
       const memUsage = process.memoryUsage();
       const heapUsedMB = Math.round(memUsage.heapUsed / 1024 / 1024);
       const heapTotalMB = Math.round(memUsage.heapTotal / 1024 / 1024);
-      
+
       // Warn if heap usage > 80%
       const usagePercent = (heapUsedMB / heapTotalMB) * 100;
       const status = usagePercent > 90 ? 'fail' : usagePercent > 80 ? 'warn' : 'pass';
@@ -193,8 +193,10 @@ export class HealthCheckService {
     const hasFailures = checks.some(check => check.status === 'fail');
     const hasWarnings = checks.some(check => check.status === 'warn');
 
-    if (hasFailures) return 'unhealthy';
-    if (hasWarnings) return 'degraded';
+    if (hasFailures)
+      return 'unhealthy';
+    if (hasWarnings)
+      return 'degraded';
     return 'healthy';
   }
 }

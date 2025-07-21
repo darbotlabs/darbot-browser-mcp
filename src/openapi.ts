@@ -361,10 +361,10 @@ export class OpenAPIGenerator {
 
   private generateTags(): Array<{ name: string; description: string }> {
     const categories = new Set<string>();
-    
-    for (const tool of this.tools) {
+
+    for (const tool of this.tools)
       categories.add(this.getToolCategory(tool));
-    }
+
 
     const tags = [
       { name: 'Health', description: 'Health check and monitoring endpoints' },
@@ -384,38 +384,38 @@ export class OpenAPIGenerator {
   private getToolCategory(tool: Tool<any>): string {
     // Categorize tools based on their names
     const name = tool.schema.name.toLowerCase();
-    
-    if (name.includes('navigate') || name.includes('goto') || name.includes('url')) {
+
+    if (name.includes('navigate') || name.includes('goto') || name.includes('url'))
       return 'Navigation';
-    }
-    if (name.includes('click') || name.includes('type') || name.includes('drag') || name.includes('hover')) {
+
+    if (name.includes('click') || name.includes('type') || name.includes('drag') || name.includes('hover'))
       return 'Interaction';
-    }
-    if (name.includes('screenshot') || name.includes('snapshot') || name.includes('pdf')) {
+
+    if (name.includes('screenshot') || name.includes('snapshot') || name.includes('pdf'))
       return 'Capture';
-    }
-    if (name.includes('tab') || name.includes('window')) {
+
+    if (name.includes('tab') || name.includes('window'))
       return 'Tabs';
-    }
-    if (name.includes('profile') || name.includes('session')) {
+
+    if (name.includes('profile') || name.includes('session'))
       return 'Profiles';
-    }
-    if (name.includes('wait') || name.includes('expect')) {
+
+    if (name.includes('wait') || name.includes('expect'))
       return 'Wait';
-    }
-    if (name.includes('test') || name.includes('assert')) {
+
+    if (name.includes('test') || name.includes('assert'))
       return 'Testing';
-    }
-    if (name.includes('network') || name.includes('request')) {
+
+    if (name.includes('network') || name.includes('request'))
       return 'Network';
-    }
-    if (name.includes('console') || name.includes('log')) {
+
+    if (name.includes('console') || name.includes('log'))
       return 'Console';
-    }
-    if (name.includes('file') || name.includes('upload') || name.includes('download')) {
+
+    if (name.includes('file') || name.includes('upload') || name.includes('download'))
       return 'Files';
-    }
-    
+
+
     return 'General';
   }
 

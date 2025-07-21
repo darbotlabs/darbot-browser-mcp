@@ -96,8 +96,8 @@ const defaultConfig: FullConfig = {
   copilotStudio: {
     enabled: process.env.COPILOT_STUDIO_ENABLED === 'true',
     callbackUrl: process.env.COPILOT_STUDIO_CALLBACK_URL,
-    maxConcurrentSessions: parseInt(process.env.MAX_CONCURRENT_SESSIONS || '10'),
-    sessionTimeoutMs: parseInt(process.env.SESSION_TIMEOUT_MS || '1800000'), // 30 minutes
+    maxConcurrentSessions: parseInt(process.env.MAX_CONCURRENT_SESSIONS || '10', 10),
+    sessionTimeoutMs: parseInt(process.env.SESSION_TIMEOUT_MS || '1800000', 10), // 30 minutes
     auditLogging: process.env.AUDIT_LOGGING_ENABLED === 'true'
   },
   auth: {

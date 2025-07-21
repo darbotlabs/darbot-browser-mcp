@@ -98,8 +98,8 @@ export class GuardrailSystem {
     };
 
     this.rateLimiter = new RateLimiter(
-      this.config.rateLimit.requestsPerSecond,
-      this.config.rateLimit.burstSize
+        this.config.rateLimit.requestsPerSecond,
+        this.config.rateLimit.burstSize
     );
   }
 
@@ -152,20 +152,20 @@ export class GuardrailSystem {
    * Validate navigation actions
    */
   private validateNavigation(action: CrawlAction, context: ActionContext): ValidationResult {
-    if (!action.url) {
+    if (!action.url)
       return { allowed: false, reason: 'Navigation action missing URL' };
-    }
+
 
     // URL safety checks
     const urlCheck = this.validateUrl(action.url);
-    if (!urlCheck.allowed) {
+    if (!urlCheck.allowed)
       return urlCheck;
-    }
+
 
     // Domain count check
     const domain = this.extractDomain(action.url);
     const domainCount = this.domainCounts.get(domain) || 0;
-    
+
     if (domainCount >= this.config.maxPagesPerDomain) {
       return {
         allowed: false,
@@ -176,9 +176,9 @@ export class GuardrailSystem {
     // Infinite loop prevention
     if (this.config.safetyChecks.preventInfiniteLoops) {
       const loopCheck = this.detectInfiniteLoop(action, context);
-      if (!loopCheck.allowed) {
+      if (!loopCheck.allowed)
         return loopCheck;
-      }
+
     }
 
     // Update domain count
@@ -191,16 +191,16 @@ export class GuardrailSystem {
    * Validate click actions
    */
   private validateClick(action: CrawlAction, context: ActionContext): ValidationResult {
-    if (!action.target) {
+    if (!action.target)
       return { allowed: false, reason: 'Click action missing target selector' };
-    }
+
 
     // Check for potentially destructive actions
     if (this.config.safetyChecks.preventDestructiveActions) {
       const destructiveCheck = this.checkDestructiveClick(action);
-      if (!destructiveCheck.allowed) {
+      if (!destructiveCheck.allowed)
         return destructiveCheck;
-      }
+
     }
 
     return { allowed: true };
@@ -210,9 +210,9 @@ export class GuardrailSystem {
    * Validate type actions
    */
   private validateType(action: CrawlAction, context: ActionContext): ValidationResult {
-    if (!action.text) {
+    if (!action.text)
       return { allowed: false, reason: 'Type action missing text' };
-    }
+
 
     // Prevent sensitive data input
     const sensitivePatterns = [
@@ -226,7 +226,7 @@ export class GuardrailSystem {
       /token/i
     ];
 
-    const containsSensitive = sensitivePatterns.some(pattern => 
+    const containsSensitive = sensitivePatterns.some(pattern =>
       pattern.test(action.text!) || pattern.test(action.target || '')
     );
 
@@ -260,7 +260,7 @@ export class GuardrailSystem {
         const isAllowed = this.config.allowedDomains.some(domain =>
           urlObj.hostname === domain || urlObj.hostname.endsWith('.' + domain)
         );
-        
+
         if (!isAllowed) {
           return {
             allowed: false,
@@ -274,7 +274,7 @@ export class GuardrailSystem {
         const isBlocked = this.config.blockedDomains.some(domain =>
           urlObj.hostname === domain || urlObj.hostname.endsWith('.' + domain)
         );
-        
+
         if (isBlocked) {
           return {
             allowed: false,
@@ -308,14 +308,14 @@ export class GuardrailSystem {
    * Detect infinite loop patterns
    */
   private detectInfiniteLoop(action: CrawlAction, context: ActionContext): ValidationResult {
-    if (action.type !== 'navigate' || !action.url) {
+    if (action.type !== 'navigate' || !action.url)
       return { allowed: true };
-    }
+
 
     // Check if we've visited this URL recently
     const recentActions = this.actionHistory
-      .filter(h => Date.now() - h.timestamp < 60000) // Last minute
-      .filter(h => h.action.type === 'navigate' && h.action.url === action.url);
+        .filter(h => Date.now() - h.timestamp < 60000) // Last minute
+        .filter(h => h.action.type === 'navigate' && h.action.url === action.url);
 
     if (recentActions.length >= 3) {
       return {
@@ -326,19 +326,19 @@ export class GuardrailSystem {
 
     // Check for back-and-forth patterns
     const lastFewActions = this.actionHistory.slice(-6)
-      .filter(h => h.action.type === 'navigate')
-      .map(h => h.action.url);
+        .filter(h => h.action.type === 'navigate')
+        .map(h => h.action.url);
 
     if (lastFewActions.length >= 4) {
       const pattern = [lastFewActions[0], lastFewActions[1]];
       let patternCount = 0;
-      
+
       for (let i = 0; i < lastFewActions.length - 1; i += 2) {
-        if (lastFewActions[i] === pattern[0] && lastFewActions[i + 1] === pattern[1]) {
+        if (lastFewActions[i] === pattern[0] && lastFewActions[i + 1] === pattern[1])
           patternCount++;
-        }
+
       }
-      
+
       if (patternCount >= 2) {
         return {
           allowed: false,
@@ -354,9 +354,9 @@ export class GuardrailSystem {
    * Check for potentially destructive click actions
    */
   private checkDestructiveClick(action: CrawlAction): ValidationResult {
-    if (!action.target) {
+    if (!action.target)
       return { allowed: true };
-    }
+
 
     const destructivePatterns = [
       /delete/i,
@@ -399,9 +399,9 @@ export class GuardrailSystem {
 
     // Keep only recent history
     const cutoff = Date.now() - 3600000; // 1 hour
-    while (this.actionHistory.length > 0 && this.actionHistory[0].timestamp < cutoff) {
+    while (this.actionHistory.length > 0 && this.actionHistory[0].timestamp < cutoff)
       this.actionHistory.shift();
-    }
+
   }
 
   /**
@@ -462,12 +462,12 @@ class RateLimiter {
 
   allowRequest(): boolean {
     this.refillTokens();
-    
+
     if (this.tokens >= 1) {
       this.tokens -= 1;
       return true;
     }
-    
+
     return false;
   }
 
@@ -475,7 +475,7 @@ class RateLimiter {
     const now = Date.now();
     const timePassed = (now - this.lastRefill) / 1000;
     const tokensToAdd = timePassed * this.refillRate;
-    
+
     this.tokens = Math.min(this.maxTokens, this.tokens + tokensToAdd);
     this.lastRefill = now;
   }
