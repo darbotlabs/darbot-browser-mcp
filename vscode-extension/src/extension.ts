@@ -25,7 +25,7 @@ let mcpOutputChannel: vscode.OutputChannel;
  * This class provides the server configuration for VS Code's MCP infrastructure
  */
 class DarbotBrowserMCPProvider implements vscode.McpServerDefinitionProvider {
-  async provideMcpServerDefinitions(): Promise<vscode.McpServerDefinition[]> {
+  async provideMcpServerDefinitions(): Promise<vscode.McpStdioServerDefinition[]> {
     const config = vscode.workspace.getConfiguration('darbot-browser-mcp');
     const serverPath = config.get('serverPath', 'npx @darbotlabs/darbot-browser-mcp@latest');
     const browser = config.get('browser', 'msedge');
@@ -51,16 +51,19 @@ class DarbotBrowserMCPProvider implements vscode.McpServerDefinitionProvider {
     if (logLevel !== 'info')
       args.push('--log-level', logLevel);
 
+    const env = {
+      // Ensure NODE_ENV is set for proper operation
+      NODE_ENV: process.env.NODE_ENV || 'production'
+    };
 
-    return [{
-      label: 'Darbot Browser MCP',
-      command,
-      args,
-      env: {
-        // Ensure NODE_ENV is set for proper operation
-        NODE_ENV: process.env.NODE_ENV || 'production'
-      }
-    }];
+    return [
+      new vscode.McpStdioServerDefinition(
+        'Darbot Browser MCP',
+        command,
+        args,
+        env
+      )
+    ];
   }
 }
 
@@ -77,20 +80,25 @@ export function activate(context: vscode.ExtensionContext) {
   statusBarItem.show();
   context.subscriptions.push(statusBarItem);
 
-  // Register MCP Server Definition Provider for GitHub Copilot agent mode
+  // Register MCP Server Definition Provider for GitHub Copilot agent mode (VS Code 1.96.0+)
+  // This is the new, preferred method for MCP server registration
+  let useLegacyConfig = true;
   try {
     const mcpProvider = new DarbotBrowserMCPProvider();
-    // Try to register the MCP provider - this may not be available in all VS Code versions
-    const mcpApi = (vscode as any).mcp;
-    if (mcpApi && typeof mcpApi.registerMcpServerDefinitionProvider === 'function') {
-      const mcpProviderDisposable = mcpApi.registerMcpServerDefinitionProvider('darbot-browser-mcp', mcpProvider);
+    // Register using the proper VS Code LM API
+    if (vscode.lm && typeof vscode.lm.registerMcpServerDefinitionProvider === 'function') {
+      const mcpProviderDisposable = vscode.lm.registerMcpServerDefinitionProvider('darbot-browser-mcp', mcpProvider);
       context.subscriptions.push(mcpProviderDisposable);
-      mcpOutputChannel.appendLine('MCP Server Definition Provider registered for GitHub Copilot agent mode.');
+      mcpOutputChannel.appendLine('✓ MCP Server Definition Provider registered successfully.');
+      mcpOutputChannel.appendLine('The server will appear in the MCP servers list in VS Code.');
+      useLegacyConfig = false; // New API available, skip legacy configuration
     } else {
-      mcpOutputChannel.appendLine('MCP Server Definition Provider API not available in this VS Code version. Using fallback configuration.');
+      mcpOutputChannel.appendLine('⚠ MCP Server Definition Provider API not available in this VS Code version.');
+      mcpOutputChannel.appendLine('Falling back to legacy configuration method.');
     }
   } catch (error) {
-    mcpOutputChannel.appendLine(`Failed to register MCP Server Definition Provider: ${error}. Using fallback configuration.`);
+    mcpOutputChannel.appendLine(`✗ Failed to register MCP Server Definition Provider: ${error}`);
+    mcpOutputChannel.appendLine('Falling back to legacy configuration method.');
   }
 
   // Register commands
@@ -101,8 +109,12 @@ export function activate(context: vscode.ExtensionContext) {
 
   context.subscriptions.push(startServerCommand, stopServerCommand, restartServerCommand, showStatusCommand);
 
-  // Auto-configure MCP server on first activation
-  void configureMCPServer();
+  // Use legacy configuration for older VS Code versions, new API for 1.96.0+
+  if (useLegacyConfig) {
+    void configureMCPServer();
+  } else {
+    void showWelcomeMessage();
+  }
 
   // Auto-start if configured
   const config = vscode.workspace.getConfiguration('darbot-browser-mcp');
@@ -121,6 +133,8 @@ export function deactivate() {
     mcpOutputChannel.dispose();
 }
 
+// Legacy configuration function for VS Code versions < 1.96.0
+// This writes directly to the chat.mcp configuration namespace
 async function configureMCPServer() {
   // Check if auto-configuration is enabled
   const config = vscode.workspace.getConfiguration('darbot-browser-mcp');
@@ -233,6 +247,45 @@ async function configureMCPServer() {
   } catch (error) {
     mcpOutputChannel.appendLine(`Error configuring MCP server: ${error}`);
     void vscode.window.showErrorMessage(`Failed to configure Darbot Browser MCP: ${error}`);
+  }
+}
+
+// New welcome message for VS Code 1.96.0+ using McpServerDefinitionProvider
+async function showWelcomeMessage() {
+  // Check if this is the first activation
+  const config = vscode.workspace.getConfiguration('darbot-browser-mcp');
+  const hasShownWelcome = config.get('hasShownWelcome', false);
+
+  if (!hasShownWelcome) {
+    mcpOutputChannel.appendLine('🤖 Welcome to Darbot Browser MCP!');
+    mcpOutputChannel.appendLine('');
+    mcpOutputChannel.appendLine('The MCP server has been automatically registered with VS Code.');
+    mcpOutputChannel.appendLine('You can now use it with GitHub Copilot by selecting it from the MCP servers list.');
+    mcpOutputChannel.appendLine('');
+    mcpOutputChannel.appendLine('To get started:');
+    mcpOutputChannel.appendLine('1. Open GitHub Copilot Chat');
+    mcpOutputChannel.appendLine('2. Look for "Darbot Browser MCP" in the MCP servers');
+    mcpOutputChannel.appendLine('3. Try asking: "Take a screenshot of example.com"');
+    mcpOutputChannel.appendLine('');
+    mcpOutputChannel.appendLine('Need help? Check the README or visit:');
+    mcpOutputChannel.appendLine('https://github.com/darbotlabs/darbot-browser-mcp');
+    mcpOutputChannel.show(true);
+
+    const result = await vscode.window.showInformationMessage(
+      '🤖 Darbot Browser MCP is ready! The server is now available in your MCP servers list.',
+      'Show Output',
+      'Open Settings',
+      'Got It'
+    );
+
+    if (result === 'Show Output') {
+      mcpOutputChannel.show();
+    } else if (result === 'Open Settings') {
+      await vscode.commands.executeCommand('workbench.action.openSettings', 'darbot-browser-mcp');
+    }
+
+    // Mark that we've shown the welcome message
+    await config.update('hasShownWelcome', true, vscode.ConfigurationTarget.Global);
   }
 }
 
