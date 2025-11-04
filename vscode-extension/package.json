@@ -92,7 +92,8 @@
         "darbot-browser-mcp.autoConfigureMCP": {
           "type": "boolean",
           "default": true,
-          "description": "Automatically configure MCP settings when the extension is first activated"
+          "description": "Automatically configure MCP settings when the extension is first activated. Note: In VS Code 1.96.0+, MCP server registration is handled automatically via the McpServerDefinitionProvider API and this setting is not required.",
+          "deprecationMessage": "In VS Code 1.96.0+, this setting is no longer required. MCP server registration is handled automatically via the McpServerDefinitionProvider API."
         },
         "darbot-browser-mcp.logLevel": {
           "type": "string",
