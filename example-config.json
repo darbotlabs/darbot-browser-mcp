@@ -1,0 +1,36 @@
+{
+  "browser": {
+    "browserName": "chromium",
+    "isolated": false,
+    "userDataDir": "./browser-profiles",
+    "launchOptions": {
+      "channel": "msedge",
+      "headless": false,
+      "executablePath": null
+    },
+    "contextOptions": {
+      "viewport": { "width": 1920, "height": 1080 }
+    }
+  },
+  "server": {
+    "port": 8931,
+    "host": "localhost"
+  },
+  "capabilities": [
+    "core",
+    "tabs", 
+    "pdf",
+    "history",
+    "wait",
+    "files",
+    "install",
+    "testing"
+  ],
+  "vision": false,
+  "outputDir": "./output",
+  "network": {
+    "allowedOrigins": ["https://*"],
+    "blockedOrigins": ["http://malicious-site.com"]
+  },
+  "noImageResponses": false
+}
