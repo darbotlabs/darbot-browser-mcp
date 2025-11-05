@@ -2,7 +2,7 @@
 
 ## 🚀 Introduction to LowCodeAgents
 
-**LowCodeAgents** is a revolutionary approach to browser automation that eliminates the need for complex coding. By combining GitHub Copilot's natural language understanding with darbot-browser-mcp's powerful automation tools, you can create sophisticated web workflows using simple conversational instructions.
+**NoCodeAgent** (NCA) is a new framework focused on making browser usage more autonomous and conversational. For Darbot Browser MCP, we are combining GitHub Copilot's natural language understanding with standard browser automation tools. NCA aims to enable browsers to act as intelligent agents—capable of understanding intent, making decisions, and carrying out complex tasks through natural, interactive dialogue.
 
 ## 🎯 Core Philosophy
 

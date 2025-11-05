@@ -15,3 +15,5 @@ vscode-extension/node_modules/
 dotnet/*/bin/
 dotnet/*/obj/
 *.nupkg
+
+.fake

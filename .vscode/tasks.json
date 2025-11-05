@@ -1,0 +1,13 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "shell",
+			"label": "Start Darbot Browser MCP (Edge, Headed)",
+			"command": "npx",
+			"args": ["@darbotlabs/darbot-browser-mcp@latest", "--browser=msedge"],
+			"isBackground": true,
+			"group": "build"
+		}
+	]
+}
