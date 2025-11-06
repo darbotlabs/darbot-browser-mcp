@@ -27,20 +27,27 @@ let mcpOutputChannel: vscode.OutputChannel;
 class DarbotBrowserMCPProvider implements vscode.McpServerDefinitionProvider {
   async provideMcpServerDefinitions(): Promise<vscode.McpStdioServerDefinition[]> {
     const config = vscode.workspace.getConfiguration('darbot-browser-mcp');
-    const serverPath = config.get('serverPath', 'npx @darbotlabs/darbot-browser-mcp@latest');
-    const browser = config.get('browser', 'msedge');
-    const headless = config.get('headless', false);
-    const noSandbox = config.get('noSandbox', true);
-    const logLevel = config.get('logLevel', 'info');
+    const serverPath = config.get<string>('serverPath', 'npx github:pantelisbischitzis/darbot-browser-mcp');
+    const browser = config.get<string>('browser', 'msedge');
+    const browserExecutablePath = config.get<string>('browserExecutablePath', '');
+    const headless = config.get<boolean>('headless', false);
+    const noSandbox = config.get<boolean>('noSandbox', true);
+    const logLevel = config.get<string>('logLevel', 'info');
 
     // Parse the command
     const parts = serverPath.split(' ');
     const command = parts[0];
     const args = [...parts.slice(1)];
 
-    // Add browser configuration options
-    if (browser !== 'msedge')
-      args.push('--browser', browser);
+    // Add browser channel configuration
+    const browserChannel = this.getBrowserChannel(browser);
+    if (browserChannel !== 'msedge')
+      args.push('--browser', browserChannel);
+
+    // Add custom browser executable path if specified
+    if (browserExecutablePath && browserExecutablePath.trim())
+      args.push('--executable-path', browserExecutablePath.trim());
+
 
     if (headless)
       args.push('--headless');
@@ -58,12 +65,36 @@ class DarbotBrowserMCPProvider implements vscode.McpServerDefinitionProvider {
 
     return [
       new vscode.McpStdioServerDefinition(
-        'Darbot Browser MCP',
-        command,
-        args,
-        env
+          'Darbot Browser MCP',
+          command,
+          args,
+          env
       )
     ];
+  }
+
+  /**
+   * Get the Playwright browser channel name from the VS Code setting value
+   * Maps VS Code-friendly names to Playwright channel identifiers
+   */
+  private getBrowserChannel(browser: string): string {
+    // Map browser channels to Playwright format
+    const channelMap: Record<string, string> = {
+      'msedge': 'msedge',
+      'msedge-beta': 'msedge-beta',
+      'msedge-dev': 'msedge-dev',
+      'msedge-canary': 'msedge-canary',
+      'chrome': 'chrome',
+      'chrome-beta': 'chrome-beta',
+      'chrome-dev': 'chrome-dev',
+      'chrome-canary': 'chrome-canary',
+      'firefox': 'firefox',
+      'firefox-developer': 'firefox', // Firefox Developer Edition uses same browser name
+      'firefox-nightly': 'firefox', // Firefox Nightly uses same browser name
+      'webkit': 'webkit'
+    };
+
+    return channelMap[browser] || browser;
   }
 }
 
@@ -82,16 +113,17 @@ export function activate(context: vscode.ExtensionContext) {
 
   // Register MCP Server Definition Provider for GitHub Copilot agent mode (VS Code 1.96.0+)
   // This is the new, preferred method for MCP server registration
-  let useLegacyConfig = true;
+  const hasLmApi = !!(vscode.lm && typeof vscode.lm.registerMcpServerDefinitionProvider === 'function');
+  let shouldUseLegacyConfig = !hasLmApi;
   try {
     const mcpProvider = new DarbotBrowserMCPProvider();
     // Register using the proper VS Code LM API
-    if (vscode.lm && typeof vscode.lm.registerMcpServerDefinitionProvider === 'function') {
+    if (hasLmApi) {
       const mcpProviderDisposable = vscode.lm.registerMcpServerDefinitionProvider('darbot-browser-mcp', mcpProvider);
       context.subscriptions.push(mcpProviderDisposable);
       mcpOutputChannel.appendLine('✓ MCP Server Definition Provider registered successfully.');
       mcpOutputChannel.appendLine('The server will appear in the MCP servers list in VS Code.');
-      useLegacyConfig = false; // New API available, skip legacy configuration
+      shouldUseLegacyConfig = false; // New API available, skip legacy configuration
     } else {
       mcpOutputChannel.appendLine('⚠ MCP Server Definition Provider API not available in this VS Code version.');
       mcpOutputChannel.appendLine('Falling back to legacy configuration method.');
@@ -110,11 +142,11 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(startServerCommand, stopServerCommand, restartServerCommand, showStatusCommand);
 
   // Use legacy configuration for older VS Code versions, new API for 1.96.0+
-  if (useLegacyConfig) {
+  if (shouldUseLegacyConfig)
     void configureMCPServer();
-  } else {
-    void showWelcomeMessage();
-  }
+  else
+    void showWelcomeMessage(context);
+
 
   // Auto-start if configured
   const config = vscode.workspace.getConfiguration('darbot-browser-mcp');
@@ -131,6 +163,30 @@ export function deactivate() {
     statusBarItem.dispose();
   if (mcpOutputChannel)
     mcpOutputChannel.dispose();
+}
+
+/**
+ * Get the Playwright browser channel name from the VS Code setting value
+ * Standalone helper function for use outside the class
+ */
+function getBrowserChannel(browser: string): string {
+  // Map browser channels to Playwright format
+  const channelMap: Record<string, string> = {
+    'msedge': 'msedge',
+    'msedge-beta': 'msedge-beta',
+    'msedge-dev': 'msedge-dev',
+    'msedge-canary': 'msedge-canary',
+    'chrome': 'chrome',
+    'chrome-beta': 'chrome-beta',
+    'chrome-dev': 'chrome-dev',
+    'chrome-canary': 'chrome-canary',
+    'firefox': 'firefox',
+    'firefox-developer': 'firefox', // Firefox Developer Edition uses same browser name
+    'firefox-nightly': 'firefox', // Firefox Nightly uses same browser name
+    'webkit': 'webkit'
+  };
+
+  return channelMap[browser] || browser;
 }
 
 // Legacy configuration function for VS Code versions < 1.96.0
@@ -178,11 +234,17 @@ async function configureMCPServer() {
       const noSandbox = darbotConfig.get('noSandbox', true);
       const logLevel = darbotConfig.get('logLevel', 'info');
 
-      const args = ['@darbotlabs/darbot-browser-mcp@latest'];
+      const browserExecutablePath = darbotConfig.get<string>('browserExecutablePath', '');
+      const args = ['github:pantelisbischitzis/darbot-browser-mcp'];
 
-      // Add browser configuration options
-      if (browser !== 'msedge')
-        args.push('--browser', browser);
+      // Add browser channel configuration
+      const browserChannel = getBrowserChannel(browser);
+      if (browserChannel !== 'msedge')
+        args.push('--browser', browserChannel);
+
+      // Add custom browser executable path if specified
+      if (browserExecutablePath && browserExecutablePath.trim())
+        args.push('--executable-path', browserExecutablePath.trim());
 
       if (headless)
         args.push('--headless');
@@ -251,10 +313,9 @@ async function configureMCPServer() {
 }
 
 // New welcome message for VS Code 1.96.0+ using McpServerDefinitionProvider
-async function showWelcomeMessage() {
-  // Check if this is the first activation
-  const config = vscode.workspace.getConfiguration('darbot-browser-mcp');
-  const hasShownWelcome = config.get('hasShownWelcome', false);
+async function showWelcomeMessage(context: vscode.ExtensionContext) {
+  // Check if this is the first activation (use extension global state)
+  const hasShownWelcome = context.globalState.get<boolean>('darbot-browser-mcp.hasShownWelcome', false);
 
   if (!hasShownWelcome) {
     mcpOutputChannel.appendLine('🤖 Welcome to Darbot Browser MCP!');
@@ -272,20 +333,20 @@ async function showWelcomeMessage() {
     mcpOutputChannel.show(true);
 
     const result = await vscode.window.showInformationMessage(
-      '🤖 Darbot Browser MCP is ready! The server is now available in your MCP servers list.',
-      'Show Output',
-      'Open Settings',
-      'Got It'
+        '🤖 Darbot Browser MCP is ready! The server is now available in your MCP servers list.',
+        'Show Output',
+        'Open Settings',
+        'Got It'
     );
 
-    if (result === 'Show Output') {
+    if (result === 'Show Output')
       mcpOutputChannel.show();
-    } else if (result === 'Open Settings') {
+    else if (result === 'Open Settings')
       await vscode.commands.executeCommand('workbench.action.openSettings', 'darbot-browser-mcp');
-    }
+
 
     // Mark that we've shown the welcome message
-    await config.update('hasShownWelcome', true, vscode.ConfigurationTarget.Global);
+    await context.globalState.update('darbot-browser-mcp.hasShownWelcome', true);
   }
 }
 
@@ -296,11 +357,12 @@ async function startServer() {
   }
 
   const config = vscode.workspace.getConfiguration('darbot-browser-mcp');
-  const serverPath = config.get('serverPath', 'npx @darbotlabs/darbot-browser-mcp@latest');
-  const logLevel = config.get('logLevel', 'info');
-  const browser = config.get('browser', 'msedge');
-  const headless = config.get('headless', false);
-  const noSandbox = config.get('noSandbox', true);
+  const serverPath = config.get<string>('serverPath', 'npx github:pantelisbischitzis/darbot-browser-mcp');
+  const logLevel = config.get<string>('logLevel', 'info');
+  const browser = config.get<string>('browser', 'msedge');
+  const browserExecutablePath = config.get<string>('browserExecutablePath', '');
+  const headless = config.get<boolean>('headless', false);
+  const noSandbox = config.get<boolean>('noSandbox', true);
 
   try {
     // Parse the command
@@ -308,9 +370,15 @@ async function startServer() {
     const command = parts[0];
     const args = parts.slice(1);
 
-    // Add browser configuration options
-    if (browser !== 'msedge')
-      args.push('--browser', browser);
+    // Add browser channel configuration
+    const browserChannel = getBrowserChannel(browser);
+    if (browserChannel !== 'msedge')
+      args.push('--browser', browserChannel);
+
+    // Add custom browser executable path if specified
+    if (browserExecutablePath && browserExecutablePath.trim())
+      args.push('--executable-path', browserExecutablePath.trim());
+
     if (headless)
       args.push('--headless');
     if (noSandbox)
@@ -321,7 +389,8 @@ async function startServer() {
       args.push('--log-level', logLevel);
 
     // Display configuration to user
-    const configDetails = `Browser: ${browser}, Headless: ${headless}, No Sandbox: ${noSandbox}`;
+    const executableInfo = browserExecutablePath ? ` (${browserExecutablePath})` : '';
+    const configDetails = `Browser: ${browser}${executableInfo}, Headless: ${headless}, No Sandbox: ${noSandbox}`;
     // Log configuration for debugging
     // eslint-disable-next-line no-console
     console.debug(configDetails); // Log to debugging output
@@ -390,12 +459,14 @@ function showStatus() {
   const isRunning = mcpServerProcess !== null;
   const status = isRunning ? 'Running' : 'Stopped';
   const config = vscode.workspace.getConfiguration('darbot-browser-mcp');
-  const serverPath = config.get('serverPath', 'npx @darbotlabs/darbot-browser-mcp@latest');
-  const browser = config.get('browser', 'msedge');
-  const headless = config.get('headless', false);
-  const noSandbox = config.get('noSandbox', true);
+  const serverPath = config.get<string>('serverPath', 'npx github:pantelisbischitzis/darbot-browser-mcp');
+  const browser = config.get<string>('browser', 'msedge');
+  const browserExecutablePath = config.get<string>('browserExecutablePath', '');
+  const headless = config.get<boolean>('headless', false);
+  const noSandbox = config.get<boolean>('noSandbox', true);
 
-  const configInfo = `Browser: ${browser}, Headless: ${headless}, No Sandbox: ${noSandbox}`;
+  const executableInfo = browserExecutablePath ? ` (Custom: ${browserExecutablePath})` : '';
+  const configInfo = `Browser: ${browser}${executableInfo}, Headless: ${headless}, No Sandbox: ${noSandbox}`;
 
   vscode.window.showInformationMessage(
       `Browser MCP Server Status: ${status}\nCommand: ${serverPath}\nConfig: ${configInfo}`,

@@ -32,7 +32,7 @@ Transform your coding workflow with intelligent autonomous browser capabilities 
 2. **Auto-configuration**: The extension automatically:
    - Prompts to enable MCP in VS Code settings (`"chat.mcp.enabled": true`)
    - Configures the Darbot Browser MCP server in your MCP settings
-   - Sets up the optimal server path: `npx @darbotlabs/darbot-browser-mcp@latest`
+   - Sets up the server path: `npx github:pantelisbischitzis/darbot-browser-mcp`
 3. **Start the server**: Use Command Palette → "Darbot Browser MCP: Start Server"
 4. **Test with GitHub Copilot**: Ask Copilot to "take a screenshot of example.com"
 
@@ -77,10 +77,48 @@ When you first activate the extension:
 
 ## Configuration
 
-- `darbot-browser-mcp.serverPath`: Path or command to start the Browser MCP server (default: `npx @darbotlabs/darbot-browser-mcp@latest`)
+### Basic Settings
+
+- `darbot-browser-mcp.serverPath`: Path or command to start the Browser MCP server (default: `npx github:pantelisbischitzis/darbot-browser-mcp`)
 - `darbot-browser-mcp.autoStart`: Automatically start the server when VS Code starts (default: `false`)
 - `darbot-browser-mcp.autoConfigureMCP`: Automatically configure MCP settings when first activated (default: `true`)
 - `darbot-browser-mcp.logLevel`: Log level for the server (error, warn, info, debug) (default: `info`)
+
+### Browser Selection & Versions
+
+Choose your preferred browser and version channel:
+
+- `darbot-browser-mcp.browser`: Select browser channel (default: `msedge`)
+  - **Microsoft Edge**: `msedge` (Stable), `msedge-beta`, `msedge-dev`, `msedge-canary`
+  - **Google Chrome**: `chrome` (Stable), `chrome-beta`, `chrome-dev`, `chrome-canary`
+  - **Mozilla Firefox**: `firefox` (Stable), `firefox-developer`, `firefox-nightly`
+  - **WebKit**: `webkit` (Safari Technology Preview)
+
+- `darbot-browser-mcp.browserExecutablePath`: Custom path to browser executable (default: empty for auto-detection)
+  - Use this if auto-detection fails or you want a specific installation
+  - Example (Windows): `C:\Program Files\Microsoft\Edge Dev\Application\msedge.exe`
+  - Example (macOS): `/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary`
+  - Example (Linux): `/usr/bin/firefox-developer-edition`
+
+**Browser Configuration Examples:**
+
+```json
+// Use Edge Dev channel (auto-detected)
+{
+  "darbot-browser-mcp.browser": "msedge-dev"
+}
+
+// Use Chrome Canary with custom path
+{
+  "darbot-browser-mcp.browser": "chrome-canary",
+  "darbot-browser-mcp.browserExecutablePath": "C:\\Users\\YourName\\AppData\\Local\\Google\\Chrome SxS\\Application\\chrome.exe"
+}
+
+// Use Firefox Developer Edition (auto-detected)
+{
+  "darbot-browser-mcp.browser": "firefox-developer"
+}
+```
 
 ### Advanced Configuration
 
@@ -88,7 +126,7 @@ You can also configure the server with additional arguments by modifying the `se
 
 ```json
 {
-  "darbot-browser-mcp.serverPath": "npx @darbotlabs/darbot-browser-mcp@latest --headless --device 'iPhone 15'"
+  "darbot-browser-mcp.serverPath": "npx github:pantelisbischitzis/darbot-browser-mcp --headless --device 'iPhone 15'"
 }
 ```
 
@@ -107,7 +145,7 @@ Common configuration options:
 ## 🔧 Requirements
 
 - **Node.js**: Version 18.0.0 or higher
-- **VS Code**: Version 1.95.0 or higher
+- **VS Code**: Version 1.96.0 or higher
 - **Browser**: Microsoft Edge (recommended) or Chrome/Firefox/WebKit
 - **MCP Support**: Enable `"chat.mcp.enabled": true` in VS Code settings
 

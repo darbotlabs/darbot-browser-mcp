@@ -81,7 +81,7 @@
       "properties": {
         "darbot-browser-mcp.serverPath": {
           "type": "string",
-          "default": "npx @darbotlabs/darbot-browser-mcp@latest",
+          "default": "npx github:pantelisbischitzis/darbot-browser-mcp",
           "description": "Path or command to start the Browser MCP server"
         },
         "darbot-browser-mcp.autoStart": {
@@ -92,8 +92,8 @@
         "darbot-browser-mcp.autoConfigureMCP": {
           "type": "boolean",
           "default": true,
-          "description": "Automatically configure MCP settings when the extension is first activated. Note: In VS Code 1.96.0+, MCP server registration is handled automatically via the McpServerDefinitionProvider API and this setting is not required.",
-          "deprecationMessage": "In VS Code 1.96.0+, this setting is no longer required. MCP server registration is handled automatically via the McpServerDefinitionProvider API."
+          "description": "Automatically configure MCP settings when the extension is first activated. This setting is deprecated and only exists for historical reasons; MCP server registration is now handled automatically via the McpServerDefinitionProvider API.",
+          "deprecationMessage": "This setting is deprecated and only exists for historical reasons. MCP server registration is now handled automatically via the McpServerDefinitionProvider API."
         },
         "darbot-browser-mcp.logLevel": {
           "type": "string",
@@ -109,13 +109,45 @@
         "darbot-browser-mcp.browser": {
           "type": "string",
           "default": "msedge",
-          "enum": ["msedge", "chrome", "firefox", "webkit"],
-          "description": "Browser to use for automation"
+          "enum": [
+            "msedge",
+            "msedge-beta",
+            "msedge-dev",
+            "msedge-canary",
+            "chrome",
+            "chrome-beta",
+            "chrome-dev",
+            "chrome-canary",
+            "firefox",
+            "firefox-developer",
+            "firefox-nightly",
+            "webkit"
+          ],
+          "enumDescriptions": [
+            "Microsoft Edge (Stable)",
+            "Microsoft Edge Beta",
+            "Microsoft Edge Dev",
+            "Microsoft Edge Canary",
+            "Google Chrome (Stable)",
+            "Google Chrome Beta",
+            "Google Chrome Dev (Unstable)",
+            "Google Chrome Canary",
+            "Mozilla Firefox (Stable)",
+            "Firefox Developer Edition",
+            "Firefox Nightly",
+            "WebKit (Safari Technology Preview)"
+          ],
+          "description": "Browser channel to use for automation. Playwright will attempt to auto-detect the browser installation."
+        },
+        "darbot-browser-mcp.browserExecutablePath": {
+          "type": "string",
+          "default": "",
+          "description": "Custom path to browser executable. Use this if auto-detection fails or you want to use a specific browser installation. Leave empty for auto-detection. Example: C:\\Program Files\\Microsoft\\Edge Dev\\Application\\msedge.exe"
         },
         "darbot-browser-mcp.headless": {
           "type": "boolean",
           "default": false,
-          "description": "Run browser in headless mode"
+          "description": "Run browser in headless mode (no visible window)"
         },
         "darbot-browser-mcp.noSandbox": {
           "type": "boolean",
