@@ -23,6 +23,7 @@ import { defineTool } from './tool.js';
 import { intentParser } from '../ai/intent.js';
 import { aiContextManager } from '../ai/context.js';
 import { workflowEngine } from '../ai/workflow.js';
+import { aiToolIntegration } from '../ai/integration.js';
 
 // AI-native intent execution tool
 const browserExecuteIntent = defineTool({
@@ -61,31 +62,17 @@ const browserExecuteIntent = defineTool({
     code.push(`// Confidence: ${(enhancedIntent.confidence * 100).toFixed(1)}%`);
 
     try {
-      // Execute the parsed intent
-      switch (enhancedIntent.action) {
-        case 'navigate':
-          await executeNavigate(context, enhancedIntent.parameters);
-          break;
-        case 'click':
-          await executeClick(context, enhancedIntent.parameters);
-          break;
-        case 'type':
-          await executeType(context, enhancedIntent.parameters);
-          break;
-        case 'submit_form':
-          await executeSubmitForm(context, enhancedIntent.parameters);
-          break;
-        case 'search':
-          await executeSearch(context, enhancedIntent.parameters);
-          break;
-        default:
-          await executeGenericIntent(context, enhancedIntent);
-      }
+      // Execute the parsed intent using REAL browser automation
+      const executionResult = await aiToolIntegration.executeIntent(context, enhancedIntent);
+
+      if (!executionResult.success)
+        throw new Error(executionResult.error || 'Execution failed');
+
 
       // Record successful action
       aiContextManager.recordSuccess(sessionId, {
         action: enhancedIntent.action,
-        target: enhancedIntent.parameters.element || enhancedIntent.parameters.url,
+        target: executionResult.target || enhancedIntent.parameters.element || enhancedIntent.parameters.url,
         timestamp: Date.now(),
         success: true,
       });
@@ -119,8 +106,13 @@ const browserExecuteIntent = defineTool({
       // Attempt recovery if enabled
       if (params.auto_recover && enhancedIntent.fallbackStrategy) {
         try {
-          await executeRecoveryStrategy(context, enhancedIntent);
-          code.push(`// Primary action failed, recovery successful`);
+          const recoveryResult = await aiToolIntegration.executeRecovery(context, enhancedIntent, error as Error);
+
+          if (!recoveryResult.success)
+            throw new Error(recoveryResult.error || 'Recovery failed');
+
+
+          code.push(`// Primary action failed, recovery successful via ${recoveryResult.recoveryStrategy}`);
 
           return {
             code,
@@ -129,7 +121,7 @@ const browserExecuteIntent = defineTool({
             resultOverride: {
               content: [{
                 type: 'text',
-                text: `Recovered from error and completed: ${params.description}\nRecovery strategy: ${enhancedIntent.fallbackStrategy}`,
+                text: `Recovered from error and completed: ${params.description}\nRecovery strategy: ${recoveryResult.recoveryStrategy}`,
               }],
             },
           };
@@ -153,7 +145,7 @@ const browserExecuteWorkflow = defineTool({
     description: 'Execute predefined workflows for common automation patterns like GitHub issue management',
     inputSchema: z.object({
       intent: z.string().describe('The workflow type (e.g., "github_issue_management", "code_review_workflow")'),
-      parameters: z.record(z.any()).describe('Parameters for the workflow execution'),
+      parameters: z.record(z.string(), z.any()).describe('Parameters for the workflow execution'),
       auto_recover: z.boolean().optional().default(true).describe('Whether to automatically recover from step failures'),
       validate_completion: z.boolean().optional().default(true).describe('Whether to validate successful completion'),
     }),
@@ -162,8 +154,13 @@ const browserExecuteWorkflow = defineTool({
 
   handle: async (context, params) => {
     try {
-      // Execute the workflow
-      const execution = await workflowEngine.executeWorkflow(context, params.intent, params.parameters);
+      // Execute the workflow using the integration layer
+      const execution = await workflowEngine.executeWorkflow(
+        context,
+        params.intent,
+        params.parameters,
+        aiToolIntegration
+      );
 
       const code: string[] = [];
       code.push(`// Workflow Execution: ${params.intent}`);
@@ -263,42 +260,7 @@ const browserAnalyzeContext = defineTool({
   },
 });
 
-// Helper functions for intent execution
-async function executeNavigate(context: any, params: any) {
-  // Use existing navigate tool
-  return { success: true, action: 'navigate', url: params.url };
-}
-
-async function executeClick(context: any, params: any) {
-  // Use existing click tool with intelligent element detection
-  return { success: true, action: 'click', element: params.element };
-}
-
-async function executeType(context: any, params: any) {
-  // Use existing type tool
-  return { success: true, action: 'type', text: params.text, element: params.element };
-}
-
-async function executeSubmitForm(context: any, params: any) {
-  // Find and submit form
-  return { success: true, action: 'submit_form' };
-}
-
-async function executeSearch(context: any, params: any) {
-  // Execute search functionality
-  return { success: true, action: 'search', query: params.query };
-}
-
-async function executeGenericIntent(context: any, intent: any) {
-  // Handle generic intents
-  return { success: true, action: intent.action, parameters: intent.parameters };
-}
-
-async function executeRecoveryStrategy(context: any, intent: any) {
-  // Implement recovery strategies
-  return { success: true, action: 'recovery', strategy: intent.fallbackStrategy };
-}
-
+// Helper functions for context analysis
 function analyzePageIntent(url: string, title: string): string {
   if (url.includes('github.com')) {
     if (url.includes('/issues'))

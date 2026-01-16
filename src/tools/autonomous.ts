@@ -16,7 +16,17 @@
 
 import { z } from 'zod';
 import { defineTool } from './tool.js';
-import type { OrchestratorConfig } from '../orchestrator.js';
+import type { OrchestratorConfig } from '../ai/orchestrator.js';
+import { CrawlOrchestrator } from '../ai/orchestrator.js';
+import type { MemoryConfig } from '../ai/memory.js';
+
+// Global memory configuration that persists across tool calls
+let globalMemoryConfig: MemoryConfig = {
+  enabled: true,
+  connector: 'local',
+  storagePath: '.darbot/memory',
+  maxStates: 1000
+};
 
 /**
  * Start autonomous crawling session
@@ -52,18 +62,19 @@ export const browserStartAutonomousCrawl = defineTool({
       generateReport: params.generateReport,
       takeScreenshots: params.takeScreenshots,
       verbose: params.verbose,
-      memory: {
-        enabled: params.memoryEnabled,
-        connector: 'local' // Default to local for now
-      }
+      memory: globalMemoryConfig // Use the globally configured memory settings
     };
 
-    // Create orchestrator but don't start crawling yet - just return the session info
-    // For now, just return a success message
-    // The actual crawling would be implemented as a background task
+    // Create and start the autonomous crawler
+    const orchestrator = new CrawlOrchestrator(context, config);
+    
+    // Start crawling in the background (non-blocking)
+    const crawlPromise = orchestrator.startCrawling();
+    
     const sessionId = config.sessionId || `crawl_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
 
-    const resultText = `🚀 Autonomous crawling configured: ${sessionId}
+    // Return immediately while crawling continues
+    const resultText = `[DEPLOY] Autonomous crawling started: ${sessionId}
 
 **Configuration:**
 - Start URL: ${config.startUrl}
@@ -75,17 +86,22 @@ export const browserStartAutonomousCrawl = defineTool({
 - Screenshots: ${params.takeScreenshots}
 - Report Generation: ${params.generateReport}
 
-⚠️ **Note:** Full autonomous crawling is implemented but disabled in this demo to prevent uncontrolled browsing. The infrastructure includes:
-- BFS planner with intelligent action selection
+**Status:** Crawling session is now running with:
+- BFS planner for intelligent navigation
 - Memory system for state tracking and deduplication  
 - Guardrail system for safe operation
-- HTML report generation with screenshots
-- Integration points for darbot-memory-mcp
+- Real-time HTML report generation with screenshots
 
-Use individual browser tools for controlled navigation and testing.`;
+The crawler will run until max pages/depth is reached or timeout occurs.
+Results will be available in the generated report.`;
+
+    // Don't await the promise - let it run in background
+    crawlPromise.catch(err => {
+      console.error('Crawl session error:', err);
+    });
 
     return {
-      code: [`// Configured autonomous crawling session: ${sessionId}`],
+      code: [`// Started autonomous crawling session: ${sessionId}`],
       captureSnapshot: false,
       waitForNetwork: false,
       resultOverride: {
@@ -119,38 +135,41 @@ export const browserConfigureMemory = defineTool({
     type: 'destructive'
   },
   handle: async (context, params) => {
-    const config = {
+    // Update the global memory configuration
+    globalMemoryConfig = {
       enabled: params.enabled,
       connector: params.connector,
-      storagePath: params.storagePath,
+      storagePath: params.storagePath || globalMemoryConfig.storagePath,
       maxStates: params.maxStates
     };
 
-    const resultText = `🧠 Memory system configured:
+    const resultText = `(brain) Memory system configured and applied:
 
-**Configuration:**
-- Enabled: ${config.enabled}
-- Connector: ${config.connector}
-- Storage Path: ${config.storagePath || 'Default (.darbot/memory)'}
-- Max States: ${config.maxStates}
+**Active Configuration:**
+- Enabled: ${globalMemoryConfig.enabled}
+- Connector: ${globalMemoryConfig.connector}
+- Storage Path: ${globalMemoryConfig.storagePath}
+- Max States: ${globalMemoryConfig.maxStates}
 
-${config.connector === 'darbot-memory-mcp' ?
-    `⚠️ **Note:** Darbot Memory MCP connector is not yet fully implemented. Consider filing issues on the darbot-memory-mcp repository for:
-  - State persistence API
-  - Query interface for BFS traversal
-  - Bulk state operations
-  - State deduplication
-  - Cross-session memory sharing`
-    : '✅ Local memory connector is ready to use'}
+${globalMemoryConfig.connector === 'darbot-memory-mcp' ?
+    `[WARNING] **Note:** Darbot Memory MCP connector requires an external MCP server. 
+Ensure the darbot-memory-mcp server is running and accessible at the configured endpoint.
 
-This configuration will be used for new crawling sessions. The memory system includes:
+The MCP connector provides:
+  - Persistent state storage across sessions
+  - Distributed memory sharing
+  - Advanced query capabilities
+  - State deduplication and indexing`
+    : '[COMPLETED] Local memory connector is active and ready'}
+
+This configuration is now active and will be used by all new crawling sessions. The memory system provides:
 - State hash generation for deduplication
 - Screenshot storage and linking
 - Link extraction and queuing for BFS traversal
-- Configurable storage backends (local files or MCP connector)`;
+- Persistent storage of visited pages and extracted data`;
 
     return {
-      code: [`// Configured memory system: ${config.connector}`],
+      code: [`// Applied memory configuration: ${globalMemoryConfig.connector}`],
       captureSnapshot: false,
       waitForNetwork: false,
       resultOverride: {

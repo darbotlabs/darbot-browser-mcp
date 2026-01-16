@@ -183,7 +183,7 @@ if [ -n "$CONNECTOR_INFO" ]; then
     echo "API Documentation: $DARBOT_INSTANCE_URL/openapi.json"
     echo "Health Check: $DARBOT_INSTANCE_URL/health"
     echo ""
-    print_status "Darbot Browser MCP connector is ready for use! 🚀"
+    print_status "Darbot Browser MCP connector is ready for use! [DEPLOY]"
 else
     print_error "Failed to retrieve connector information. Check Power Platform CLI output above."
     exit 1

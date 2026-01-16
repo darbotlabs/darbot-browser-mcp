@@ -19,7 +19,7 @@ import { asLocator } from 'playwright-core/lib/utils';
 
 import type * as playwright from 'playwright';
 import type { Context } from '../context.js';
-import type { Tab } from '../tab.js';
+import type { Tab } from './tab.js';
 
 export async function waitForCompletion<R>(context: Context, tab: Tab, callback: () => Promise<R>): Promise<R> {
   const requests = new Set<playwright.Request>();

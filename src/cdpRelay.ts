@@ -140,7 +140,7 @@ export class CDPRelayServer extends EventEmitter {
    * Handle messages from Darbot Browser MCP
    */
   private _handlePlaywrightMessage(message: any): void {
-    debugLogger('← Playwright:', message.method || `response(${message.id})`);
+    debugLogger('<- Playwright:', message.method || `response(${message.id})`);
 
     // Handle Browser domain methods locally
     if (message.method?.startsWith('Browser.')) {
@@ -166,7 +166,7 @@ export class CDPRelayServer extends EventEmitter {
   private _handleExtensionMessage(message: any): void {
     // Handle connection info from extension
     if (message.type === 'connection_info') {
-      debugLogger('← Extension connected to tab:', message);
+      debugLogger('<- Extension connected to tab:', message);
       this._connectionInfo = {
         targetInfo: message.targetInfo,
         // Page sessionId that should be used by this connection.
@@ -176,7 +176,7 @@ export class CDPRelayServer extends EventEmitter {
     }
 
     // CDP event from extension
-    debugLogger(`← Extension message: ${message.method ?? (message.id && `response(id=${message.id})`) ?? 'unknown'}`);
+    debugLogger(`<- Extension message: ${message.method ?? (message.id && `response(id=${message.id})`) ?? 'unknown'}`);
     this._sendToPlaywright(message);
   }
 
@@ -264,7 +264,7 @@ export class CDPRelayServer extends EventEmitter {
    */
   private _forwardToExtension(message: any): void {
     if (this._extensionSocket?.readyState === WebSocket.OPEN) {
-      debugLogger('→ Extension:', message.method || `command(${message.id})`);
+      debugLogger('-> Extension:', message.method || `command(${message.id})`);
       this._extensionSocket.send(JSON.stringify(message));
     } else {
       debugLogger('Extension not connected, cannot forward message');
@@ -282,7 +282,7 @@ export class CDPRelayServer extends EventEmitter {
    */
   private _sendToPlaywright(message: any): void {
     if (this._playwrightSocket?.readyState === WebSocket.OPEN) {
-      debugLogger('→ Playwright:', JSON.stringify(message));
+      debugLogger('-> Playwright:', JSON.stringify(message));
       this._playwrightSocket.send(JSON.stringify(message));
     }
   }

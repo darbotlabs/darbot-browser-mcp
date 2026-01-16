@@ -3,18 +3,18 @@
 
 set -e
 
-echo "🚀 Package Publishing Helper for Darbot Browser MCP"
+echo "[DEPLOY] Package Publishing Helper for Darbot Browser MCP"
 echo "=================================================="
 
 # Check if we're in the right directory
 if [ ! -f "package.json" ]; then
-    echo "❌ Error: package.json not found. Make sure you're in the root directory."
+    echo "[FAILED] Error: package.json not found. Make sure you're in the root directory."
     exit 1
 fi
 
 # Parse version from package.json
 VERSION=$(node -p "require('./package.json').version")
-echo "📦 Current version: $VERSION"
+echo "[PACKAGE] Current version: $VERSION"
 
 echo ""
 echo "Available package formats:"
@@ -26,22 +26,22 @@ echo ""
 
 # Function to build NPM package
 build_npm() {
-    echo "🔨 Building NPM package..."
+    echo "[HAMMER] Building NPM package..."
     npm run clean
     npm run build
     npm run lint
     npm run test
-    echo "✅ NPM package ready for publishing"
+    echo "[COMPLETED] NPM package ready for publishing"
     echo "   Run: npm publish --access public"
 }
 
 # Function to build VS Code extension
 build_vscode() {
-    echo "🔨 Building VS Code extension..."
+    echo "[HAMMER] Building VS Code extension..."
     
     # Check if vsce is installed
     if ! command -v vsce &> /dev/null; then
-        echo "📦 Installing vsce..."
+        echo "[PACKAGE] Installing vsce..."
         npm install -g vsce
     fi
     
@@ -57,17 +57,17 @@ build_vscode() {
     vsce package
     
     cd ..
-    echo "✅ VS Code extension built: vscode-extension/*.vsix"
+    echo "[COMPLETED] VS Code extension built: vscode-extension/*.vsix"
     echo "   Run: vsce publish"
 }
 
 # Function to build NuGet package
 build_nuget() {
-    echo "🔨 Building NuGet package..."
+    echo "[HAMMER] Building NuGet package..."
     
     # Check if dotnet is installed
     if ! command -v dotnet &> /dev/null; then
-        echo "❌ Error: .NET SDK not found. Please install .NET SDK 8.0 or later."
+        echo "[FAILED] Error: .NET SDK not found. Please install .NET SDK 8.0 or later."
         exit 1
     fi
     
@@ -80,20 +80,20 @@ build_nuget() {
     dotnet pack --configuration Release --output ../../
     
     cd ../..
-    echo "✅ NuGet package built: *.nupkg"
+    echo "[COMPLETED] NuGet package built: *.nupkg"
     echo "   Run: dotnet nuget push *.nupkg --source https://api.nuget.org/v3/index.json --api-key <YOUR_API_KEY>"
 }
 
 # Function to build browser extension
 build_browser_extension() {
-    echo "🔨 Building browser extension..."
+    echo "[HAMMER] Building browser extension..."
     
     # Create a zip file for the extension
     cd extension
     zip -r ../browser-mcp-bridge-$VERSION.zip .
     cd ..
     
-    echo "✅ Browser extension built: browser-mcp-bridge-$VERSION.zip"
+    echo "[COMPLETED] Browser extension built: browser-mcp-bridge-$VERSION.zip"
     echo "   Upload to Chrome Web Store Developer Dashboard"
 }
 
@@ -107,7 +107,7 @@ build_all() {
     echo ""
     build_browser_extension
     echo ""
-    echo "🎉 All packages built successfully!"
+    echo "[INIT] All packages built successfully!"
 }
 
 # Main menu

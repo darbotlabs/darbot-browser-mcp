@@ -235,7 +235,8 @@ export class WorkflowEngine {
   async executeWorkflow(
     context: Context,
     templateName: string,
-    parameters: Record<string, any>
+    parameters: Record<string, any>,
+    integration?: any
   ): Promise<WorkflowExecution> {
     const template = this.templates.get(templateName);
     if (!template)
@@ -271,7 +272,7 @@ export class WorkflowEngine {
         const resolvedStep = this.resolveStepParameters(step, parameters);
 
         try {
-          const result = await this.executeStep(context, resolvedStep);
+          const result = await this.executeStep(context, resolvedStep, integration);
           execution.results.push(result);
 
           // Validate step result if validation function provided
@@ -291,7 +292,7 @@ export class WorkflowEngine {
             // Implement retry logic
             for (let retry = 0; retry < (step.retryCount || 0); retry++) {
               try {
-                const retryResult = await this.executeStep(context, resolvedStep);
+                const retryResult = await this.executeStep(context, resolvedStep, integration);
                 execution.results.push(retryResult);
                 break;
               } catch (retryError) {
@@ -336,9 +337,26 @@ export class WorkflowEngine {
   /**
    * Execute a single workflow step
    */
-  private async executeStep(context: Context, step: WorkflowStep): Promise<any> {
-    // This would integrate with the existing tool system
-    // For now, return a mock result
+  private async executeStep(context: Context, step: WorkflowStep, integration?: any): Promise<any> {
+    // If integration layer is provided, use it to execute real browser automation
+    if (integration) {
+      const intent = {
+        action: step.action,
+        parameters: step.parameters,
+        confidence: 1.0,
+        fallbackStrategy: 'analyze_page_context',
+      };
+
+      const result = await integration.executeIntent(context, intent);
+
+      if (!result.success)
+        throw new Error(result.error || 'Step execution failed');
+
+
+      return result;
+    }
+
+    // Fallback for testing without integration
     return {
       action: step.action,
       parameters: step.parameters,

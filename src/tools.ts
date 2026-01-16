@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import common from './tools/common.js';
+import common from './common.js';
 import console from './tools/console.js';
 import dialogs from './tools/dialogs.js';
 import files from './tools/files.js';

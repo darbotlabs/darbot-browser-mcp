@@ -1,8 +1,8 @@
 {
   "name": "darbot-browser-mcp",
   "displayName": "🤖 Darbot Browser MCP",
-  "description": "Your autonomous browser companion for VS Code. 29 AI-driven autonomous browser tools with Microsoft Edge work profile support and enhanced GitHub Copilot Chat integration for agent mode.",
-  "version": "1.3.0",
+  "description": "Your autonomous browser companion for VS Code. 34 AI-driven browser automation tools with Microsoft Edge work profile support and enhanced GitHub Copilot Chat integration for agent mode.",
+  "version": "1.4.0",
   "publisher": "darbotlabs",
   "engines": {
     "vscode": "^1.96.0"
@@ -74,15 +74,41 @@
         "command": "darbot-browser-mcp.showStatus",
         "title": "Show Server Status",
         "category": "Darbot Browser MCP"
+      },
+      {
+        "command": "darbot-browser-mcp.configureDeploymentMode",
+        "title": "Configure Deployment Mode",
+        "category": "Darbot Browser MCP"
       }
     ],
     "configuration": {
       "title": "Darbot Browser MCP",
       "properties": {
+        "darbot-browser-mcp.deploymentMode": {
+          "type": "string",
+          "enum": ["local", "hosted", "cloud"],
+          "default": "local",
+          "description": "Deployment mode: Local (NPX), Hosted (Docker on-premises), or Cloud (Azure)",
+          "enumDescriptions": [
+            "Local: Run via NPX (npx @darbotlabs/darbot-browser-mcp@latest)",
+            "Hosted: Docker container with MSAL auth and Dev Tunnels",
+            "Cloud: Azure App Service with enterprise features"
+          ]
+        },
         "darbot-browser-mcp.serverPath": {
           "type": "string",
           "default": "npx @darbotlabs/darbot-browser-mcp@latest",
-          "description": "Path or command to start the Browser MCP server"
+          "description": "Path or command to start the Browser MCP server (Local mode only)"
+        },
+        "darbot-browser-mcp.hostedUrl": {
+          "type": "string",
+          "default": "http://localhost:8080",
+          "description": "URL for Hosted mode Docker instance"
+        },
+        "darbot-browser-mcp.cloudUrl": {
+          "type": "string",
+          "default": "",
+          "description": "Azure App Service URL for Cloud mode (e.g., https://your-app.azurewebsites.net)"
         },
         "darbot-browser-mcp.autoStart": {
           "type": "boolean",

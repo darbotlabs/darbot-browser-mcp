@@ -20,15 +20,15 @@ log() {
 }
 
 error() {
-    log "${RED}❌ ERROR: $1${NC}"
+    log "${RED}[FAILED] ERROR: $1${NC}"
 }
 
 success() {
-    log "${GREEN}✅ SUCCESS: $1${NC}"
+    log "${GREEN}[COMPLETED] SUCCESS: $1${NC}"
 }
 
 warning() {
-    log "${YELLOW}⚠️  WARNING: $1${NC}"
+    log "${YELLOW}[WARNING]  WARNING: $1${NC}"
 }
 
 info() {
@@ -36,7 +36,7 @@ info() {
 }
 
 fix() {
-    log "${GREEN}🔧 FIX: $1${NC}"
+    log "${GREEN}[CONFIG] FIX: $1${NC}"
 }
 
 # System diagnostics

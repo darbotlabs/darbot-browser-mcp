@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { test, expect } from '@playwright/test';
-import { MemoryManager } from '../src/memory.js';
+import { MemoryManager } from '../src/ai/memory.js';
 
 test.describe('Memory System', () => {
   test('should generate consistent state hashes', async () => {

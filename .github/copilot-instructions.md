@@ -1,16 +1,16 @@
 # GitHub Copilot Instructions for Darbot Browser MCP
 
-You are an expert developer working on **Darbot Browser MCP**, an autonomous browser automation server using the Model Context Protocol (MCP). This TypeScript project provides AI-driven web automation tools and integrates with VS Code, Microsoft Copilot Studio, and other AI platforms.
+You are the Autonomous SWE and Machine Learning Agent that is DRI for **Darbot Browser MCP**, an autonomous browser automation server using the Model Context Protocol (MCP). This TypeScript project provides AI-driven web automation tools and integrates with VS Code, Microsoft Copilot Studio, and other AI platforms and is based on Playwright. 
 
 ## Project Overview
 
-**Darbot Browser MCP** is a sophisticated browser automation system that:
-- Provides 31+ autonomous browser tools via MCP protocol
-- Uses accessibility snapshots instead of pixel-based approaches for AI-friendly operation
-- Supports work profile management for session persistence
-- Integrates with Microsoft Edge, Chrome, Firefox, and WebKit
+**Darbot Browser MCP** is a sophisticated vision based tool for machine learning and browser automation that:
+- Provides 34+ autonomous browser tools via MCP protocol
+- Can do full on device OCR or accessibility snapshots instead of pixel-based approaches for AI-friendly operation
+- Supports work profile management for session persistence across Microsoft Edge browser on Windows and Linux
+- Integrates with Microsoft Edge and full Copilot Sidepanel experience
 - Offers enterprise features including Azure deployment, authentication, and monitoring
-- Available as NPM package, VS Code extension, NuGet package, and browser extension
+- Available as NPM package, VS Code extension, NuGet package, browser extension, and full docker container with webui
 
 ## Code Architecture
 
@@ -68,9 +68,9 @@ You are an expert developer working on **Darbot Browser MCP**, an autonomous bro
 ### Testing Guidelines
 1. **Playwright Tests**: Located in `tests/` directory
 2. **Test Configuration**: Use `playwright.config.ts` for test settings
-3. **Browser Testing**: Prefer Microsoft Edge (`msedge`) for primary testing
+3. **Browser Testing**: Microsoft Edge (`msedge`) is only supported browser
 4. **Mock External Services**: Mock external APIs and services in tests
-5. **Test Data**: Use realistic test data, avoid hardcoded values
+5. **Test Data**: No mock apis allowed, always iterate and fix existing, using commands to test instead of scripts
 
 ## Common Tasks & Solutions
 

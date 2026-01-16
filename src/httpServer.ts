@@ -21,7 +21,7 @@ import net from 'net';
 
 import mime from 'mime';
 
-import { ManualPromise } from './manualPromise.js';
+import { ManualPromise } from './ai/manualPromise.js';
 
 
 export type ServerRouteHandler = (request: http.IncomingMessage, response: http.ServerResponse) => void;

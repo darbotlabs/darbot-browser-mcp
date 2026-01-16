@@ -2,12 +2,12 @@
 <package>
   <metadata>
     <id>DarbotLabs.Browser.MCP</id>
-    <version>0.2.0</version>
+    <version>0.3.0</version>
     <title>🤖 Darbot Browser MCP - Autonomous Browser Companion</title>
     <authors>DarbotLabs</authors>
-    <description>🤖 Your Autonomous Browser Companion - 29 AI-driven autonomous browser tools for Model Context Protocol (MCP) servers. Provides intelligent autonomous browser capabilities for MCP-enabled applications with work profile support and VS Code GitHub Copilot agent mode integration.</description>
-    <releaseNotes>v0.2.0: Added VS Code extension with GitHub Copilot agent mode integration, enhanced test coverage, comprehensive documentation, and improved MCP server auto-configuration.</releaseNotes>
-    <summary>Autonomous browser MCP server with 29 AI-driven browser tools, work profiles, and GitHub Copilot integration</summary>
+    <description>🤖 Your Autonomous Browser Companion - 39 AI-driven browser automation tools for Model Context Protocol (MCP) servers (34 accessibility-first + 5 vision-mode). Includes AI-native automation, autonomous crawling with BFS planner and memory system, work profiles, and VS Code GitHub Copilot agent mode integration. Supports Local, Hosted (Docker with MSAL), and Cloud (Azure) deployment modes. See docs/readme_index.md for canonical tool list.</description>
+    <releaseNotes>v0.3.0: Added 5 new tools (AI-native automation, autonomous crawling), deployment mode selection (Local/Hosted/Cloud), enhanced VS Code extension with auto-configuration, Docker hosted edition with MSAL auth, Azure deployment templates, and comprehensive tool validation (23/34 core tools tested).</releaseNotes>
+    <summary>Autonomous browser MCP server with 34 AI-driven browser tools, AI-native automation, autonomous crawling, work profiles, and multi-deployment support</summary>
     <language>en-US</language>
     <projectUrl>https://github.com/darbotlabs/darbot-browser-mcp</projectUrl>
     <iconUrl>https://raw.githubusercontent.com/darbotlabs/darbot-browser-mcp/main/extension/icons/icon-128.png</iconUrl>
@@ -21,7 +21,7 @@
         <dependency id="System.Text.Json" version="8.0.0" />
       </group>
     </dependencies>
-    <tags>mcp browser autonomous darbot testing web-automation model-context-protocol ai copilot github-copilot vscode agent-mode work-profiles</tags>
+    <tags>mcp browser autonomous darbot testing web-automation model-context-protocol ai copilot github-copilot vscode agent-mode work-profiles azure docker msal ai-native crawling deployment</tags>
   </metadata>
   <files>
     <file src="dotnet\**\*" target="lib\net8.0" />

@@ -2,9 +2,9 @@
 
 This folder contains comprehensive automation scripts for managing the darbot-browser-mcp GitHub repository using Markdown-based MCP (Model Context Protocol) commands.
 
-## 📁 Script Collection
+## [FOLDER] Script Collection
 
-### 🎯 Core Scripts
+### [TARGET] Core Scripts
 
 1. **[github_repository_manager.md](./github_repository_manager.md)**
    - Complete repository management workflow
@@ -30,7 +30,7 @@ This folder contains comprehensive automation scripts for managing the darbot-br
    - Rapid issue triage and monitoring
    - Emergency response commands
 
-## 🚀 Getting Started
+## [DEPLOY] Getting Started
 
 ### Prerequisites
 
@@ -53,7 +53,7 @@ This folder contains comprehensive automation scripts for managing the darbot-br
 
 3. **Follow specific script instructions** based on your goal
 
-## 📋 Common Use Cases
+## [CLIPBOARD] Common Use Cases
 
 ### Repository Health Check
 Use `github_quick_actions.md` for fast repository status assessment:
@@ -83,7 +83,7 @@ Use `github_repository_manager.md` for end-to-end repository management:
 - Create new issues when needed
 - Maintain repository health over time
 
-## 🛠️ Script Structure
+## [TOOLS] Script Structure
 
 Each script follows a consistent structure:
 
@@ -108,11 +108,11 @@ Scripts include guidance for:
 - Adapting to page structure changes
 - Alternative interaction methods
 
-## 🎯 Workflow Examples
+## [TARGET] Workflow Examples
 
 ### Example 1: Daily Repository Check
 ```bash
-1. Run github_quick_actions.md → Repository Health Check
+1. Run github_quick_actions.md -> Repository Health Check
 2. Review issue counts and recent activity
 3. Identify any urgent items requiring attention
 4. Create action items for team discussion
@@ -120,7 +120,7 @@ Scripts include guidance for:
 
 ### Example 2: Bug Report Submission
 ```bash
-1. Run github_issue_creator.md → Bug Report Template
+1. Run github_issue_creator.md -> Bug Report Template
 2. Follow structured template for complete bug description
 3. Add appropriate labels and metadata
 4. Submit and verify creation
@@ -128,13 +128,13 @@ Scripts include guidance for:
 
 ### Example 3: Project Planning
 ```bash
-1. Run github_issue_analyzer.md → Advanced Analysis
+1. Run github_issue_analyzer.md -> Advanced Analysis
 2. Extract issue patterns and trends
 3. Identify development priorities
 4. Create project roadmap based on data
 ```
 
-## 🔧 Customization
+## [CONFIG] Customization
 
 ### Adapting for Other Repositories
 
@@ -153,7 +153,7 @@ Extend scripts with additional functionality:
 - **Integration Hooks**: Add commands for external tool integration
 - **Monitoring Alerts**: Create automated monitoring and notification workflows
 
-## 📊 Data Extraction and Reporting
+## [CHART] Data Extraction and Reporting
 
 These scripts enable extraction of valuable repository data:
 
@@ -169,7 +169,7 @@ These scripts enable extraction of valuable repository data:
 - Alert triggers for monitoring
 - Integration data for external systems
 
-## 🔒 Security and Best Practices
+## [SECURITY] Security and Best Practices
 
 ### Authentication
 - Use appropriate GitHub authentication
@@ -186,7 +186,7 @@ These scripts enable extraction of valuable repository data:
 - Follow data protection guidelines
 - Respect contributor privacy
 
-## 🤝 Contributing
+## (handshake) Contributing
 
 To improve these automation scripts:
 
@@ -195,14 +195,14 @@ To improve these automation scripts:
 3. **Follow MCP command conventions** for consistency
 4. **Share improvements** with the community
 
-## 📚 Additional Resources
+## [BOOKS] Additional Resources
 
 - [Darbot Browser MCP Documentation](../README.md)
 - [Model Context Protocol Specification](https://modelcontextprotocol.io/)
 - [GitHub REST API Documentation](https://docs.github.com/en/rest)
 - [VS Code MCP Integration Guide](../vscode-extension/README.md)
 
-## 🎉 Success Stories
+## [INIT] Success Stories
 
 These scripts have been used successfully for:
 - **Automated issue triage** reducing manual review time by 70%
@@ -210,7 +210,7 @@ These scripts have been used successfully for:
 - **Project planning** with data-driven priority assessment
 - **Community management** with engagement tracking and response
 
-## 🔄 Continuous Improvement
+## (reload) Continuous Improvement
 
 These scripts are living documents that evolve with:
 - GitHub interface changes

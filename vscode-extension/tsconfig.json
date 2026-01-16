@@ -7,7 +7,7 @@
     "sourceMap": true,
     "rootDir": "src",
     "strict": true,
-    "moduleResolution": "node",
+    "moduleResolution": "node16",
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true

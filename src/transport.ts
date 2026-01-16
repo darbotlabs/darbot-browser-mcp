@@ -232,7 +232,7 @@ export function startHttpTransport(httpServer: http.Server, mcpServer: Server) {
       }
     }, undefined, 2),
     '',
-    'Copilot Studio integration ready! 🚀',
+    'Copilot Studio integration ready! [DEPLOY]',
   ].join('\n');
     // eslint-disable-next-line no-console
   console.error(message);

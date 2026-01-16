@@ -291,25 +291,25 @@ ref: [Milestone name in dropdown]
 
 Before submitting any issue, verify:
 
-### ✅ Title Requirements
+### [COMPLETED] Title Requirements
 - [ ] Descriptive and concise
 - [ ] Includes issue type prefix ([BUG], [FEATURE], [DOCS])
 - [ ] No vague terms like "doesn't work" or "broken"
 
-### ✅ Description Requirements
+### [COMPLETED] Description Requirements
 - [ ] Clear problem statement
 - [ ] Steps to reproduce (for bugs)
 - [ ] Expected vs actual behavior (for bugs)
 - [ ] Use case description (for features)
 - [ ] Environment information (when relevant)
 
-### ✅ Labels and Metadata
+### [COMPLETED] Labels and Metadata
 - [ ] Appropriate labels selected
 - [ ] Assignee set (if known)
 - [ ] Milestone assigned (if applicable)
 - [ ] Priority indicated
 
-### ✅ Content Quality
+### [COMPLETED] Content Quality
 - [ ] No duplicate issues exist
 - [ ] Sufficient detail for others to understand
 - [ ] Professional and respectful tone

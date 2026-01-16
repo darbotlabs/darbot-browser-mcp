@@ -4,7 +4,7 @@
 
 **Your Autonomous Browser Companion for VS Code**
 
-Transform your coding workflow with intelligent autonomous browser capabilities directly integrated into VS Code. This extension provides seamless access to 29 autonomous browser tools through GitHub Copilot Chat, enabling you to automate web interactions, test applications, and manage browser sessions without leaving your IDE.
+Transform your coding workflow with intelligent browser automation directly integrated into VS Code. This extension provides seamless access to 34 autonomous browser tools through GitHub Copilot Chat, enabling you to automate web interactions, test applications, and manage browser sessions without leaving your IDE.
 
 [![VS Code Marketplace](https://img.shields.io/visual-studio-marketplace/v/darbotlabs.darbot-browser-mcp?style=flat-square&color=0098FF&label=Marketplace)](https://marketplace.visualstudio.com/items?itemName=darbotlabs.darbot-browser-mcp)
 [![Downloads](https://img.shields.io/visual-studio-marketplace/d/darbotlabs.darbot-browser-mcp?style=flat-square&color=0098FF)](https://marketplace.visualstudio.com/items?itemName=darbotlabs.darbot-browser-mcp)
@@ -12,29 +12,33 @@ Transform your coding workflow with intelligent autonomous browser capabilities 
 
 ---
 
-## ✨ Features
+## [NEW] Features
 
-- **🌐 Multi-Browser Support** - Edge, Chrome, Firefox, WebKit autonomous control
-- **📸 Smart Snapshots** - AI-optimized autonomous accessibility snapshots  
-- **🖱️ Autonomous Interactions** - Autonomous click, type, navigate, form filling, drag & drop
-- **📁 Autonomous Work Profiles** - Autonomously save and restore complete browser sessions
-- **🔧 Native VS Code Integration** - Seamless autonomous MCP server with GitHub Copilot Chat
-- **⚡ Real-time Autonomous Control** - Live autonomous browser operations from your IDE
-- **🎮 Status Management** - Start/Stop server with visual status indicators
-- **🧪 Autonomous Test Generation** - Autonomously generate automated tests from browser interactions
-- **📱 Mobile Emulation** - Autonomous testing of responsive designs with device emulation
-- **🛡️ Professional Grade** - Enterprise-ready autonomous browser with comprehensive error handling
+- **[I18N] Multi-Browser Support** - Edge, Chrome, Firefox, WebKit control
+- **📸 Smart Snapshots** - AI-optimized accessibility snapshots  
+- **[MOUSE] Browser Interactions** - Click, type, navigate, form filling, drag & drop
+- **[FOLDER] Work Profiles** - Save and restore complete browser sessions
+- **[CONFIG] Native VS Code Integration** - Seamless MCP server integration with GitHub Copilot Chat
+- **[PERF] Real-time Control** - Live browser operations from your IDE
+- **🎮 Status Management** - Start/stop server with visual status indicators
+- **[TEST] Test Generation** - Generate automated tests from browser interactions
+- **[PHONE] Mobile Emulation** - Test responsive designs with device emulation
+- **[SHIELD] Professional Grade** - Enterprise-ready with comprehensive error handling
 
-## 🛠️ Installation
+## [TOOLS] Installation
 
 ### **Automatic Setup (Recommended)**
 1. **Install the extension** from the VS Code marketplace
-2. **Auto-configuration**: The extension automatically:
+2. **Choose deployment mode**: On first activation, select:
+   - **Local** - Quick NPX setup, no Docker required
+   - **Hosted (Docker)** - On-premises with MSAL auth and Dev Tunnels
+   - **Cloud (Azure)** - Azure App Service with enterprise features
+3. **Auto-configuration**: The extension automatically:
    - Prompts to enable MCP in VS Code settings (`"chat.mcp.enabled": true`)
-   - Configures the Darbot Browser MCP server in your MCP settings
-   - Sets up the optimal server path: `npx @darbotlabs/darbot-browser-mcp@latest`
-3. **Start the server**: Use Command Palette → "Darbot Browser MCP: Start Server"
-4. **Test with GitHub Copilot**: Ask Copilot to "take a screenshot of example.com"
+   - Configures the Darbot Browser MCP server based on your chosen deployment mode
+   - Sets up the appropriate connection (NPX command, Docker URL, or Azure URL)
+4. **Start using**: The server is ready for GitHub Copilot Chat integration
+5. **Test with GitHub Copilot**: Ask Copilot to "take a screenshot of example.com"
 
 ### **Manual Setup (Advanced)**
 If you prefer manual configuration:
@@ -44,40 +48,49 @@ If you prefer manual configuration:
 
 ### **What Happens After Installation**
 When you first activate the extension:
-- 🔧 **Auto-detects MCP availability** and prompts to enable if needed
-- ⚙️ **Auto-configures the MCP server** in your VS Code settings (`chat.mcp.servers`)
-- 📊 **Adds status bar indicator** showing server state (Running/Stopped)
-- 🚀 **Ready to use** with GitHub Copilot Chat immediately
-- 💡 **Shows helpful prompts** to restart VS Code or start the server
+- [CONFIG] **Auto-detects MCP availability** and prompts to enable if needed
+- [GEAR] **Auto-configures the MCP server** in your VS Code settings (`chat.mcp.servers`)
+- [CHART] **Adds status bar indicator** showing server state (Running/Stopped)
+- [DEPLOY] **Ready to use** with GitHub Copilot Chat immediately
+- [TIP] **Shows helpful prompts** to restart VS Code or start the server
 
 ## 🎮 Usage Examples
 
 **With GitHub Copilot Chat:**
 ```
 👤 "Take a screenshot of example.com"
-🤖 I'll autonomously navigate to example.com and capture a screenshot for you.
+🤖 I'll navigate to example.com and capture a screenshot for you.
 
 👤 "Navigate to example.com and click the More information link"  
-🤖 I'll autonomously navigate to example.com and locate the "More information..." link to click.
+🤖 I'll navigate and locate the "More information..." link to click.
 
 👤 "Save this browser session as 'research-profile'"
-🤖 I'll autonomously save the current browser state as a work profile named 'research-profile'.
+🤖 I'll save the current browser state as work profile 'research-profile'.
 
 👤 "Fill out the contact form with test data"
-🤖 I'll autonomously fill the contact form with appropriate test data.
+🤖 I'll fill the contact form with appropriate test data.
 
 👤 "Generate an automated test for the login flow"
-🤖 I'll autonomously create an automated test based on the current page interactions.
+🤖 I'll create an automated test based on the current page interactions.
 ```
 
 **Direct Commands:**
-- `Ctrl+Shift+P` → "Darbot Browser MCP: Start Server"
+- `Ctrl+Shift+P` -> "Darbot Browser MCP: Start Server"
 - Use status bar indicator to monitor server health
 - Configure browser preferences in VS Code settings
 
 ## Configuration
 
-- `darbot-browser-mcp.serverPath`: Path or command to start the Browser MCP server (default: `npx @darbotlabs/darbot-browser-mcp@latest`)
+### Deployment Mode Settings
+- `darbot-browser-mcp.deploymentMode`: Choose deployment mode (default: `local`)
+  - **local** - Run via NPX (npx @darbotlabs/darbot-browser-mcp@latest)
+  - **hosted** - Docker container with MSAL auth and Dev Tunnels
+  - **cloud** - Azure App Service with enterprise features
+- `darbot-browser-mcp.serverPath`: Path or command for Local mode (default: `npx @darbotlabs/darbot-browser-mcp@latest`)
+- `darbot-browser-mcp.hostedUrl`: URL for Hosted mode Docker instance (default: `http://localhost:8080`)
+- `darbot-browser-mcp.cloudUrl`: Azure App Service URL for Cloud mode (e.g., `https://your-app.azurewebsites.net`)
+
+### General Settings
 - `darbot-browser-mcp.autoStart`: Automatically start the server when VS Code starts (default: `false`)
 - `darbot-browser-mcp.autoConfigureMCP`: Automatically configure MCP settings when first activated (default: `true`)
 - `darbot-browser-mcp.logLevel`: Log level for the server (error, warn, info, debug) (default: `info`)
@@ -100,18 +113,20 @@ Common configuration options:
 
 ## Commands
 
-- `Darbot Browser MCP: Start Server`: Start the Browser MCP server
-- `Darbot Browser MCP: Stop Server`: Stop the Browser MCP server  
-- `Darbot Browser MCP: Show Status`: Show server status and controls
+- `Darbot Browser MCP: Configure Deployment Mode`: Choose between Local, Hosted, or Cloud deployment
+- `Darbot Browser MCP: Start Server`: Start the Browser MCP server (Local mode only)
+- `Darbot Browser MCP: Stop Server`: Stop the Browser MCP server (Local mode only)
+- `Darbot Browser MCP: Restart Server`: Restart the Browser MCP server (Local mode only)
+- `Darbot Browser MCP: Show Status`: Show server status and deployment configuration
 
-## 🔧 Requirements
+## [CONFIG] Requirements
 
 - **Node.js**: Version 18.0.0 or higher
 - **VS Code**: Version 1.95.0 or higher
 - **Browser**: Microsoft Edge (recommended) or Chrome/Firefox/WebKit
 - **MCP Support**: Enable `"chat.mcp.enabled": true` in VS Code settings
 
-## 🐛 Troubleshooting
+## [BUG] Troubleshooting
 
 **Extension not loading?**
 - Check VS Code Developer Console (`Ctrl+Shift+I`)
@@ -141,6 +156,6 @@ Apache License 2.0 - see [LICENSE](https://github.com/darbotlabs/darbot-browser-
 
 ---
 
-**⭐ If this extension helps your workflow, please rate it on the marketplace!**
+*** If this extension helps your workflow, please rate it on the marketplace!**
 
-**Made with ❤️ by Darbot Labs**
+**Made with <3 by Darbot Labs**

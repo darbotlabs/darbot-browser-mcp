@@ -18,8 +18,8 @@ import debug from 'debug';
 import * as playwright from 'playwright';
 
 import { callOnPageNoTrace, waitForCompletion } from './tools/utils.js';
-import { ManualPromise } from './manualPromise.js';
-import { Tab } from './tab.js';
+import { ManualPromise } from './ai/manualPromise.js';
+import { Tab } from './tools/tab.js';
 import { outputFile } from './config.js';
 
 import type { ImageContent, TextContent } from '@modelcontextprotocol/sdk/types.js';

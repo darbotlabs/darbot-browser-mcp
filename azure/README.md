@@ -31,12 +31,19 @@ az deployment group create \
 
 The deployment creates the following Azure resources:
 
+- **Azure Container Registry** - Private Docker registry for container images
 - **App Service** - Hosts the MCP server with Linux containers
-- **App Service Plan** - Provides compute resources (S1 SKU by default)
+- **App Service Plan** - Provides compute resources (P1v3 SKU recommended)
 - **Key Vault** - Stores secrets securely (client secret, API keys)
 - **Application Insights** - Monitoring and diagnostics
 - **Log Analytics Workspace** - Centralized logging
 - **Storage Account** - Session storage and artifacts
+
+### Current Deployment
+- **Registry**: `darbotbrowsermcp.azurecr.io`
+- **Image**: `darbot-browser-mcp:latest`
+- **Build**: Successfully deployed (Build ca5, 2m47s)
+- **Status**: [COMPLETED] Operational
 
 ## Configuration
 

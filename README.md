@@ -2,7 +2,7 @@
 
 ![Darbot Banner](./assets/darbot_logo_icon_pack/darbot-horizontal-banner-1500x500.png)
 
-**🤖 Your Autonomous Browser Companion - Powered by AI**
+**Your Autonomous Browser Companion - Powered by AI**
 
 A Model Context Protocol (MCP) server that provides intelligent autonomous browser capabilities. This server enables AI models to interact with web pages through structured accessibility snapshots, delivering autonomous browsing without requiring vision models. Optimized for Microsoft Edge with comprehensive work profile support.
 
@@ -11,28 +11,30 @@ A Model Context Protocol (MCP) server that provides intelligent autonomous brows
 [![VS Code Extension](https://img.shields.io/visual-studio-marketplace/v/darbotlabs.darbot-browser-mcp?style=flat-square&color=24bfa5&label=VS%20Code)](https://marketplace.visualstudio.com/items?itemName=darbotlabs.darbot-browser-mcp)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue?style=flat-square)](./LICENSE)
 
-## ✨ Key Features
+## Key Features
 
-- **🚀 Fast and lightweight** - Uses accessibility tree, not pixel-based input
-- **🧠 AI-friendly** - No vision models needed, operates purely on structured data  
-- **🎯 Deterministic** - Avoids ambiguity common with screenshot-based approaches
-- **🔄 Work Profiles** - Save and restore complete browser sessions
-- **🛠️ 31 Autonomous Tools** - Comprehensive autonomous browser capabilities
-- **🤖 Autonomous Crawling** - BFS strategy with memory, guardrails, and reporting
-- **🧠 Memory System** - State tracking and deduplication with darbot-memory-mcp integration
-- **📊 HTML Reports** - Comprehensive crawl reports with screenshots and statistics
-- **⚡ Multi-Platform** - Available as NPM package, VS Code extension, NuGet package, and browser extension
+- **Fast and lightweight** - Uses accessibility tree, not pixel-based input
+- **AI-friendly** - No vision models needed, operates purely on structured data  
+- **Deterministic** - Avoids ambiguity common with screenshot-based approaches
+- **Work Profiles** - Save and restore complete browser sessions
+- **39 Autonomous Tools** - 34 accessibility-first + 5 vision-mode actions (see [`docs/readme_index.md`](./docs/readme_index.md))
+- **Autonomous Crawling** - BFS strategy with memory, guardrails, and reporting
+- **Memory System** - State tracking and deduplication with darbot-memory-mcp integration
+- **HTML Reports** - Comprehensive crawl reports with screenshots and statistics
+- **Multi-Platform** - Available as NPM package, VS Code extension, NuGet package, and browser extension
 
-## 📋 Requirements
+## Requirements
+
 - **Node.js** 18 or newer
 - **VS Code, Cursor, Windsurf, Claude Desktop** or any other MCP client
 - **Microsoft Edge** (recommended) or Chrome/Firefox/WebKit
 
-## 📦 Installation Options
+## Installation Options
 
 Darbot Browser MCP is available in multiple package formats:
 
-### 🔧 NPM Package
+### NPM Package
+
 ```bash
 # Install globally
 npm install -g @darbotlabs/darbot-browser-mcp
@@ -41,44 +43,70 @@ npm install -g @darbotlabs/darbot-browser-mcp
 npx @darbotlabs/darbot-browser-mcp@latest
 ```
 
-### 🔌 VS Code Extension
+### VS Code Extension
+
 Install the **"Darbot Browser MCP"** extension from the VS Code marketplace or search for `darbotlabs.darbot-browser-mcp`.
 
 The extension **automatically configures the MCP server** when installed - just enable MCP in VS Code settings and start the server!
 
-[**📥 Install VS Code Extension**](https://marketplace.visualstudio.com/items?itemName=darbotlabs.darbot-browser-mcp)
+[**Install VS Code Extension**](https://marketplace.visualstudio.com/items?itemName=darbotlabs.darbot-browser-mcp)
 
 **Quick Setup:**
+
 1. Install the extension from VS Code marketplace
 2. The extension will automatically prompt you to enable MCP and configure the server
-3. Use Command Palette: "Darbot Browser MCP: Start Server" 
+3. Use Command Palette: "Darbot Browser MCP: Start Server"
 4. Start chatting with GitHub Copilot using browser automation tools!
 
-### 📚 NuGet Package (.NET)
+### NuGet Package (.NET)
+
 ```bash
 # Install for .NET projects
 dotnet add package DarbotLabs.Browser.MCP
 ```
 
-### 🌐 Browser Extension
+### Browser Extension
+
 Install the **Browser MCP Bridge** extension from the Chrome Web Store to share browser tabs with the MCP server.
+
+### On-Premises Hosted Edition
+
+Deploy Darbot Browser MCP as a hosted service in your own infrastructure with enterprise authentication:
+
+```bash
+cd darbot-browser-hosted
+npm install
+npm start
+```
+
+**Features:**
+
+- Docker containerization for easy deployment
+- Microsoft Entra ID (Azure AD) authentication via MSAL
+- Dev Tunnels integration for secure remote access
+- Multi-user session management
+- Health monitoring and logging
+
+[**[BOOK] Full Hosted Edition Guide**](./darbot-browser-hosted/README.md)
 
 ---
 
-## 🎯 Why Choose Darbot Browser MCP?
+## Why Choose Darbot Browser MCP?
 
-| Traditional Browser Automation | 🤖 Darbot Browser MCP |
+| Traditional Browser Automation | Darbot Browser MCP |
 |--------------------------------|------------------------|
-| ❌ Pixel-based, brittle selectors | ✅ AI-friendly accessibility snapshots |
-| ❌ Requires vision models | ✅ Pure structured data approach |
-| ❌ Complex setup and maintenance | ✅ Simple NPM install, ready in seconds |
-| ❌ Browser-specific code | ✅ Universal MCP protocol |
-| ❌ No session management | ✅ Advanced autonomous work profiles |
+| [FAILED] Pixel-based, brittle selectors | [COMPLETED] AI-friendly accessibility snapshots |
+| [FAILED] Requires vision models | [COMPLETED] Pure structured data approach |
+| [FAILED] Complex setup and maintenance | [COMPLETED] Simple NPM install, ready in seconds |
+| [FAILED] Browser-specific code | [COMPLETED] Universal MCP protocol |
+| [FAILED] No session management | [COMPLETED] Advanced autonomous work profiles |
 
-### 🛠️ Complete Autonomous Toolkit (31 Tools)
+### Complete Autonomous Toolkit (39 Tools)
+
+**Validated:** 23 of the 34 accessibility-first tools have been tested and validated in production Docker environments, ensuring reliability for core automation workflows. Vision-mode tooling shares the same orchestration layer and is tracked in [`docs/readme_index.md`](./docs/readme_index.md).
 
 <details>
-<summary><b>🔧 Core Autonomous Operations</b></summary>
+<summary><b>Core Autonomous Operations</b></summary>
 
 - `browser_navigate` - Autonomously navigate to any URL
 - `browser_click` - Autonomous intelligent element clicking  
@@ -89,7 +117,7 @@ Install the **Browser MCP Bridge** extension from the Chrome Web Store to share 
 </details>
 
 <details>
-<summary><b>🤖 Autonomous Crawling & Intelligence</b></summary>
+<summary><b>Autonomous Crawling & Intelligence</b></summary>
 
 - `browser_start_autonomous_crawl` - Start intelligent BFS crawling with memory and reporting
 - `browser_configure_memory` - Configure memory system with darbot-memory-mcp integration
@@ -99,7 +127,7 @@ Install the **Browser MCP Bridge** extension from the Chrome Web Store to share 
 </details>
 
 <details>
-<summary><b>📁 Autonomous Work Profile Management</b></summary>
+<summary><b>Autonomous Work Profile Management</b></summary>
 
 - `browser_save_profile` - Autonomously save complete browser sessions
 - `browser_switch_profile` - Autonomously load saved profiles  
@@ -109,7 +137,7 @@ Install the **Browser MCP Bridge** extension from the Chrome Web Store to share 
 </details>
 
 <details>
-<summary><b>🖼️ Autonomous Media & Resources</b></summary>
+<summary><b>Autonomous Media & Resources</b></summary>
 
 - `browser_take_screenshot` - Autonomous high-quality screenshots
 - `browser_pdf_save` - Autonomous PDF generation from pages
@@ -118,7 +146,7 @@ Install the **Browser MCP Bridge** extension from the Chrome Web Store to share 
 </details>
 
 <details>
-<summary><b>🗂️ Autonomous Tab Management</b></summary>
+<summary><b>Autonomous Tab Management</b></summary>
 
 - `browser_tab_new` - Autonomously open new tabs
 - `browser_tab_list` - Autonomously get all open tabs
@@ -128,7 +156,7 @@ Install the **Browser MCP Bridge** extension from the Chrome Web Store to share 
 </details>
 
 <details>
-<summary><b>🧪 Autonomous Testing & Development</b></summary>
+<summary><b>Autonomous Testing & Development</b></summary>
 
 - `browser_generate_playwright_test` - Autonomously auto-generate test code
 - `browser_console_messages` - Autonomous debug with console access
@@ -136,24 +164,26 @@ Install the **Browser MCP Bridge** extension from the Chrome Web Store to share 
 
 </details>
 
-[**📖 View All 29 Tools**](#tools)
+[**[BOOK] View All Tools**](./docs/readme_index.md#canonical-tool-inventory)
 
 <!--
 // Generate using:
 node utils/generate-links.js
 -->
 
-## 🚀 Getting Started
+## Getting Started
 
 The fastest way to get started is with the VS Code extension, which automatically configures everything for you. For other clients, you'll need to manually configure the MCP server.
 
-### **🔌 VS Code (Automatic Setup)**
+### **VS Code (Automatic Setup)**
+
 1. Install the [VS Code Extension](https://marketplace.visualstudio.com/items?itemName=darbotlabs.darbot-browser-mcp)
 2. Extension auto-configures MCP settings
 3. Start the server via Command Palette
 4. Use with GitHub Copilot Chat!
 
-### **⚙️ Manual Configuration (Other Clients)**
+### **Manual Configuration (Other Clients)**
+
 For Claude Desktop, Cursor, Windsurf, etc., add this configuration:
 
 ```js
@@ -169,27 +199,28 @@ For Claude Desktop, Cursor, Windsurf, etc., add this configuration:
 }
 ```
 
-### 📱 Quick Install Buttons
+### Quick Install Buttons
 
-**🔌 VS Code (Automatic):**
+**VS Code (Automatic):**
 [<img src="https://img.shields.io/badge/VS_Code-Auto_Install_Extension-0098FF?style=for-the-badge&logo=visual-studio-code" alt="Install VS Code Extension">](https://marketplace.visualstudio.com/items?itemName=darbotlabs.darbot-browser-mcp)
 
-**⚙️ Manual Configuration:**
+**Manual Configuration:**
 [<img src="https://img.shields.io/badge/VS_Code-Manual_Server_Config-0098FF?style=for-the-badge&logo=visual-studio-code" alt="Install in VS Code">](https://insiders.vscode.dev/redirect?url=vscode%3Amcp%2Finstall%3F%257B%2522name%2522%253A%2522browser%2522%252C%2522command%2522%253A%2522npx%2522%252C%2522args%2522%253A%255B%2522%2540darbotlabs%252Fdarbot-browser-mcp%2540latest%2522%255D%257D) [<img src="https://img.shields.io/badge/VS_Code_Insiders-Manual_Server_Config-24bfa5?style=for-the-badge&logo=visual-studio-code" alt="Install in VS Code Insiders">](https://insiders.vscode.dev/redirect?url=vscode-insiders%3Amcp%2Finstall%3F%257B%2522name%2522%253A%2522browser%2522%252C%2522command%2522%253A%2522npx%2522%252C%2522args%2522%253A%255B%2522%2540darbotlabs%252Fdarbot-browser-mcp%2540latest%2522%255D%257D)
 
 
 <details><summary><b>Install in VS Code (Automatic Setup)</b></summary>
 
-**🚀 Recommended: Use the VS Code Extension for automatic setup!**
+**Recommended: Use the VS Code Extension for automatic setup!**
 
 The [Darbot Browser MCP Extension](https://marketplace.visualstudio.com/items?itemName=darbotlabs.darbot-browser-mcp) automatically handles all configuration:
 
 1. **Install from marketplace**: Search "Darbot Browser MCP" in VS Code extensions
 2. **Auto-configuration**: Extension prompts to enable MCP and configures the server
-3. **Start & Use**: Use Command Palette → "Darbot Browser MCP: Start Server"
+3. **Start & Use**: Use Command Palette -> "Darbot Browser MCP: Start Server"
 4. **Chat with Copilot**: Ask GitHub Copilot to "browse to example.com"
 
 **Manual CLI installation (if you prefer):**
+
 ```bash
 # For VS Code
 code --add-mcp '{"name":"browser","command":"npx","args":["@darbotlabs/darbot-browser-mcp@latest"]}'
@@ -221,6 +252,7 @@ Go to `Cursor Settings` -> `MCP` -> `Add new MCP Server`. Name to your liking, u
   }
 }
 ```
+
 </details>
 
 <details>
@@ -240,6 +272,7 @@ Follow Windsuff MCP [documentation](https://docs.windsurf.com/windsurf/cascade/m
   }
 }
 ```
+
 </details>
 
 <details>
@@ -259,6 +292,7 @@ Follow the MCP install [guide](https://modelcontextprotocol.io/quickstart/user),
   }
 }
 ```
+
 </details>
 
 <details>
@@ -269,12 +303,13 @@ Use the Claude Code CLI to add the Browser MCP server:
 ```bash
 claude mcp add browser npx @darbotlabs/darbot-browser-mcp@latest
 ```
+
 </details>
 
 <details>
 <summary><b>Install in Qodo Gen</b></summary>
 
-Open [Qodo Gen](https://docs.qodo.ai/qodo-documentation/qodo-gen) chat panel in VSCode or IntelliJ → Connect more tools → + Add new MCP → Paste the following configuration:
+Open [Qodo Gen](https://docs.qodo.ai/qodo-documentation/qodo-gen) chat panel in VSCode or IntelliJ -> Connect more tools -> + Add new MCP -> Paste the following configuration:
 
 ```js
 {
@@ -480,6 +515,7 @@ npx @darbotlabs/darbot-browser-mcp@latest --config path/to/config.json
   noImageResponses?: boolean;
 }
 ```
+
 </details>
 
 ### Standalone MCP server
@@ -519,11 +555,13 @@ And then in MCP client config, set the `url` to the SSE endpoint:
 }
 ```
 
-You can build the Docker image yourself.
+You can build the Docker image yourself:
 
-```
+```bash
 docker build -t mcr.microsoft.com/playwright/mcp .
 ```
+
+**For on-premises enterprise deployment with authentication and monitoring, see the [Hosted Edition Guide](./darbot-browser-hosted/README.md).**
 </details>
 
 <details>
@@ -546,6 +584,7 @@ http.createServer(async (req, res) => {
   // ...
 });
 ```
+
 </details>
 
 ### Tools
@@ -988,43 +1027,77 @@ X Y coordinate space, based on the provided screenshot.
 ## Package Formats
 
 ### NPM Package
+
 - **Name**: `@darbotlabs/darbot-browser-mcp`
 - **Installation**: `npm install -g @darbotlabs/darbot-browser-mcp`
 - **Usage**: `npx @darbotlabs/darbot-browser-mcp@latest`
 
 ### VS Code Extension
+
 - **Name**: Darbot Browser MCP
 - **Publisher**: darbotlabs
 - **Installation**: Search for "Darbot Browser MCP" in VS Code Extensions marketplace
 - **Features**: Start/stop MCP server, status monitoring, configuration management
 
 ### NuGet Package (.NET)
+
 - **Name**: `DarbotLabs.Browser.MCP`
 - **Installation**: `dotnet add package DarbotLabs.Browser.MCP`
 - **Usage**: Host the Browser MCP server in .NET applications
 
 ### Browser Extension
+
 - **Name**: Browser MCP Bridge
 - **Installation**: Available in Chrome Web Store (coming soon)
 - **Features**: Share browser tabs with MCP server via CDP bridge
 
 ## Repository Structure
+
 - `/vscode-extension/` - VS Code extension source
 - `/dotnet/` - .NET NuGet package source
 - `/extension/` - Browser extension source
 - `/src/` - Main MCP server source code
 - `/tests/` - Test suite
 
-## 🤖 Autonomous Features
+## Autonomous Features
 
-For detailed information about the autonomous crawling capabilities, including memory system, BFS planner, guardrails, and reporting, see [AUTONOMOUS_FEATURES.md](./AUTONOMOUS_FEATURES.md).
+For detailed information about the autonomous crawling capabilities, including memory system, BFS planner, guardrails, and reporting, see [AUTONOMOUS_FEATURES.md](./docs/AUTONOMOUS_FEATURES.md).
 
 **Key Autonomous Capabilities:**
+
 - Intelligent BFS crawling with memory and state tracking
 - Darbot-memory-mcp integration for persistent memory  
 - Comprehensive guardrail system for safe operation
 - HTML report generation with screenshots and statistics
 - Configurable domain filtering and safety policies
+
+## Documentation
+
+Comprehensive documentation is available in the `docs/` folder:
+
+### Quick Start Guides
+
+- **[Installation Guide](./docs/INSTALLATION_GUIDE.md)** - Detailed setup instructions for all platforms
+- **[VS Code Installation](./docs/VSCODE_INSTALLATION.md)** - Specific guide for VS Code integration
+- **[DarbotGuide](./docs/DarbotGuide.md)** - Complete user guide with examples
+
+### Integration Guides
+
+- **[Microsoft Copilot Studio Integration](./docs/COPILOT_STUDIO_INTEGRATION.md)** - Enterprise integration with Microsoft Copilot Studio
+- **[Microsoft Engineer Guide](./docs/MICROSOFT_ENGINEER_GUIDE.md)** - Technical integration guide for Microsoft engineers
+- **[AI Native Features](./docs/AI_NATIVE_FEATURES.md)** - Advanced AI capabilities and features
+
+### Technical Documentation
+
+- **[Autonomous Features](./docs/AUTONOMOUS_FEATURES.md)** - Detailed autonomous crawling and intelligence features
+- **[Implementation Summary](./docs/IMPLEMENTATION_SUMMARY.md)** - Technical implementation details
+- **[Security](./docs/SECURITY.md)** - Security considerations and best practices
+
+### Release Information
+
+- **[Release Tracker](./docs/RELEASE_TRACKER.md)** - Latest releases and version history
+- **[Bug Bash Report](./docs/BUG_BASH_REPORT.md)** - Quality assurance and testing reports
+- **[Audit Report](./docs/AUDIT_REPORT.md)** - Security and compliance audit results
 
 ## Contributing
 

@@ -40,7 +40,7 @@ RUN --mount=type=cache,target=/root/.npm,sharing=locked,id=npm-cache \
   npm ci
 
 # Copy the rest of the app
-COPY *.json *.js *.ts .
+COPY *.json *.js *.ts ./
 COPY src src/
 
 # Build the app
@@ -61,6 +61,7 @@ FROM base
 ARG PLAYWRIGHT_BROWSERS_PATH
 ARG USERNAME=node
 ENV NODE_ENV=production
+ENV PLAYWRIGHT_BROWSERS_PATH=${PLAYWRIGHT_BROWSERS_PATH}
 
 # Azure App Service specific environment variables
 ENV PORT=8080
@@ -97,10 +98,11 @@ EXPOSE 8080
 # Use dumb-init for proper signal handling
 ENTRYPOINT ["dumb-init", "--"]
 
-# Azure App Service optimized startup command
+# Azure App Service optimized startup command with HTTP transport
 CMD ["node", "cli.js", \
      "--headless", \
      "--browser", "chromium", \
      "--no-sandbox", \
      "--host", "0.0.0.0", \
-     "--port", "8080"]
+     "--port", "8080", \
+     "--output-dir", "/app/data"]

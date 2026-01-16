@@ -7,6 +7,24 @@ playwright-report/
 .idea
 .DS_Store
 
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# Certificates and keys
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+*.der
+
+# Secret directories
+secrets/
+.secrets/
+config/local.json
+
 # VS Code extension build artifacts
 vscode-extension/out/
 vscode-extension/node_modules/

@@ -26,7 +26,7 @@ import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js'
 import { SSEClientTransport } from '@modelcontextprotocol/sdk/client/sse.js';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { TestServer } from './testserver/index.ts';
-import { ManualPromise } from '../src/manualPromise.js';
+import { ManualPromise } from '../src/ai/manualPromise.js';
 
 import type { Config } from '../config';
 import type { BrowserContext } from 'playwright';
@@ -126,12 +126,16 @@ export const test = baseTest.extend<TestFixtures & TestOptions, WorkerFixtures>(
     await use({
       endpoint: `http://localhost:${port}`,
       start: async () => {
+        const args = [
+          `--remote-debugging-port=${port}`,
+        ];
+        // Add --no-sandbox on Windows to avoid sandbox access issues with Edge
+        if (process.platform === 'win32')
+          args.push('--no-sandbox');
         browserContext = await chromium.launchPersistentContext(testInfo.outputPath('cdp-user-data-dir'), {
           channel: mcpBrowser,
           headless: true,
-          args: [
-            `--remote-debugging-port=${port}`,
-          ],
+          args,
         });
         return browserContext;
       }
