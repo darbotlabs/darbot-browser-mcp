@@ -29,8 +29,7 @@ import { mcpAuthRouter } from '@modelcontextprotocol/sdk/server/auth/router.js';
 import type { AddressInfo } from 'node:net';
 import type { Server } from './server.js';
 
-import { createEntraIDAuthenticator } from './auth/entraAuth.js';
-import { createApiKeyAuthenticatorFromEnv } from './auth/apiKeyAuth.js';
+import { createUnifiedAuthenticator, type UnifiedAuthenticator } from './auth/index.js';
 import { createMcpOAuthProvider, getOAuthConfig, isOAuthConfigured } from './auth/mcpOAuthProvider.js';
 
 export async function startStdioTransport(server: Server) {
@@ -242,13 +241,14 @@ export function startHttpTransport(httpServer: http.Server, mcpServer: Server, a
   const sseSessions = new Map<string, SSEServerTransport>();
   const streamableSessions = new Map<string, StreamableHTTPServerTransport>();
 
-  const entraAuthenticator = createEntraIDAuthenticator();
-  const apiKeyAuthenticator = createApiKeyAuthenticatorFromEnv();
-
-  const entraEnabled = process.env.ENTRA_AUTH_ENABLED === 'true';
-  const apiKeyEnabled = process.env.API_KEY_AUTH_ENABLED === 'true';
-
-  const isAuthEnabled = () => entraEnabled || apiKeyEnabled;
+  // Use unified authenticator that supports multiple auth methods
+  const authenticator = createUnifiedAuthenticator();
+  
+  // Initialize async auth providers (Managed Identity, Key Vault)
+  void authenticator.initialize().catch(err => {
+    // eslint-disable-next-line no-console
+    console.error('[Auth] Failed to initialize async auth providers:', err);
+  });
 
   const sendJson = (res: http.ServerResponse, statusCode: number, body: unknown) => {
     res.statusCode = statusCode;
@@ -257,35 +257,24 @@ export function startHttpTransport(httpServer: http.Server, mcpServer: Server, a
   };
 
   const enforceAuthIfEnabled = async (req: http.IncomingMessage, res: http.ServerResponse): Promise<boolean> => {
-    if (!isAuthEnabled())
+    // Check if any auth method is configured
+    if (!authenticator.isAuthEnabled())
       return true;
 
-    // If auth is enabled, ensure required configuration is present for Entra.
-    if (entraEnabled && (!process.env.AZURE_TENANT_ID || !process.env.AZURE_CLIENT_ID)) {
-      sendJson(res, 500, {
-        error: 'server_misconfigured',
-        message: 'ENTRA_AUTH_ENABLED=true but AZURE_TENANT_ID / AZURE_CLIENT_ID are not configured',
-      });
-      return false;
-    }
-
-    // Accept either a valid API key or a valid Bearer token when both are enabled.
-    if (apiKeyEnabled && apiKeyAuthenticator.authenticate(req))
+    const result = await authenticator.authenticate(req);
+    
+    if (result.authenticated) {
+      // Attach user info to request
+      (req as any).auth = result;
+      (req as any).user = result.user;
       return true;
-
-    if (entraEnabled) {
-      const user = await entraAuthenticator.authenticate(req);
-      if (user) {
-        (req as any).user = user;
-        return true;
-      }
     }
 
-    // Return 401 without WWW-Authenticate header to avoid triggering OAuth flows.
-    // VS Code MCP clients should use pre-configured X-API-Key or Bearer tokens.
+    // Return 401 with helpful error message
     sendJson(res, 401, {
       error: 'unauthorized',
-      message: 'Valid authentication required. Provide X-API-Key header or Bearer token.',
+      message: result.error || 'Valid authentication required.',
+      hint: 'Use Entra ID OAuth, VS Code tunnel, or Azure Managed Identity.',
     });
     return false;
   };

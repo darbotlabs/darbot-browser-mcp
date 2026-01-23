@@ -62,6 +62,8 @@
     }
   },
   "dependencies": {
+    "@azure/identity": "^4.5.0",
+    "@azure/keyvault-secrets": "^4.9.0",
     "@azure/msal-node": "^5.0.2",
     "@modelcontextprotocol/sdk": "^1.25.3",
     "commander": "^13.1.0",
