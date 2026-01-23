@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Microsoft Corporation.
+ * Copyright (c) DarbotLabs.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { test as baseTest, expect } from './fixtures.js';
 import type { Config } from '../config.d.ts';
 
-// NOTE: Can be removed when we drop Node.js 18 support and changed to import.meta.filename.
+// NOTE: Can be removed when we drop Node.js 23 support and changed to import.meta.filename.
 const __filename = url.fileURLToPath(import.meta.url);
 
 baseTest.skip(({ mcpMode }) => mcpMode === 'extension', 'Extension tests run via SSE anyways');
@@ -71,7 +71,7 @@ const test = baseTest.extend<{ serverEndpoint: (options?: { args?: string[], noP
 test('sse transport', async ({ serverEndpoint }) => {
   const { url } = await serverEndpoint();
   const transport = new SSEClientTransport(url);
-  const client = new Client({ name: 'test', version: '1.0.0' });
+  const client = new Client({ name: 'test', version: '1.3.0' });
   await client.connect(transport);
   await client.ping();
 });
@@ -87,7 +87,7 @@ test('sse transport (config)', async ({ serverEndpoint }) => {
 
   const { url } = await serverEndpoint({ noPort: true, args: ['--config=' + configFile] });
   const transport = new SSEClientTransport(url);
-  const client = new Client({ name: 'test', version: '1.0.0' });
+  const client = new Client({ name: 'test', version: '1.3.0' });
   await client.connect(transport);
   await client.ping();
 });
@@ -96,7 +96,7 @@ test('sse transport browser lifecycle (isolated)', async ({ serverEndpoint, serv
   const { url, stderr } = await serverEndpoint({ args: ['--isolated'] });
 
   const transport1 = new SSEClientTransport(url);
-  const client1 = new Client({ name: 'test', version: '1.0.0' });
+  const client1 = new Client({ name: 'test', version: '1.3.0' });
   await client1.connect(transport1);
   await client1.callTool({
     name: 'browser_navigate',
@@ -105,7 +105,7 @@ test('sse transport browser lifecycle (isolated)', async ({ serverEndpoint, serv
   await client1.close();
 
   const transport2 = new SSEClientTransport(url);
-  const client2 = new Client({ name: 'test', version: '1.0.0' });
+  const client2 = new Client({ name: 'test', version: '1.3.0' });
   await client2.connect(transport2);
   await client2.callTool({
     name: 'browser_navigate',
@@ -133,7 +133,7 @@ test('sse transport browser lifecycle (isolated, multiclient)', async ({ serverE
   const { url, stderr } = await serverEndpoint({ args: ['--isolated'] });
 
   const transport1 = new SSEClientTransport(url);
-  const client1 = new Client({ name: 'test', version: '1.0.0' });
+  const client1 = new Client({ name: 'test', version: '1.3.0' });
   await client1.connect(transport1);
   await client1.callTool({
     name: 'browser_navigate',
@@ -141,7 +141,7 @@ test('sse transport browser lifecycle (isolated, multiclient)', async ({ serverE
   });
 
   const transport2 = new SSEClientTransport(url);
-  const client2 = new Client({ name: 'test', version: '1.0.0' });
+  const client2 = new Client({ name: 'test', version: '1.3.0' });
   await client2.connect(transport2);
   await client2.callTool({
     name: 'browser_navigate',
@@ -150,7 +150,7 @@ test('sse transport browser lifecycle (isolated, multiclient)', async ({ serverE
   await client1.close();
 
   const transport3 = new SSEClientTransport(url);
-  const client3 = new Client({ name: 'test', version: '1.0.0' });
+  const client3 = new Client({ name: 'test', version: '1.3.0' });
   await client3.connect(transport3);
   await client3.callTool({
     name: 'browser_navigate',
@@ -180,7 +180,7 @@ test('sse transport browser lifecycle (persistent)', async ({ serverEndpoint, se
   const { url, stderr } = await serverEndpoint();
 
   const transport1 = new SSEClientTransport(url);
-  const client1 = new Client({ name: 'test', version: '1.0.0' });
+  const client1 = new Client({ name: 'test', version: '1.3.0' });
   await client1.connect(transport1);
   await client1.callTool({
     name: 'browser_navigate',
@@ -189,7 +189,7 @@ test('sse transport browser lifecycle (persistent)', async ({ serverEndpoint, se
   await client1.close();
 
   const transport2 = new SSEClientTransport(url);
-  const client2 = new Client({ name: 'test', version: '1.0.0' });
+  const client2 = new Client({ name: 'test', version: '1.3.0' });
   await client2.connect(transport2);
   await client2.callTool({
     name: 'browser_navigate',
@@ -217,7 +217,7 @@ test('sse transport browser lifecycle (persistent, multiclient)', async ({ serve
   const { url } = await serverEndpoint();
 
   const transport1 = new SSEClientTransport(url);
-  const client1 = new Client({ name: 'test', version: '1.0.0' });
+  const client1 = new Client({ name: 'test', version: '1.3.0' });
   await client1.connect(transport1);
   await client1.callTool({
     name: 'browser_navigate',
@@ -225,7 +225,7 @@ test('sse transport browser lifecycle (persistent, multiclient)', async ({ serve
   });
 
   const transport2 = new SSEClientTransport(url);
-  const client2 = new Client({ name: 'test', version: '1.0.0' });
+  const client2 = new Client({ name: 'test', version: '1.3.0' });
   await client2.connect(transport2);
   const response = await client2.callTool({
     name: 'browser_navigate',
@@ -241,7 +241,7 @@ test('sse transport browser lifecycle (persistent, multiclient)', async ({ serve
 test('streamable http transport', async ({ serverEndpoint }) => {
   const { url } = await serverEndpoint();
   const transport = new StreamableHTTPClientTransport(new URL('/mcp', url));
-  const client = new Client({ name: 'test', version: '1.0.0' });
+  const client = new Client({ name: 'test', version: '1.3.0' });
   await client.connect(transport);
   await client.ping();
   expect(transport.sessionId, 'has session support').toBeDefined();

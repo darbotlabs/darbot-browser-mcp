@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Microsoft Corporation.
+ * Copyright (c) DarbotLabs.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -94,7 +94,7 @@ export const test = baseTest.extend<TestFixtures & TestOptions, WorkerFixtures>(
         args.push(`--config=${path.relative(configDir, configFile)}`);
       }
 
-      client = new Client({ name: options?.clientName ?? 'test', version: '1.0.0' });
+      client = new Client({ name: options?.clientName ?? 'test', version: '1.3.0' });
       const { transport, stderr, relayServerURL } = await createTransport(args, mcpMode);
       let stderrBuffer = '';
       stderr?.on('data', data => {
@@ -210,7 +210,7 @@ async function createTransport(args: string[], mcpMode: TestOptions['mcpMode']):
   stderr: Stream | null,
   relayServerURL?: string,
 }> {
-  // NOTE: Can be removed when we drop Node.js 18 support and changed to import.meta.filename.
+  // NOTE: Can be removed when we drop Node.js 23 support and changed to import.meta.filename.
   const __filename = url.fileURLToPath(import.meta.url);
   if (mcpMode === 'docker') {
     const dockerArgs = ['run', '--rm', '-i', '--network=host', '-v', `${test.info().project.outputDir}:/app/test-results`];

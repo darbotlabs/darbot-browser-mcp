@@ -2,37 +2,39 @@
 
 ![Darbot Banner](./assets/darbot_logo_icon_pack/darbot-horizontal-banner-1500x500.png)
 
-**🤖 Your Autonomous Browser Companion - Powered by AI**
+**Your Autonomous Browser Companion**
 
-A Model Context Protocol (MCP) server that provides intelligent autonomous browser capabilities. This server enables AI models to interact with web pages through structured accessibility snapshots, delivering autonomous browsing without requiring vision models. Optimized for Microsoft Edge with comprehensive work profile support.
+Darbot Browser is a framework for autonomous web automation. This tool enables AI models to interact with UI through structured accessibility snapshots, delivering autonomous browsing without requiring vision models. Optimized for Microsoft Edge with comprehensive session state support.
 
 [![NPM Version](https://img.shields.io/npm/v/@darbotlabs/darbot-browser-mcp?style=flat-square&color=0098FF)](https://www.npmjs.com/package/@darbotlabs/darbot-browser-mcp)
 [![Downloads](https://img.shields.io/npm/dm/@darbotlabs/darbot-browser-mcp?style=flat-square&color=0098FF)](https://www.npmjs.com/package/@darbotlabs/darbot-browser-mcp)
 [![VS Code Extension](https://img.shields.io/visual-studio-marketplace/v/darbotlabs.darbot-browser-mcp?style=flat-square&color=24bfa5&label=VS%20Code)](https://marketplace.visualstudio.com/items?itemName=darbotlabs.darbot-browser-mcp)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue?style=flat-square)](./LICENSE)
 
-## ✨ Key Features
+## Key Features
 
-- **🚀 Fast and lightweight** - Uses accessibility tree, not pixel-based input
-- **🧠 AI-friendly** - No vision models needed, operates purely on structured data  
-- **🎯 Deterministic** - Avoids ambiguity common with screenshot-based approaches
-- **🔄 Work Profiles** - Save and restore complete browser sessions
-- **🛠️ 31 Autonomous Tools** - Comprehensive autonomous browser capabilities
-- **🤖 Autonomous Crawling** - BFS strategy with memory, guardrails, and reporting
-- **🧠 Memory System** - State tracking and deduplication with darbot-memory-mcp integration
-- **📊 HTML Reports** - Comprehensive crawl reports with screenshots and statistics
-- **⚡ Multi-Platform** - Available as NPM package, VS Code extension, NuGet package, and browser extension
+- **Fast and lightweight** - Uses accessibility tree, not pixel-based input
+- **DarbotLM framework** - No vision models needed, operates purely on structured data
+- **Deterministic** - Avoids ambiguity common with screenshot-based approaches
+- **Session States** - Save and restore complete browser sessions with Edge profile context
+- **38 Autonomous Tools** - Comprehensive autonomous browser capabilities
+- **Autonomous Crawling** - BFS strategy with memory, guardrails, and reporting
+- **DarbotLabsMemory System** - State tracking and deduplication with darbot-memory-mcp integration
+- **HTML Reports** - Comprehensive crawl reports with screenshots and statistics
+- **Multi-Platform** - Available as NPM package, VS Code extension, NuGet package, and browser extension
 
-## 📋 Requirements
-- **Node.js** 18 or newer
+## Requirements
+
+- **Node.js** 23 or newer
 - **VS Code, Cursor, Windsurf, Claude Desktop** or any other MCP client
 - **Microsoft Edge** (recommended) or Chrome/Firefox/WebKit
 
-## 📦 Installation Options
+## Installation Options
 
 Darbot Browser MCP is available in multiple package formats:
 
-### 🔧 NPM Package
+### NPM Package
+
 ```bash
 # Install globally
 npm install -g @darbotlabs/darbot-browser-mcp
@@ -41,44 +43,48 @@ npm install -g @darbotlabs/darbot-browser-mcp
 npx @darbotlabs/darbot-browser-mcp@latest
 ```
 
-### 🔌 VS Code Extension
+### VS Code Extension
+
 Install the **"Darbot Browser MCP"** extension from the VS Code marketplace or search for `darbotlabs.darbot-browser-mcp`.
 
 The extension **automatically configures the MCP server** when installed - just enable MCP in VS Code settings and start the server!
 
-[**📥 Install VS Code Extension**](https://marketplace.visualstudio.com/items?itemName=darbotlabs.darbot-browser-mcp)
+[**Install VS Code Extension**](https://marketplace.visualstudio.com/items?itemName=darbotlabs.darbot-browser-mcp)
 
 **Quick Setup:**
+
 1. Install the extension from VS Code marketplace
 2. The extension will automatically prompt you to enable MCP and configure the server
-3. Use Command Palette: "Darbot Browser MCP: Start Server" 
+3. Use Command Palette: "Darbot Browser MCP: Start Server"
 4. Start chatting with GitHub Copilot using browser automation tools!
 
-### 📚 NuGet Package (.NET)
+### NuGet Package (.NET)
+
 ```bash
 # Install for .NET projects
 dotnet add package DarbotLabs.Browser.MCP
 ```
 
-### 🌐 Browser Extension
+### Browser Extension
+
 Install the **Browser MCP Bridge** extension from the Chrome Web Store to share browser tabs with the MCP server.
 
 ---
 
-## 🎯 Why Choose Darbot Browser MCP?
+## Why Choose Darbot Browser MCP?
 
-| Traditional Browser Automation | 🤖 Darbot Browser MCP |
-|--------------------------------|------------------------|
-| ❌ Pixel-based, brittle selectors | ✅ AI-friendly accessibility snapshots |
-| ❌ Requires vision models | ✅ Pure structured data approach |
-| ❌ Complex setup and maintenance | ✅ Simple NPM install, ready in seconds |
-| ❌ Browser-specific code | ✅ Universal MCP protocol |
-| ❌ No session management | ✅ Advanced autonomous work profiles |
+| Traditional Browser Automation | Darbot Browser MCP |
+| ----------------------------- | -------------------- |
+| ERROR Pixel-based, brittle selectors | AI-friendly accessibility snapshots |
+| ERROR Requires vision models | Pure structured data approach |
+| ERROR Complex setup and maintenance | Simple NPM install, ready in seconds |
+| ERROR Browser-specific code | Universal MCP protocol |
+| ERROR No session management | Advanced autonomous session states |
 
-### 🛠️ Complete Autonomous Toolkit (31 Tools)
+### Complete Autonomous Toolkit (38 Tools)
 
 <details>
-<summary><b>🔧 Core Autonomous Operations</b></summary>
+<summary><b> Core Autonomous Operations</b></summary>
 
 - `browser_navigate` - Autonomously navigate to any URL
 - `browser_click` - Autonomous intelligent element clicking  
@@ -89,7 +95,7 @@ Install the **Browser MCP Bridge** extension from the Chrome Web Store to share 
 </details>
 
 <details>
-<summary><b>🤖 Autonomous Crawling & Intelligence</b></summary>
+<summary><b>Autonomous Crawling & Intelligence</b></summary>
 
 - `browser_start_autonomous_crawl` - Start intelligent BFS crawling with memory and reporting
 - `browser_configure_memory` - Configure memory system with darbot-memory-mcp integration
@@ -99,12 +105,12 @@ Install the **Browser MCP Bridge** extension from the Chrome Web Store to share 
 </details>
 
 <details>
-<summary><b>📁 Autonomous Work Profile Management</b></summary>
+<summary><b>Autonomous Session State Management</b></summary>
 
-- `browser_save_profile` - Autonomously save complete browser sessions
-- `browser_switch_profile` - Autonomously load saved profiles  
-- `browser_list_profiles` - Autonomously manage all your profiles
-- `browser_delete_profile` - Autonomous clean profile management
+- `browser_save_profile` - Save complete browser session states with Edge profile context
+- `browser_switch_profile` - Restore saved session states  
+- `browser_list_profiles` - List all saved session states with Edge/workspace context
+- `browser_delete_profile` - Delete session states from storage
 
 </details>
 
@@ -118,7 +124,7 @@ Install the **Browser MCP Bridge** extension from the Chrome Web Store to share 
 </details>
 
 <details>
-<summary><b>🗂️ Autonomous Tab Management</b></summary>
+<summary><b>️ Autonomous Tab Management</b></summary>
 
 - `browser_tab_new` - Autonomously open new tabs
 - `browser_tab_list` - Autonomously get all open tabs
@@ -128,7 +134,7 @@ Install the **Browser MCP Bridge** extension from the Chrome Web Store to share 
 </details>
 
 <details>
-<summary><b>🧪 Autonomous Testing & Development</b></summary>
+<summary><b>Autonomous Testing & Development</b></summary>
 
 - `browser_generate_playwright_test` - Autonomously auto-generate test code
 - `browser_console_messages` - Autonomous debug with console access
@@ -136,24 +142,26 @@ Install the **Browser MCP Bridge** extension from the Chrome Web Store to share 
 
 </details>
 
-[**📖 View All 29 Tools**](#tools)
+[**39 View All 39 tools**](#tools)
 
 <!--
 // Generate using:
 node utils/generate-links.js
 -->
 
-## 🚀 Getting Started
+## Getting Started
 
 The fastest way to get started is with the VS Code extension, which automatically configures everything for you. For other clients, you'll need to manually configure the MCP server.
 
-### **🔌 VS Code (Automatic Setup)**
+### **VS Code (Automatic Setup)**
+
 1. Install the [VS Code Extension](https://marketplace.visualstudio.com/items?itemName=darbotlabs.darbot-browser-mcp)
 2. Extension auto-configures MCP settings
 3. Start the server via Command Palette
 4. Use with GitHub Copilot Chat!
 
-### **⚙️ Manual Configuration (Other Clients)**
+### **Manual Configuration (Other Clients)**
+
 For Claude Desktop, Cursor, Windsurf, etc., add this configuration:
 
 ```js
@@ -169,18 +177,17 @@ For Claude Desktop, Cursor, Windsurf, etc., add this configuration:
 }
 ```
 
-### 📱 Quick Install Buttons
+### Quick Install Buttons
 
-**🔌 VS Code (Automatic):**
+**VS Code (Automatic):**
 [<img src="https://img.shields.io/badge/VS_Code-Auto_Install_Extension-0098FF?style=for-the-badge&logo=visual-studio-code" alt="Install VS Code Extension">](https://marketplace.visualstudio.com/items?itemName=darbotlabs.darbot-browser-mcp)
 
-**⚙️ Manual Configuration:**
+**Manual Configuration:**
 [<img src="https://img.shields.io/badge/VS_Code-Manual_Server_Config-0098FF?style=for-the-badge&logo=visual-studio-code" alt="Install in VS Code">](https://insiders.vscode.dev/redirect?url=vscode%3Amcp%2Finstall%3F%257B%2522name%2522%253A%2522browser%2522%252C%2522command%2522%253A%2522npx%2522%252C%2522args%2522%253A%255B%2522%2540darbotlabs%252Fdarbot-browser-mcp%2540latest%2522%255D%257D) [<img src="https://img.shields.io/badge/VS_Code_Insiders-Manual_Server_Config-24bfa5?style=for-the-badge&logo=visual-studio-code" alt="Install in VS Code Insiders">](https://insiders.vscode.dev/redirect?url=vscode-insiders%3Amcp%2Finstall%3F%257B%2522name%2522%253A%2522browser%2522%252C%2522command%2522%253A%2522npx%2522%252C%2522args%2522%253A%255B%2522%2540darbotlabs%252Fdarbot-browser-mcp%2540latest%2522%255D%257D)
-
 
 <details><summary><b>Install in VS Code (Automatic Setup)</b></summary>
 
-**🚀 Recommended: Use the VS Code Extension for automatic setup!**
+**Recommended: Use the VS Code Extension for automatic setup!**
 
 The [Darbot Browser MCP Extension](https://marketplace.visualstudio.com/items?itemName=darbotlabs.darbot-browser-mcp) automatically handles all configuration:
 
@@ -190,6 +197,7 @@ The [Darbot Browser MCP Extension](https://marketplace.visualstudio.com/items?it
 4. **Chat with Copilot**: Ask GitHub Copilot to "browse to example.com"
 
 **Manual CLI installation (if you prefer):**
+
 ```bash
 # For VS Code
 code --add-mcp '{"name":"browser","command":"npx","args":["@darbotlabs/darbot-browser-mcp@latest"]}'
@@ -221,6 +229,7 @@ Go to `Cursor Settings` -> `MCP` -> `Add new MCP Server`. Name to your liking, u
   }
 }
 ```
+
 </details>
 
 <details>
@@ -240,6 +249,7 @@ Follow Windsuff MCP [documentation](https://docs.windsurf.com/windsurf/cascade/m
   }
 }
 ```
+
 </details>
 
 <details>
@@ -259,6 +269,7 @@ Follow the MCP install [guide](https://modelcontextprotocol.io/quickstart/user),
   }
 }
 ```
+
 </details>
 
 <details>
@@ -269,6 +280,7 @@ Use the Claude Code CLI to add the Browser MCP server:
 ```bash
 claude mcp add browser npx @darbotlabs/darbot-browser-mcp@latest
 ```
+
 </details>
 
 <details>
@@ -300,53 +312,69 @@ Browser MCP server supports following arguments. They can be provided in the JSO
 
 ```
 > npx darbot-browser-mcp@latest --help
-  --allowed-origins <origins>  semicolon-separated list of origins to allow the
-                               browser to request. Default is to allow all.
-  --blocked-origins <origins>  semicolon-separated list of origins to block the
-                               browser from requesting. Blocklist is evaluated
-                               before allowlist. If used without the allowlist,
-                               requests not matching the blocklist are still
-                               allowed.
-  --block-service-workers      block service workers
-  --browser <browser>          browser or chrome channel to use, possible
-                               values: msedge, chrome, firefox, webkit.
-  --browser-agent <endpoint>   Use browser agent (experimental).
-  --caps <caps>                comma-separated list of capabilities to enable,
-                               possible values: tabs, pdf, history, wait, files,
-                               install. Default is all.
-  --cdp-endpoint <endpoint>    CDP endpoint to connect to.
-  --config <path>              path to the configuration file.
-  --device <device>            device to emulate, for example: "iPhone 15"
-  --executable-path <path>     path to the browser executable.
-  --headless                   run browser in headless mode, headed by default
-  --host <host>                host to bind server to. Default is localhost. Use
-                               0.0.0.0 to bind to all interfaces.
-  --ignore-https-errors        ignore https errors
-  --isolated                   keep the browser profile in memory, do not save
-                               it to disk.
-  --image-responses <mode>     whether to send image responses to the client.
-                               Can be "allow", "omit", or "auto". Defaults to
-                               "auto", which sends images if the client can
-                               display them.
-  --no-sandbox                 disable the sandbox for all process types that
-                               are normally sandboxed.
-  --output-dir <path>          path to the directory for output files.
-  --port <port>                port to listen on for SSE transport.
-  --proxy-bypass <bypass>      comma-separated domains to bypass proxy, for
-                               example ".com,chromium.org,.domain.com"
-  --proxy-server <proxy>       specify proxy server, for example
-                               "http://myproxy:3128" or "socks5://myproxy:8080"
-  --save-trace                 Whether to save the Playwright Trace of the
-                               session into the output directory.
-  --storage-state <path>       path to the storage state file for isolated
-                               sessions.
-  --user-agent <ua string>     specify user agent string
-  --user-data-dir <path>       path to the user data directory. If not
-                               specified, a temporary directory will be created.
-  --viewport-size <size>       specify browser viewport size in pixels, for
-                               example "1280, 720"
-  --vision                     Run server that uses screenshots (Aria snapshots
-                               are used by default)
+  --allowed-origins <origins>   semicolon-separated list of origins to allow the
+                                browser to request. Default is to allow all.
+  --blocked-origins <origins>   semicolon-separated list of origins to block the
+                                browser from requesting. Blocklist is evaluated
+                                before allowlist. If used without the allowlist,
+                                requests not matching the blocklist are still
+                                allowed.
+  --block-service-workers       block service workers
+  --browser <browser>           browser or chrome channel to use, possible
+                                values: msedge, chrome, firefox, webkit.
+  --browser-agent <endpoint>    Use browser agent (experimental).
+  --caps <caps>                 comma-separated list of capabilities to enable,
+                                possible values: tabs, pdf, history, wait,
+                                files, install. Default is all.
+  --cdp-endpoint <endpoint>     CDP endpoint to connect to.
+  --config <path>               path to the configuration file.
+  --device <device>             device to emulate, for example: "iPhone 15"
+  --executable-path <path>      path to the browser executable.
+  --headless                    run browser in headless mode, headed by default
+  --host <host>                 host to bind server to. Default is localhost.
+                                Use 0.0.0.0 to bind to all interfaces.
+  --ignore-https-errors         ignore https errors
+  --isolated                    keep the browser profile in memory, do not save
+                                it to disk.
+  --image-responses <mode>      whether to send image responses to the client.
+                                Can be "allow", "omit", or "auto". Defaults to
+                                "auto", which sends images if the client can
+                                display them.
+  --no-sandbox                  disable the sandbox for all process types that
+                                are normally sandboxed.
+  --output-dir <path>           path to the directory for output files.
+  --port <port>                 port to listen on for SSE transport.
+  --proxy-bypass <bypass>       comma-separated domains to bypass proxy, for
+                                example ".com,chromium.org,.domain.com"
+  --proxy-server <proxy>        specify proxy server, for example
+                                "http://myproxy:3128" or "socks5://myproxy:8080"
+  --save-trace                  Whether to save the Playwright Trace of the
+                                session into the output directory.
+  --storage-state <path>        path to the storage state file for isolated
+                                sessions.
+  --user-agent <ua string>      specify user agent string
+  --user-data-dir <path>        path to the user data directory. If not
+                                specified, a temporary directory will be
+                                created.
+  --viewport-size <size>        specify browser viewport size in pixels, for
+                                example "1280, 720"
+  --vision                      Run server that uses screenshots (Aria snapshots
+                                are used by default)
+  --edge-profile <name>         Edge profile name to use (e.g., "Profile 1",
+                                "Default"). This is recorded in saved session
+                                states.
+  --edge-profile-email <email>  Email associated with the Edge profile. This is
+                                recorded in saved session states for context.
+  --auto-sign-in                Auto sign in with work/school account (Edge
+                                profile preference)
+  --profile-switching           Enable automatic profile switching based on site
+                                (Edge profile preference)
+  --intranet-switch             Automatically switch to work profile for
+                                intranet sites (Edge profile preference)
+  --ie-mode-switch              Automatically switch profile for IE mode sites
+                                (Edge profile preference)
+  --default-profile <name>      Default Edge profile for external links (Edge
+                                profile preference)
 ```
 
 <!--- End of options generated section -->
@@ -480,6 +508,7 @@ npx @darbotlabs/darbot-browser-mcp@latest --config path/to/config.json
   noImageResponses?: boolean;
 }
 ```
+
 </details>
 
 ### Standalone MCP server
@@ -524,6 +553,7 @@ You can build the Docker image yourself.
 ```
 docker build -t mcr.microsoft.com/playwright/mcp .
 ```
+
 </details>
 
 <details>
@@ -546,6 +576,7 @@ http.createServer(async (req, res) => {
   // ...
 });
 ```
+
 </details>
 
 ### Tools
@@ -829,42 +860,42 @@ X Y coordinate space, based on the provided screenshot.
 </details>
 
 <details>
-<summary><b>Work Profiles</b></summary>
+<summary><b>Session States</b></summary>
 
 <!-- NOTE: This has been generated via update-readme.js -->
 
 - **browser_save_profile**
-  - Title: Autonomous profile saving
-  - Description: Autonomously save the current browser state as a reusable work profile for later restoration
+  - Title: Save session state
+  - Description: Save the current browser session state (cookies, localStorage, URL) for later restoration. Includes Edge profile and VS Code workspace context.
   - Parameters:
-    - `name` (string): Name for the work profile
-    - `description` (string, optional): Optional description for the work profile
+    - `name` (string): Name for the session state
+    - `description` (string, optional): Optional description for the session state
   - Read-only: **false**
 
 <!-- NOTE: This has been generated via update-readme.js -->
 
 - **browser_switch_profile**
-  - Title: Autonomous profile switching
-  - Description: Autonomously switch to a previously saved work profile, restoring browser state and session
+  - Title: Restore session state
+  - Description: Restore a previously saved session state, including cookies, localStorage, and navigate to the saved URL
   - Parameters:
-    - `name` (string): Name of the work profile to switch to
+    - `name` (string): Name of the session state to restore
   - Read-only: **false**
 
 <!-- NOTE: This has been generated via update-readme.js -->
 
 - **browser_list_profiles**
-  - Title: Autonomous profile listing
-  - Description: Autonomously list all saved work profiles with their details and creation information
+  - Title: List session states
+  - Description: List all saved Darbot session states with their Edge profile context and workspace information
   - Parameters: None
   - Read-only: **true**
 
 <!-- NOTE: This has been generated via update-readme.js -->
 
 - **browser_delete_profile**
-  - Title: Autonomous profile deletion
-  - Description: Autonomously delete a saved work profile permanently from storage
+  - Title: Delete session state
+  - Description: Permanently delete a saved session state from storage
   - Parameters:
-    - `name` (string): Name of the work profile to delete
+    - `name` (string): Name of the session state to delete
   - Read-only: **false**
 
 </details>
@@ -988,44 +1019,46 @@ X Y coordinate space, based on the provided screenshot.
 ## Package Formats
 
 ### NPM Package
+
 - **Name**: `@darbotlabs/darbot-browser-mcp`
 - **Installation**: `npm install -g @darbotlabs/darbot-browser-mcp`
 - **Usage**: `npx @darbotlabs/darbot-browser-mcp@latest`
 
 ### VS Code Extension
+
 - **Name**: Darbot Browser MCP
 - **Publisher**: darbotlabs
 - **Installation**: Search for "Darbot Browser MCP" in VS Code Extensions marketplace
 - **Features**: Start/stop MCP server, status monitoring, configuration management
 
 ### NuGet Package (.NET)
+
 - **Name**: `DarbotLabs.Browser.MCP`
 - **Installation**: `dotnet add package DarbotLabs.Browser.MCP`
 - **Usage**: Host the Browser MCP server in .NET applications
 
 ### Browser Extension
+
 - **Name**: Browser MCP Bridge
 - **Installation**: Available in Chrome Web Store (coming soon)
 - **Features**: Share browser tabs with MCP server via CDP bridge
 
 ## Repository Structure
+
 - `/vscode-extension/` - VS Code extension source
 - `/dotnet/` - .NET NuGet package source
 - `/extension/` - Browser extension source
 - `/src/` - Main MCP server source code
 - `/tests/` - Test suite
 
-## 🤖 Autonomous Features
+## Autonomous Features
 
 For detailed information about the autonomous crawling capabilities, including memory system, BFS planner, guardrails, and reporting, see [AUTONOMOUS_FEATURES.md](./AUTONOMOUS_FEATURES.md).
 
 **Key Autonomous Capabilities:**
+
 - Intelligent BFS crawling with memory and state tracking
 - Darbot-memory-mcp integration for persistent memory  
-- Comprehensive guardrail system for safe operation
 - HTML report generation with screenshots and statistics
 - Configurable domain filtering and safety policies
 
-## Contributing
-
-Contributions are welcome! Please see our contributing guidelines and code of conduct.

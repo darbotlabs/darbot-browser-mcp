@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Microsoft Corporation.
+ * Copyright (c) DarbotLabs.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -351,7 +351,7 @@ export class CrawlReporter {
 </head>
 <body>
     <div class="header">
-        <h1>🤖 Darbot Crawl Report</h1>
+        <h1>Darbot Crawl Report</h1>
         <p><strong>Session:</strong> {{SESSION_ID}}</p>
         <p><strong>Start URL:</strong> <a href="{{START_URL}}" class="url" style="color: white;">{{START_URL}}</a></p>
         <p><strong>Goal:</strong> {{GOAL}}</p>
@@ -382,12 +382,12 @@ export class CrawlReporter {
     </div>
 
     <div class="section">
-        <h2>📋 Crawled Pages</h2>
+        <h2> Crawled Pages</h2>
         {{STATES_TABLE}}
     </div>
 
     <div class="section">
-        <h2>❌ Errors</h2>
+        <h2>ERROR Errors</h2>
         {{ERRORS_TABLE}}
     </div>
 
@@ -401,7 +401,7 @@ export class CrawlReporter {
     </div>
 
     <div class="section">
-        <h2>📸 Screenshot Gallery</h2>
+        <h2>Screenshot Gallery</h2>
         {{SCREENSHOT_GALLERY}}
     </div>
 </body>
@@ -435,7 +435,7 @@ export class CrawlReporter {
           <td>${state.title || 'Untitled'}</td>
           <td>${new Date(state.timestamp).toLocaleString()}</td>
           <td>${state.links.length}</td>
-          <td>${state.screenshot ? '✅' : '❌'}</td>
+          <td>${state.screenshot ? '' : 'ERROR'}</td>
         </tr>`;
     });
 

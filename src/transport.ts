@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Microsoft Corporation.
+ * Copyright (c) DarbotLabs.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,14 +17,21 @@
 import http from 'node:http';
 import assert from 'node:assert';
 import crypto from 'node:crypto';
+import { execSync } from 'node:child_process';
 
 import debug from 'debug';
+import express from 'express';
 import { SSEServerTransport } from '@modelcontextprotocol/sdk/server/sse.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { mcpAuthRouter } from '@modelcontextprotocol/sdk/server/auth/router.js';
 
 import type { AddressInfo } from 'node:net';
 import type { Server } from './server.js';
+
+import { createEntraIDAuthenticator } from './auth/entraAuth.js';
+import { createApiKeyAuthenticatorFromEnv } from './auth/apiKeyAuth.js';
+import { createMcpOAuthProvider, getOAuthConfig, isOAuthConfigured } from './auth/mcpOAuthProvider.js';
 
 export async function startStdioTransport(server: Server) {
   await server.createConnection(new StdioServerTransport());
@@ -97,22 +104,191 @@ async function handleStreamable(server: Server, req: http.IncomingMessage, res: 
   res.end('Invalid request');
 }
 
-export async function startHttpServer(config: { host?: string, port?: number }): Promise<http.Server> {
+async function killProcessOnPort(port: number): Promise<boolean> {
+  const isWindows = process.platform === 'win32';
+  try {
+    if (isWindows) {
+      // Find and kill process on Windows
+      const result = execSync(`netstat -ano | findstr ":${port}"`, { encoding: 'utf8' });
+      const lines = result.split('\n').filter(line => line.includes('LISTENING'));
+      const pidsToKill = new Set<string>();
+      for (const line of lines) {
+        const parts = line.trim().split(/\s+/);
+        const pid = parts[parts.length - 1];
+        if (pid && /^\d+$/.test(pid) && pid !== '0')
+          pidsToKill.add(pid);
+      }
+      for (const pid of pidsToKill) {
+        // eslint-disable-next-line no-console
+        console.error(`Killing process ${pid} using port ${port}...`);
+        try {
+          execSync(`taskkill /F /PID ${pid}`, { stdio: 'pipe' });
+        } catch (e: any) {
+          // Process may have already exited
+          if (!e.message?.includes('not found'))
+            throw e;
+        }
+      }
+    } else {
+      // Find and kill process on Unix-like systems
+      const result = execSync(`lsof -ti:${port}`, { encoding: 'utf8' });
+      const pids = result.trim().split('\n').filter(Boolean);
+      for (const pid of pids) {
+        // eslint-disable-next-line no-console
+        console.error(`Killing process ${pid} using port ${port}...`);
+        try {
+          execSync(`kill -9 ${pid}`, { stdio: 'pipe' });
+        } catch {
+          // Process may have already exited
+        }
+      }
+    }
+    // Wait for port to be released
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export interface HttpServerResult {
+  httpServer: http.Server;
+  app: express.Express;
+}
+
+export async function startHttpServer(config: { host?: string, port?: number }): Promise<HttpServerResult> {
   const { host, port } = config;
-  const httpServer = http.createServer();
-  await new Promise<void>((resolve, reject) => {
+
+  // Create Express app
+  const app = express();
+
+  // Trust proxy for Azure App Service
+  app.set('trust proxy', 1);
+
+  // Parse JSON bodies
+  app.use(express.json());
+
+  // CORS middleware
+  app.use((req, res, next) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, DELETE');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-API-Key, Mcp-Session-Id');
+    if (req.method === 'OPTIONS') {
+      res.status(200).end();
+      return;
+    }
+    next();
+  });
+
+  // Setup OAuth router if configured
+  const oauthConfig = getOAuthConfig();
+  if (isOAuthConfigured() && oauthConfig) {
+    try {
+      const provider = createMcpOAuthProvider(oauthConfig);
+      const serverUrl = new URL(oauthConfig.serverBaseUrl);
+
+      const authRouter = mcpAuthRouter({
+        provider,
+        issuerUrl: serverUrl,
+        baseUrl: serverUrl,
+        serviceDocumentationUrl: new URL('https://github.com/AugustinMauworworworwy/darbot-browser-mcp'),
+        scopesSupported: ['openid', 'profile', 'email', 'User.Read'],
+        resourceName: 'Darbot Browser MCP',
+      });
+
+      // Mount OAuth router at root (handles /.well-known/*, /authorize, /token, /register)
+      app.use(authRouter);
+      // eslint-disable-next-line no-console
+      console.error('[OAuth] MCP OAuth router configured with Entra ID proxy');
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('[OAuth] Failed to setup OAuth router:', error);
+    }
+  }
+
+  // Create HTTP server from Express app
+  const httpServer = http.createServer(app);
+
+  const tryListen = () => new Promise<void>((resolve, reject) => {
     httpServer.on('error', reject);
     httpServer.listen(port, host, () => {
       resolve();
       httpServer.removeListener('error', reject);
     });
   });
-  return httpServer;
+
+  try {
+    await tryListen();
+  } catch (error: any) {
+    if (error.code === 'EADDRINUSE' && port !== undefined) {
+      // eslint-disable-next-line no-console
+      console.error(`Port ${port} is in use. Attempting to terminate conflicting service...`);
+      const killed = await killProcessOnPort(port);
+      if (killed) {
+        // Retry after killing
+        await tryListen();
+      } else {
+        throw new Error(`Port ${port} is already in use and could not terminate the conflicting process. Please free the port manually or use a different port.`);
+      }
+    } else {
+      throw error;
+    }
+  }
+
+  return { httpServer, app };
 }
 
-export function startHttpTransport(httpServer: http.Server, mcpServer: Server) {
+export function startHttpTransport(httpServer: http.Server, mcpServer: Server, app?: express.Express) {
   const sseSessions = new Map<string, SSEServerTransport>();
   const streamableSessions = new Map<string, StreamableHTTPServerTransport>();
+
+  const entraAuthenticator = createEntraIDAuthenticator();
+  const apiKeyAuthenticator = createApiKeyAuthenticatorFromEnv();
+
+  const entraEnabled = process.env.ENTRA_AUTH_ENABLED === 'true';
+  const apiKeyEnabled = process.env.API_KEY_AUTH_ENABLED === 'true';
+
+  const isAuthEnabled = () => entraEnabled || apiKeyEnabled;
+
+  const sendJson = (res: http.ServerResponse, statusCode: number, body: unknown) => {
+    res.statusCode = statusCode;
+    res.setHeader('Content-Type', 'application/json');
+    res.end(JSON.stringify(body));
+  };
+
+  const enforceAuthIfEnabled = async (req: http.IncomingMessage, res: http.ServerResponse): Promise<boolean> => {
+    if (!isAuthEnabled())
+      return true;
+
+    // If auth is enabled, ensure required configuration is present for Entra.
+    if (entraEnabled && (!process.env.AZURE_TENANT_ID || !process.env.AZURE_CLIENT_ID)) {
+      sendJson(res, 500, {
+        error: 'server_misconfigured',
+        message: 'ENTRA_AUTH_ENABLED=true but AZURE_TENANT_ID / AZURE_CLIENT_ID are not configured',
+      });
+      return false;
+    }
+
+    // Accept either a valid API key or a valid Bearer token when both are enabled.
+    if (apiKeyEnabled && apiKeyAuthenticator.authenticate(req))
+      return true;
+
+    if (entraEnabled) {
+      const user = await entraAuthenticator.authenticate(req);
+      if (user) {
+        (req as any).user = user;
+        return true;
+      }
+    }
+
+    // Return 401 without WWW-Authenticate header to avoid triggering OAuth flows.
+    // VS Code MCP clients should use pre-configured X-API-Key or Bearer tokens.
+    sendJson(res, 401, {
+      error: 'unauthorized',
+      message: 'Valid authentication required. Provide X-API-Key header or Bearer token.',
+    });
+    return false;
+  };
 
   httpServer.on('request', async (req, res) => {
     const url = new URL(`http://localhost${req.url}`);
@@ -189,7 +365,8 @@ export function startHttpTransport(httpServer: http.Server, mcpServer: Server) {
 
     // MCP endpoints with authentication
     if (url.pathname.startsWith('/mcp')) {
-      // TODO: Add authentication middleware here when needed
+      if (!(await enforceAuthIfEnabled(req, res)))
+        return;
       await handleStreamable(mcpServer, req, res, streamableSessions);
       return;
     }
@@ -208,6 +385,8 @@ export function startHttpTransport(httpServer: http.Server, mcpServer: Server) {
     }
 
     // Default SSE endpoint
+    if (!(await enforceAuthIfEnabled(req, res)))
+      return;
     await handleSSE(mcpServer, req, res, url, sseSessions);
   });
 
@@ -227,12 +406,12 @@ export function startHttpTransport(httpServer: http.Server, mcpServer: Server) {
     JSON.stringify({
       'mcpServers': {
         'darbot-browser': {
-          'url': `${url}/sse`
+          'url': `${url}/mcp`
         }
       }
     }, undefined, 2),
     '',
-    'Copilot Studio integration ready! 🚀',
+    'Copilot Studio integration ready! ',
   ].join('\n');
     // eslint-disable-next-line no-console
   console.error(message);

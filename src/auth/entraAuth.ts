@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Microsoft Corporation.
+ * Copyright (c) DarbotLabs.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 
 import type { IncomingMessage, ServerResponse } from 'http';
+
+import { verifyEntraJwt } from './entraJwtVerifier.js';
 
 export interface EntraIDConfig {
   tenantId?: string;
@@ -69,24 +71,35 @@ export class EntraIDAuthenticator {
    */
   private async validateToken(token: string): Promise<AuthenticatedUser | null> {
     try {
-      // In a real implementation, this would:
-      // 1. Validate the token signature using Microsoft's public keys
-      // 2. Check token expiration
-      // 3. Validate audience and issuer
-      // 4. Extract user claims
+      const tenantId = this.config.tenantId;
+      const clientId = this.config.clientId;
+      if (!tenantId || !clientId)
+        throw new Error('Entra auth is enabled but AZURE_TENANT_ID or AZURE_CLIENT_ID is not configured');
 
-      // For now, return a mock user for development
-      // TODO: Implement actual JWT validation using jsonwebtoken or msal-node
-      if (token === 'mock-valid-token') {
-        return {
-          userId: 'authenticated-user',
-          tenantId: this.config.tenantId || 'default-tenant',
-          roles: ['user'],
-          permissions: ['browser:read', 'browser:write']
-        };
-      }
+      const payload = await verifyEntraJwt(token, { tenantId, clientId });
 
-      return null;
+      const tid = (payload.tid as string | undefined) || tenantId;
+      const oid = payload.oid as string | undefined;
+      const sub = payload.sub as string | undefined;
+      const userId = oid || sub;
+
+      if (!userId)
+        return null;
+
+      const rolesClaim = payload.roles;
+      const roles = Array.isArray(rolesClaim)
+        ? rolesClaim.filter((r): r is string => typeof r === 'string')
+        : [];
+
+      const scp = payload.scp as string | undefined;
+      const permissions = scp ? scp.split(' ').map(s => s.trim()).filter(Boolean) : [];
+
+      return {
+        userId,
+        tenantId: tid,
+        roles,
+        permissions,
+      };
     } catch (error) {
       // TODO: Replace with proper logging system
       // eslint-disable-next-line no-console

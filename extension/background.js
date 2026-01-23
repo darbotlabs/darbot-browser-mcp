@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Microsoft Corporation.
+ * Copyright (c) DarbotLabs.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,24 @@
 
 // @ts-check
 
+/**
+ * Extended Debuggee type that includes optional sessionId from CDP
+ * @typedef {chrome.debugger.Debuggee & {sessionId?: string}} DebuggeeWithSession
+ */
+
+/**
+ * @typedef {Object} Connection
+ * @property {chrome.debugger.Debuggee} debuggee
+ * @property {WebSocket} socket
+ * @property {number} tabId
+ * @property {string} sessionId
+ * @property {((source: DebuggeeWithSession, method: string, params?: Object) => void)|undefined} [eventListener]
+ * @property {((source: chrome.debugger.Debuggee, reason: string) => void)|undefined} [detachListener]
+ */
+
+/**
+ * @param {...any} args
+ */
 function debugLog(...args) {
   const enabled = false;
   if (enabled) {
@@ -74,11 +92,18 @@ class TabShareExtension {
    */
   getStatus(requestedTabId, sendResponse) {
     const isConnected = this.activeConnections.size > 0;
+    /** @type {number|null} */
     let activeTabId = null;
+    /** @type {{title: string|undefined, url: string|undefined}|null} */
     let activeTabInfo = null;
 
     if (isConnected) {
-      const [tabId, connection] = this.activeConnections.entries().next().value;
+      const entry = this.activeConnections.entries().next().value;
+      if (!entry) {
+        sendResponse({ isConnected: false, error: 'No active connection found' });
+        return;
+      }
+      const [tabId, connection] = /** @type {[number, Connection]} */ (entry);
       activeTabId = tabId;
 
       // Get tab info
@@ -164,7 +189,8 @@ class TabShareExtension {
 
       debugLog(`Tab ${tabId} connected successfully`);
 
-    } catch (error) {
+    } catch (err) {
+      const error = /** @type {Error} */ (err);
       debugLog(`Failed to connect tab ${tabId}:`, error.message);
       await this.cleanupConnection(tabId);
 
@@ -179,17 +205,19 @@ class TabShareExtension {
 
   /**
    * Set up bidirectional message handling between debugger and WebSocket
-   * @param {Object} connection
+   * @param {Connection} connection
    */
   setupMessageHandling(connection) {
     const { debuggee, socket, tabId, sessionId: rootSessionId } = connection;
 
     // WebSocket -> chrome.debugger
-    socket.onmessage = async (event) => {
+    socket.onmessage = async (/** @type {MessageEvent} */ event) => {
+      /** @type {any} */
       let message;
       try {
         message = JSON.parse(event.data);
-      } catch (error) {
+      } catch (err) {
+        const error = /** @type {Error} */ (err);
         debugLog('Error parsing message:', error);
         socket.send(JSON.stringify({
           error: {
@@ -203,6 +231,7 @@ class TabShareExtension {
       try {
         debugLog('Received from bridge:', message);
 
+        /** @type {DebuggeeWithSession} */
         const debuggerSession = { ...debuggee };
         const sessionId = message.sessionId;
         // Pass session id, unless it's the root session.
@@ -217,6 +246,7 @@ class TabShareExtension {
         );
 
         // Send response back to bridge
+        /** @type {{id: any, sessionId: any, result: Object|undefined, error?: {code: number, message: string|undefined}}} */
         const response = {
           id: message.id,
           sessionId,
@@ -231,7 +261,8 @@ class TabShareExtension {
         }
 
         socket.send(JSON.stringify(response));
-      } catch (error) {
+      } catch (err) {
+        const error = /** @type {Error} */ (err);
         debugLog('Error processing WebSocket message:', error);
         const response = {
           id: message.id,
@@ -246,6 +277,7 @@ class TabShareExtension {
     };
 
     // chrome.debugger events -> WebSocket
+    /** @type {(source: DebuggeeWithSession, method: string, params?: Object) => void} */
     const eventListener = (source, method, params) => {
       if (source.tabId === tabId && socket.readyState === WebSocket.OPEN) {
         // If the sessionId is not provided, use the root sessionId.
@@ -259,6 +291,7 @@ class TabShareExtension {
       }
     };
 
+    /** @type {(source: chrome.debugger.Debuggee, reason: string) => void} */
     const detachListener = (source, reason) => {
       if (source.tabId === tabId) {
         debugLog(`Debugger detached from tab ${tabId}, reason: ${reason}`);
@@ -279,7 +312,7 @@ class TabShareExtension {
       this.disconnectTab(tabId);
     };
 
-    socket.onerror = (error) => {
+    socket.onerror = (/** @type {Event} */ error) => {
       debugLog(`WebSocket error for tab ${tabId}:`, error);
       this.disconnectTab(tabId);
     };

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Microsoft Corporation.
+ * Copyright (c) DarbotLabs.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,5 +61,86 @@ test.describe(() => {
       name: 'browser_navigate',
       arguments: { url: 'data:text/html,<script>document.title = navigator.userAgent</script>' },
     })).toContainTextContent(`Firefox`);
+  });
+});
+
+test.describe('Edge Profile CLI Options', () => {
+  test('--edge-profile sets profile context', async ({ startClient }) => {
+    const { client } = await startClient({
+      args: ['--edge-profile', 'TestProfile'],
+    });
+
+    // Navigate and verify context is tracked
+    await client.callTool({
+      name: 'browser_navigate',
+      arguments: { url: 'data:text/html,<title>Edge Profile Test</title>' },
+    });
+
+    // Profile context is captured in session state save
+    const result = await client.callTool({
+      name: 'browser_save_profile',
+      arguments: { name: `config-edge-test-${Date.now()}` },
+    });
+
+    expect(result).toContainTextContent('**Edge Profile:** TestProfile');
+  });
+
+  test('--edge-profile-email sets email context', async ({ startClient }) => {
+    const { client } = await startClient({
+      args: ['--edge-profile', 'Work', '--edge-profile-email', 'test@example.com'],
+    });
+
+    await client.callTool({
+      name: 'browser_navigate',
+      arguments: { url: 'data:text/html,<title>Email Test</title>' },
+    });
+
+    const result = await client.callTool({
+      name: 'browser_save_profile',
+      arguments: { name: `config-email-test-${Date.now()}` },
+    });
+
+    expect(result).toContainTextContent('**Edge Profile:** Work (test@example.com)');
+  });
+
+  test('--workspace sets workspace context', async ({ startClient }) => {
+    const { client } = await startClient({
+      args: ['--workspace', 'my-project'],
+    });
+
+    await client.callTool({
+      name: 'browser_navigate',
+      arguments: { url: 'data:text/html,<title>Workspace Test</title>' },
+    });
+
+    const result = await client.callTool({
+      name: 'browser_save_profile',
+      arguments: { name: `config-workspace-test-${Date.now()}` },
+    });
+
+    expect(result).toContainTextContent('**Workspace:** my-project');
+  });
+
+  test('all Edge context options together', async ({ startClient }) => {
+    const { client } = await startClient({
+      args: [
+        '--edge-profile', 'Personal',
+        '--edge-profile-email', 'user@gmail.com',
+        '--workspace', 'test-project'
+      ],
+    });
+
+    await client.callTool({
+      name: 'browser_navigate',
+      arguments: { url: 'data:text/html,<title>Full Context Test</title>' },
+    });
+
+    const result = await client.callTool({
+      name: 'browser_save_profile',
+      arguments: { name: `config-full-context-test-${Date.now()}` },
+    });
+
+    expect(result).toContainTextContent('**Edge Profile:** Personal (user@gmail.com)');
+    expect(result).toContainTextContent('**Workspace:** test-project');
   });
 });

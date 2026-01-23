@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="DarbotLabs.Browser.MCP" Version="0.2.0" />
+    <PackageReference Include="DarbotLabs.Browser.MCP" Version="1.3.0" />
   </ItemGroup>
 
 </Project>

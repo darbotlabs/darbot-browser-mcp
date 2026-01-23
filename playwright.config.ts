@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Microsoft Corporation.
+ * Copyright (c) DarbotLabs.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,10 @@ export default defineConfig<TestOptions>({
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
   reporter: 'list',
+  timeout: 60000, // 60 seconds per test (MCP server + browser launch takes time)
+  expect: {
+    timeout: 10000, // 10 seconds for expect assertions
+  },
   projects: [
     { name: 'msedge', use: { mcpBrowser: 'msedge' } },
   ],

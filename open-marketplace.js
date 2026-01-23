@@ -7,9 +7,9 @@ import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js'
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 
 async function openMarketplace() {
-  console.log('🚀 Opening VS Code marketplace with Darbot Browser MCP...');
+  console.log('Opening VS Code marketplace with Darbot Browser MCP...');
   
-  const client = new Client({ name: 'marketplace-opener', version: '1.0.0' });
+  const client = new Client({ name: 'marketplace-opener', version: '1.3.0' });
   
   try {
     // Connect to the published NPM package directly
@@ -20,25 +20,25 @@ async function openMarketplace() {
     });
     
     await client.connect(transport);
-    console.log('✅ Connected to Darbot Browser MCP');
+    console.log(' Connected to Darbot Browser MCP');
     
     // Navigate to the marketplace
-    console.log('🌐 Navigating to VS Code marketplace publisher page...');
+    console.log(' Navigating to VS Code marketplace publisher page...');
     await client.callTool({
       name: 'browser_navigate',
       arguments: { url: 'https://marketplace.visualstudio.com/manage/publishers/darbotlabs' }
     });
     
-    console.log('✅ Marketplace opened successfully!');
-    console.log('📦 Ready to upload: vscode-extension/darbot-browser-mcp-1.2.0.vsix');
-    console.log('🎯 The browser will remain open for you to upload the extension');
+    console.log(' Marketplace opened successfully!');
+    console.log(' Ready to upload: vscode-extension/darbot-browser-mcp-1.2.0.vsix');
+    console.log(' The browser will remain open for you to upload the extension');
     
     // Keep process alive to maintain browser session
     console.log('\n⏳ Browser session active. Press Ctrl+C to close when done.');
     
     // Handle cleanup on exit
     process.on('SIGINT', async () => {
-      console.log('\n🔄 Closing browser session...');
+      console.log('\n Closing browser session...');
       try {
         await client.callTool({ name: 'browser_close' });
       } catch (e) {
@@ -53,7 +53,7 @@ async function openMarketplace() {
     await new Promise(() => {});
     
   } catch (error) {
-    console.error('❌ Failed to open marketplace:', error.message);
+    console.error('ERROR Failed to open marketplace:', error.message);
     process.exit(1);
   }
 }

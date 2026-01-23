@@ -60,8 +60,8 @@ A clear and concise description of what actually happened.
 ## Environment
 - OS: [e.g. Windows 11, macOS 13.0, Ubuntu 22.04]
 - Browser: [e.g. Chrome 115, Firefox 116, Edge 115]
-- Package Version: [e.g. @darbotlabs/darbot-browser-mcp@0.2.0]
-- Node.js Version: [e.g. 18.17.0]
+- Package Version: [e.g. @darbotlabs/darbot-browser-mcp@1.3.0]
+- Node.js Version: [e.g. 23.0.0]
 
 ## Additional Context
 Add any other context about the problem here, including screenshots if applicable.
@@ -291,25 +291,25 @@ ref: [Milestone name in dropdown]
 
 Before submitting any issue, verify:
 
-### ✅ Title Requirements
+### Title Requirements
 - [ ] Descriptive and concise
 - [ ] Includes issue type prefix ([BUG], [FEATURE], [DOCS])
 - [ ] No vague terms like "doesn't work" or "broken"
 
-### ✅ Description Requirements
+### Description Requirements
 - [ ] Clear problem statement
 - [ ] Steps to reproduce (for bugs)
 - [ ] Expected vs actual behavior (for bugs)
 - [ ] Use case description (for features)
 - [ ] Environment information (when relevant)
 
-### ✅ Labels and Metadata
+### Labels and Metadata
 - [ ] Appropriate labels selected
 - [ ] Assignee set (if known)
 - [ ] Milestone assigned (if applicable)
 - [ ] Priority indicated
 
-### ✅ Content Quality
+### Content Quality
 - [ ] No duplicate issues exist
 - [ ] Sufficient detail for others to understand
 - [ ] Professional and respectful tone

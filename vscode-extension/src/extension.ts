@@ -81,9 +81,9 @@ export function activate(context: vscode.ExtensionContext) {
   try {
     const mcpProvider = new DarbotBrowserMCPProvider();
     // Try to register the MCP provider - this may not be available in all VS Code versions
-    const mcpApi = (vscode as any).mcp;
-    if (mcpApi && typeof mcpApi.registerMcpServerDefinitionProvider === 'function') {
-      const mcpProviderDisposable = mcpApi.registerMcpServerDefinitionProvider('darbot-browser-mcp', mcpProvider);
+    const lmApi = (vscode as any).lm;
+    if (lmApi && typeof lmApi.registerMcpServerDefinitionProvider === 'function') {
+      const mcpProviderDisposable = lmApi.registerMcpServerDefinitionProvider('darbot-browser-mcp', mcpProvider);
       context.subscriptions.push(mcpProviderDisposable);
       mcpOutputChannel.appendLine('MCP Server Definition Provider registered for GitHub Copilot agent mode.');
     } else {
@@ -132,107 +132,60 @@ async function configureMCPServer() {
   }
 
   try {
-    // Check if MCP is enabled in VS Code settings
-    const mcpConfig = vscode.workspace.getConfiguration('chat.mcp');
-    const isMcpEnabled = mcpConfig.get('enabled', false);
+    // Check if MCP Gallery is enabled in VS Code settings (newer VS Code versions)
+    // The MCP Server Definition Provider (registered in activate()) is the primary integration method
+    // This configuration code handles enabling the MCP feature if not already enabled
+    
+    const mcpGalleryConfig = vscode.workspace.getConfiguration('chat.mcp.gallery');
+    const isGalleryEnabled = mcpGalleryConfig.get('enabled', false);
 
-    if (!isMcpEnabled) {
+    if (!isGalleryEnabled) {
+      // Check if user wants to enable MCP
       const enableResult = await vscode.window.showInformationMessage(
-          'Darbot Browser MCP requires the Model Context Protocol (MCP) to be enabled in VS Code. Would you like to enable it now?',
-          'Enable MCP',
-          'Not Now'
+          'Darbot Browser MCP works best with the MCP Gallery enabled. Would you like to enable it now?',
+          'Enable MCP Gallery',
+          'Open Settings',
+          'Skip'
       );
 
-      if (enableResult === 'Enable MCP') {
-        await mcpConfig.update('enabled', true, vscode.ConfigurationTarget.Global);
-        mcpOutputChannel.appendLine('MCP enabled in VS Code settings.');
-      } else {
-        mcpOutputChannel.appendLine('MCP not enabled. Extension will not function fully until MCP is enabled.');
-        return;
-      }
-    }
-
-    // Check if this MCP server is already configured
-    const servers = mcpConfig.get('servers', {}) as Record<string, any>;
-    const serverName = 'darbot-browser-mcp';
-
-    if (!servers[serverName]) {
-      // Auto-configure the MCP server with enhanced configuration
-      const darbotConfig = vscode.workspace.getConfiguration('darbot-browser-mcp');
-      const browser = darbotConfig.get('browser', 'msedge');
-      const headless = darbotConfig.get('headless', false);
-      const noSandbox = darbotConfig.get('noSandbox', true);
-      const logLevel = darbotConfig.get('logLevel', 'info');
-
-      const args = ['@darbotlabs/darbot-browser-mcp@latest'];
-
-      // Add browser configuration options
-      if (browser !== 'msedge')
-        args.push('--browser', browser);
-
-      if (headless)
-        args.push('--headless');
-
-      if (noSandbox)
-        args.push('--no-sandbox');
-
-      if (logLevel !== 'info')
-        args.push('--log-level', logLevel);
-
-
-      const serverConfig = {
-        command: 'npx',
-        args: args,
-        env: {
-          NODE_ENV: 'production'
-        }
-      };
-
-      servers[serverName] = serverConfig;
-      await mcpConfig.update('servers', servers, vscode.ConfigurationTarget.Global);
-
-      mcpOutputChannel.appendLine('Darbot Browser MCP server configured automatically for GitHub Copilot agent mode.');
-      mcpOutputChannel.appendLine(`Server name: ${serverName}`);
-      mcpOutputChannel.appendLine(`Command: ${serverConfig.command} ${serverConfig.args.join(' ')}`);
-      mcpOutputChannel.appendLine('This server will be available as a selectable tool in GitHub Copilot agent mode.');
-
-      // Also try to configure the GitHub Copilot Chat MCP settings if available
-      try {
-        const copilotConfig = vscode.workspace.getConfiguration('github.copilot.chat.mcp');
-        if (copilotConfig) {
-          const copilotServers = copilotConfig.get('servers', {}) as Record<string, any>;
-          if (!copilotServers[serverName]) {
-            copilotServers[serverName] = serverConfig;
-            await copilotConfig.update('servers', copilotServers, vscode.ConfigurationTarget.Global);
-            mcpOutputChannel.appendLine('Darbot Browser MCP also configured for GitHub Copilot Chat MCP integration.');
+      if (enableResult === 'Enable MCP Gallery') {
+        try {
+          await mcpGalleryConfig.update('enabled', true, vscode.ConfigurationTarget.Global);
+          mcpOutputChannel.appendLine('MCP Gallery enabled in VS Code settings (chat.mcp.gallery.enabled).');
+          
+          const reloadResult = await vscode.window.showInformationMessage(
+            'MCP Gallery enabled! Reload VS Code to activate the Darbot Browser MCP server.',
+            'Reload Now',
+            'Later'
+          );
+          
+          if (reloadResult === 'Reload Now') {
+            await vscode.commands.executeCommand('workbench.action.reloadWindow');
           }
+        } catch (error) {
+          mcpOutputChannel.appendLine(`Could not auto-enable MCP Gallery: ${error}`);
+          mcpOutputChannel.appendLine('Please manually enable: Settings → search "chat.mcp.gallery.enabled" → check the box');
+          void vscode.window.showWarningMessage(
+            'Could not auto-enable MCP Gallery. Please enable it manually in Settings.',
+            'Open Settings'
+          ).then(selection => {
+            if (selection === 'Open Settings') {
+              void vscode.commands.executeCommand('workbench.action.openSettings', 'chat.mcp.gallery.enabled');
+            }
+          });
         }
-      } catch (copilotError) {
-        mcpOutputChannel.appendLine(`GitHub Copilot Chat MCP configuration not available: ${copilotError}`);
-      }
-
-      const restartResult = await vscode.window.showInformationMessage(
-          'Darbot Browser MCP has been configured for GitHub Copilot agent mode! Please restart VS Code to complete the setup, or use the Command Palette to start the server.',
-          'Restart VS Code',
-          'Start Server Now',
-          'Show Configuration'
-      );
-
-      if (restartResult === 'Restart VS Code') {
-        await vscode.commands.executeCommand('workbench.action.reloadWindow');
-      } else if (restartResult === 'Start Server Now') {
-        await startServer();
-      } else if (restartResult === 'Show Configuration') {
-        mcpOutputChannel.show();
-        await vscode.commands.executeCommand('workbench.action.openSettings', 'chat.mcp');
+      } else if (enableResult === 'Open Settings') {
+        await vscode.commands.executeCommand('workbench.action.openSettings', 'chat.mcp.gallery.enabled');
+      } else {
+        mcpOutputChannel.appendLine('MCP Gallery not enabled. The extension will still work via the MCP Server Definition Provider if available.');
       }
     } else {
-      mcpOutputChannel.appendLine('Darbot Browser MCP server already configured.');
-      mcpOutputChannel.appendLine('Server is available as a selectable tool in GitHub Copilot agent mode.');
+      mcpOutputChannel.appendLine('MCP Gallery is already enabled. Darbot Browser MCP server is available via the MCP Server Definition Provider.');
     }
   } catch (error) {
-    mcpOutputChannel.appendLine(`Error configuring MCP server: ${error}`);
-    void vscode.window.showErrorMessage(`Failed to configure Darbot Browser MCP: ${error}`);
+    // Non-fatal error - the MCP Server Definition Provider should still work
+    mcpOutputChannel.appendLine(`Note: Could not check/configure MCP Gallery settings: ${error}`);
+    mcpOutputChannel.appendLine('The Darbot Browser MCP server is still available via the MCP Server Definition Provider.');
   }
 }
 
@@ -284,9 +237,22 @@ async function startServer() {
       updateStatusBarItem(false);
     });
 
-    mcpServerProcess.on('exit', code => {
-      if (code !== 0)
-        void vscode.window.showErrorMessage(`Browser MCP Server exited with code ${code}`);
+    // Track if we intentionally stopped the server
+    let intentionallyStopped = false;
+    const originalKill = mcpServerProcess.kill.bind(mcpServerProcess);
+    mcpServerProcess.kill = (...args: Parameters<typeof originalKill>) => {
+      intentionallyStopped = true;
+      return originalKill(...args);
+    };
+
+    mcpServerProcess.on('exit', (code, signal) => {
+      // Only show error if server crashed unexpectedly (not killed intentionally)
+      if (!intentionallyStopped && code !== 0 && code !== null) {
+        void vscode.window.showErrorMessage(`Browser MCP Server exited unexpectedly with code ${code}`);
+      } else if (!intentionallyStopped && signal) {
+        // Process was killed by a signal (not by us)
+        void vscode.window.showWarningMessage(`Browser MCP Server was terminated by signal ${signal}`);
+      }
       mcpServerProcess = null;
       updateStatusBarItem(false);
     });
@@ -342,10 +308,17 @@ function showStatus() {
   const headless = config.get('headless', false);
   const noSandbox = config.get('noSandbox', true);
 
-  const configInfo = `Browser: ${browser}, Headless: ${headless}, No Sandbox: ${noSandbox}`;
+  // Clean, multi-line status message
+  const statusMessage = [
+    `Darbot Browser Status: ${status}`,
+    serverPath,
+    `Browser: ${browser}`,
+    `Headless: ${headless}`,
+    `No Sandbox: ${noSandbox}`,
+  ].join('\n');
 
   vscode.window.showInformationMessage(
-      `Browser MCP Server Status: ${status}\nCommand: ${serverPath}\nConfig: ${configInfo}`,
+      statusMessage,
       ...(isRunning ? ['Stop Server', 'Restart Server'] : ['Start Server']),
   ).then(selection => {
     if (selection === 'Start Server')

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Microsoft Corporation.
+ * Copyright (c) DarbotLabs.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,10 +53,19 @@ program
     .option('--user-data-dir <path>', 'path to the user data directory. If not specified, a temporary directory will be created.')
     .option('--viewport-size <size>', 'specify browser viewport size in pixels, for example "1280, 720"')
     .option('--vision', 'Run server that uses screenshots (Aria snapshots are used by default)')
+    .option('--edge-profile <name>', 'Edge profile name to use (e.g., "Profile 1", "Default"). This is recorded in saved session states.')
+    .option('--edge-profile-email <email>', 'Email associated with the Edge profile. This is recorded in saved session states for context.')
+    .option('--auto-sign-in', 'Auto sign in with work/school account (Edge profile preference)')
+    .option('--profile-switching', 'Enable automatic profile switching based on site (Edge profile preference)')
+    .option('--intranet-switch', 'Automatically switch to work profile for intranet sites (Edge profile preference)')
+    .option('--ie-mode-switch', 'Automatically switch profile for IE mode sites (Edge profile preference)')
+    .option('--default-profile <name>', 'Default Edge profile for external links (Edge profile preference)')
     .addOption(new Option('--extension', 'Allow connecting to a running browser instance (Edge/Chrome only). Requires the \'Darbot Browser MCP\' browser extension to be installed.').hideHelp())
     .action(async options => {
       const config = await resolveCLIConfig(options);
-      const httpServer = config.server.port !== undefined ? await startHttpServer(config.server) : undefined;
+      const httpResult = config.server.port !== undefined ? await startHttpServer(config.server) : undefined;
+      const httpServer = httpResult?.httpServer;
+      const expressApp = httpResult?.app;
       if (config.extension) {
         if (!httpServer)
           throw new Error('--port parameter is required for extension mode');
@@ -65,10 +74,11 @@ program
       }
 
       const server = new Server(config);
-      server.setupExitWatchdog();
+      // Use http mode when port is specified to prevent exit on stdin close
+      server.setupExitWatchdog(httpServer ? 'http' : 'stdio');
 
       if (httpServer)
-        await startHttpTransport(httpServer, server);
+        await startHttpTransport(httpServer, server, expressApp);
       else
         await startStdioTransport(server);
 

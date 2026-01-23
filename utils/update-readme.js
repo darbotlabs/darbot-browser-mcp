@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Copyright (c) Microsoft Corporation.
+ * Copyright (c) DarbotLabs.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +19,8 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import url from 'node:url'
-import zodToJsonSchema from 'zod-to-json-schema'
 
-import commonTools from '../lib/tools/common.js';
+import commonTools from '../lib/common.js';
 import consoleTools from '../lib/tools/console.js';
 import dialogsTools from '../lib/tools/dialogs.js';
 import filesTools from '../lib/tools/files.js';
@@ -38,6 +37,13 @@ import testTools from '../lib/tools/testing.js';
 import visionTools from '../lib/tools/vision.js';
 import waitTools from '../lib/tools/wait.js';
 import { execSync } from 'node:child_process';
+
+let zodToJsonSchema;
+try {
+  ({ default: zodToJsonSchema } = await import('zod-to-json-schema'));
+} catch (error) {
+  console.warn('Warning: zod-to-json-schema failed to load; parameter details will be omitted.', error);
+}
 
 const categories = {
   'Interactions': [
@@ -81,7 +87,7 @@ const categories = {
   ],
 };
 
-// NOTE: Can be removed when we drop Node.js 18 support and changed to import.meta.filename.
+// NOTE: Can be removed when we drop Node.js 23 support and changed to import.meta.filename.
 const __filename = url.fileURLToPath(import.meta.url);
 
 /**
@@ -96,21 +102,25 @@ function formatToolForReadme(tool) {
   lines.push(`  - Title: ${tool.title}`);
   lines.push(`  - Description: ${tool.description}`);
 
-  const inputSchema = /** @type {any} */ (zodToJsonSchema(tool.inputSchema || {}));
-  const requiredParams = inputSchema.required || [];
-  if (inputSchema.properties && Object.keys(inputSchema.properties).length) {
-    lines.push(`  - Parameters:`);
-    Object.entries(inputSchema.properties).forEach(([name, param]) => {
-      const optional = !requiredParams.includes(name);
-      const meta = /** @type {string[]} */ ([]);
-      if (param.type)
-        meta.push(param.type);
-      if (optional)
-        meta.push('optional');
-      lines.push(`    - \`${name}\` ${meta.length ? `(${meta.join(', ')})` : ''}: ${param.description}`);
-    });
+  if (zodToJsonSchema) {
+    const inputSchema = /** @type {any} */ (zodToJsonSchema(tool.inputSchema || {}));
+    const requiredParams = inputSchema.required || [];
+    if (inputSchema.properties && Object.keys(inputSchema.properties).length) {
+      lines.push(`  - Parameters:`);
+      Object.entries(inputSchema.properties).forEach(([name, param]) => {
+        const optional = !requiredParams.includes(name);
+        const meta = /** @type {string[]} */ ([]);
+        if (param.type)
+          meta.push(param.type);
+        if (optional)
+          meta.push('optional');
+        lines.push(`    - \`${name}\` ${meta.length ? `(${meta.join(', ')})` : ''}: ${param.description}`);
+      });
+    } else {
+      lines.push(`  - Parameters: None`);
+    }
   } else {
-    lines.push(`  - Parameters: None`);
+    lines.push(`  - Parameters: (unavailable)`);
   }
   lines.push(`  - Read-only: **${tool.type === 'readOnly'}**`);
   lines.push('');

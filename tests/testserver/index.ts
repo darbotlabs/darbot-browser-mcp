@@ -1,6 +1,6 @@
 /**
  * Copyright 2017 Google Inc. All rights reserved.
- * Modifications copyright (c) Microsoft Corporation.
+ * Modifications copyright (c) DarbotLabs.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import debug from 'debug';
 const fulfillSymbol = Symbol('fulfil callback');
 const rejectSymbol = Symbol('reject callback');
 
-// NOTE: Can be removed when we drop Node.js 18 support and changed to import.meta.filename.
+// NOTE: Can be removed when we drop Node.js 23 support and changed to import.meta.filename.
 const __filename = url.fileURLToPath(import.meta.url);
 
 export class TestServer {

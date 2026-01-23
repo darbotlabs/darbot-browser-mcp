@@ -4,14 +4,14 @@ This script provides quick, one-command automation for common GitHub repository 
 
 ## Quick Commands
 
-### 🚀 Launch and Navigate
+### Launch and Navigate
 
 ```mcp
 browser_navigate
 url: https://github.com/darbotlabs/darbot-browser-mcp
 ```
 
-### 📊 Repository Health Check
+###  Repository Health Check
 
 Quick assessment of repository status:
 
@@ -27,7 +27,7 @@ Extract from snapshot:
 - Last commit date
 - Branch information
 
-### 🐛 Quick Bug Report
+### Quick Bug Report
 
 Fast bug report creation:
 
@@ -42,7 +42,7 @@ element: Bug report template
 ref: [Look for "Bug report" template button]
 ```
 
-### ✨ Quick Feature Request
+### Quick Feature Request
 
 Fast feature request creation:
 
@@ -57,7 +57,7 @@ element: Feature request template
 ref: [Look for "Feature request" template button]
 ```
 
-### 📋 Issues Dashboard
+###  Issues Dashboard
 
 Quick overview of all issues:
 
@@ -70,7 +70,7 @@ url: https://github.com/darbotlabs/darbot-browser-mcp/issues
 browser_snapshot
 ```
 
-### 🔍 Search Issues
+### [PENDING VALIDATION] Search Issues
 
 Find specific issues quickly:
 

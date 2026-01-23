@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Microsoft Corporation.
+ * Copyright (c) DarbotLabs.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,18 +25,18 @@ import { sanitizeForFilePath } from './utils.js';
 import type { Context } from '../context.js';
 
 const saveProfileSchema = z.object({
-  name: z.string().describe('Name for the work profile'),
-  description: z.string().optional().describe('Optional description for the work profile'),
+  name: z.string().describe('Name for the session state'),
+  description: z.string().optional().describe('Optional description for the session state'),
 });
 
 const switchProfileSchema = z.object({
-  name: z.string().describe('Name of the work profile to switch to'),
+  name: z.string().describe('Name of the session state to restore'),
 });
 
 const listProfilesSchema = z.object({});
 
 const deleteProfileSchema = z.object({
-  name: z.string().describe('Name of the work profile to delete'),
+  name: z.string().describe('Name of the session state to delete'),
 });
 
 async function getProfilesDir(): Promise<string> {
@@ -50,7 +50,7 @@ async function getProfilesDir(): Promise<string> {
   else
     throw new Error('Unsupported platform: ' + process.platform);
 
-  const result = path.join(profilesDir, 'darbot-browser-mcp', 'work-profiles');
+  const result = path.join(profilesDir, 'darbot-browser-mcp', 'session-states');
   await fs.promises.mkdir(result, { recursive: true });
   return result;
 }
@@ -67,8 +67,28 @@ async function saveCurrentProfile(context: Context, profileName: string, descrip
   const url = tab.page.url();
   const title = await tab.title();
 
-  // Save profile metadata
+  // Detect Edge profile info from environment/config
+  const edgeProfile = process.env.DARBOT_EDGE_PROFILE || 'default';
+  const edgeProfileEmail = process.env.DARBOT_EDGE_PROFILE_EMAIL || undefined;
+  const workspacePath = process.env.VSCODE_WORKSPACE_FOLDER || process.env.PWD || undefined;
+  const workspaceName = workspacePath ? path.basename(workspacePath) : undefined;
+
+  // Save session state metadata with unified header
   const profileData = {
+    // Unified header
+    version: '2.0',
+    type: 'darbot-session-state',
+    // Edge profile context
+    edgeProfile: {
+      name: edgeProfile,
+      email: edgeProfileEmail,
+    },
+    // VS Code workspace context (if launched from VS Code)
+    workspace: workspacePath ? {
+      path: workspacePath,
+      name: workspaceName,
+    } : undefined,
+    // Session state details
     name: profileName,
     description: description || '',
     created: new Date().toISOString(),
@@ -104,7 +124,7 @@ async function loadProfile(context: Context, profileName: string) {
   try {
     await fs.promises.access(profileDir);
   } catch {
-    throw new Error(`Work profile "${profileName}" not found`);
+    throw new Error(`Session state "${profileName}" not found`);
   }
 
   // Load profile metadata
@@ -178,7 +198,7 @@ async function deleteProfile(profileName: string) {
   try {
     await fs.promises.access(profileDir);
   } catch {
-    throw new Error(`Work profile "${profileName}" not found`);
+    throw new Error(`Session state "${profileName}" not found`);
   }
 
   await fs.promises.rm(profileDir, { recursive: true, force: true });
@@ -188,13 +208,26 @@ export const browserSaveProfile = defineTool({
   capability: 'core' as const,
   schema: {
     name: 'browser_save_profile',
-    title: 'Autonomous profile saving',
-    description: 'Autonomously save the current browser state as a reusable work profile for later restoration',
+    title: 'Save session state',
+    description: 'Save the current browser session state (cookies, localStorage, URL) for later restoration. Includes Edge profile and VS Code workspace context.',
     inputSchema: saveProfileSchema,
     type: 'destructive',
   },
   handle: async (context: Context, { name, description }: z.infer<typeof saveProfileSchema>) => {
     const profileData = await saveCurrentProfile(context, name, description);
+
+    let text = `Session state "${name}" saved successfully.\n\n`;
+    text += `### Session State Details\n`;
+    text += `- **Name:** ${profileData.name}\n`;
+    if (profileData.description)
+      text += `- **Description:** ${profileData.description}\n`;
+    text += `- **URL:** ${profileData.url}\n`;
+    text += `- **Title:** ${profileData.title}\n`;
+    text += `- **Created:** ${profileData.created}\n\n`;
+    text += `### Context\n`;
+    text += `- **Edge Profile:** ${profileData.edgeProfile.name}${profileData.edgeProfile.email ? ` (${profileData.edgeProfile.email})` : ''}\n`;
+    if (profileData.workspace)
+      text += `- **VS Code Workspace:** ${profileData.workspace.name} (${profileData.workspace.path})\n`;
 
     return {
       code: [`await browser_save_profile({ name: '${name}', description: '${description || ''}' })`],
@@ -204,7 +237,7 @@ export const browserSaveProfile = defineTool({
       resultOverride: {
         content: [{
           type: 'text',
-          text: `Work profile "${name}" saved successfully.\n\nProfile details:\n- Name: ${profileData.name}\n- Description: ${profileData.description}\n- URL: ${profileData.url}\n- Title: ${profileData.title}\n- Created: ${profileData.created}`,
+          text,
         }],
       },
     };
@@ -215,13 +248,29 @@ export const browserSwitchProfile = defineTool({
   capability: 'core' as const,
   schema: {
     name: 'browser_switch_profile',
-    title: 'Autonomous profile switching',
-    description: 'Autonomously switch to a previously saved work profile, restoring browser state and session',
+    title: 'Restore session state',
+    description: 'Restore a previously saved session state, including cookies, localStorage, and navigate to the saved URL',
     inputSchema: switchProfileSchema,
     type: 'destructive',
   },
   handle: async (context: Context, { name }: z.infer<typeof switchProfileSchema>) => {
     const result = await loadProfile(context, name);
+    const pd = result.profileData;
+
+    let text = `Session state "${name}" restored.\n\n`;
+    text += `### Session State Details\n`;
+    text += `- **Name:** ${pd.name}\n`;
+    if (pd.description)
+      text += `- **Description:** ${pd.description}\n`;
+    text += `- **URL:** ${pd.url}\n`;
+    text += `- **Title:** ${pd.title}\n`;
+    text += `- **Storage:** ${result.restored ? 'Fully restored' : 'URL only (storage not available)'}\n\n`;
+    if (pd.edgeProfile) {
+      text += `### Original Context\n`;
+      text += `- **Edge Profile:** ${pd.edgeProfile.name}${pd.edgeProfile.email ? ` (${pd.edgeProfile.email})` : ''}\n`;
+    }
+    if (pd.workspace)
+      text += `- **VS Code Workspace:** ${pd.workspace.name}\n`;
 
     return {
       code: [`await browser_switch_profile({ name: '${name}' })`],
@@ -231,7 +280,7 @@ export const browserSwitchProfile = defineTool({
       resultOverride: {
         content: [{
           type: 'text',
-          text: `Switched to work profile "${name}".\n\nProfile details:\n- Name: ${result.profileData.name}\n- Description: ${result.profileData.description}\n- URL: ${result.profileData.url}\n- Title: ${result.profileData.title}\n- Storage state ${result.restored ? 'restored' : 'not available'}`,
+          text,
         }],
       },
     };
@@ -242,18 +291,18 @@ export const browserListProfiles = defineTool({
   capability: 'core' as const,
   schema: {
     name: 'browser_list_profiles',
-    title: 'Autonomous profile listing',
-    description: 'Autonomously list all saved work profiles with their details and creation information',
+    title: 'List session states',
+    description: 'List all saved Darbot session states with their Edge profile context and workspace information',
     inputSchema: listProfilesSchema,
     type: 'readOnly',
   },
   handle: async (context: Context, {}: z.infer<typeof listProfilesSchema>) => {
     const profiles = await listProfiles();
 
-    let text = '### Saved Work Profiles\n\n';
+    let text = '### Saved Darbot Session States\n\n';
 
     if (profiles.length === 0) {
-      text += 'No work profiles saved yet. Use the "browser_save_profile" tool to save your current browser state as a work profile.';
+      text += 'No session states saved yet. Use the "browser_save_profile" tool to save your current browser session state.';
     } else {
       for (const profile of profiles) {
         text += `**${profile.name}**\n`;
@@ -261,7 +310,13 @@ export const browserListProfiles = defineTool({
           text += `- Description: ${profile.description}\n`;
         text += `- URL: ${profile.url}\n`;
         text += `- Title: ${profile.title}\n`;
-        text += `- Created: ${new Date(profile.created).toLocaleString()}\n\n`;
+        text += `- Created: ${new Date(profile.created).toLocaleString()}\n`;
+        // Show Edge profile context if available (v2.0+ session states)
+        if (profile.edgeProfile)
+          text += `- Edge Profile: ${profile.edgeProfile.name}${profile.edgeProfile.email ? ` (${profile.edgeProfile.email})` : ''}\n`;
+        if (profile.workspace)
+          text += `- Workspace: ${profile.workspace.name}\n`;
+        text += '\n';
       }
     }
 
@@ -284,8 +339,8 @@ export const browserDeleteProfile = defineTool({
   capability: 'core' as const,
   schema: {
     name: 'browser_delete_profile',
-    title: 'Autonomous profile deletion',
-    description: 'Autonomously delete a saved work profile permanently from storage',
+    title: 'Delete session state',
+    description: 'Permanently delete a saved session state from storage',
     inputSchema: deleteProfileSchema,
     type: 'destructive',
   },
@@ -300,7 +355,7 @@ export const browserDeleteProfile = defineTool({
       resultOverride: {
         content: [{
           type: 'text',
-          text: `Work profile "${name}" deleted successfully.`,
+          text: `Session state "${name}" deleted successfully.`,
         }],
       },
     };

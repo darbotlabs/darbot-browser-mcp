@@ -3,7 +3,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-Console.WriteLine("🤖 Starting Darbot Browser MCP Server...");
+Console.WriteLine("Starting Darbot Browser MCP Server...");
 
 var builder = Host.CreateApplicationBuilder(args);
 
@@ -24,10 +24,10 @@ builder.Services.AddBrowserMcpServer(options =>
 
 var host = builder.Build();
 
-Console.WriteLine("✅ Starting the Browser MCP Server host...");
+Console.WriteLine(" Starting the Browser MCP Server host...");
 await host.StartAsync();
 
-Console.WriteLine("🌐 Server is running! Press Ctrl+C to stop...");
+Console.WriteLine(" Server is running! Press Ctrl+C to stop...");
 Console.WriteLine("📍 Use this with VS Code Copilot Chat: @darbot-browser-mcp navigate to https://copilotstudio.microsoft.com");
 
 // Keep the application running

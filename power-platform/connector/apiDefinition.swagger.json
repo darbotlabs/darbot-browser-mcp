@@ -1,9 +1,9 @@
 {
   "swagger": "2.0",
   "info": {
-    "version": "1.0.0",
+    "version": "1.3.0",
     "title": "Darbot Browser MCP",
-    "description": "Autonomous browser automation for Microsoft Copilot Studio. Provides 29+ AI-driven browser tools including navigation, interaction, testing, and work profile management.",
+    "description": "Autonomous browser automation for Microsoft Copilot Studio. Provides 39 AI-driven browser tools including navigation, interaction, testing, and work profile management.",
     "contact": {
       "name": "Darbot Labs Support",
       "url": "https://github.com/darbotlabs/darbot-browser-mcp",

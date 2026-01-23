@@ -1,7 +1,7 @@
 {
   "name": "DarbotBrowserAutomation",
   "description": "Example Copilot Studio workflow using Darbot Browser MCP connector",
-  "version": "1.0.0",
+  "version": "1.3.0",
   "triggers": [
     {
       "type": "manual",

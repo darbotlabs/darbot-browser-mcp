@@ -81,7 +81,8 @@ else
     print_warning "Using provided Client ID: $CLIENT_ID"
     if [ -z "$CLIENT_SECRET" ]; then
         print_error "Client secret is required when using a provided Client ID. Please set it securely."
-        read -p "Enter Client Secret: " CLIENT_SECRET
+        read -s -p "Enter Client Secret: " CLIENT_SECRET
+        echo ""
         if [ -z "$CLIENT_SECRET" ]; then
             print_error "Client secret cannot be empty. Exiting deployment."
             exit 1

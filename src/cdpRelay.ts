@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Microsoft Corporation.
+ * Copyright (c) DarbotLabs.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -191,7 +191,7 @@ export class CDPRelayServer extends EventEmitter {
           result: {
             protocolVersion: '1.3',
             product: 'Browser/Extension-Bridge',
-            userAgent: 'CDP-Bridge-Server/1.0.0',
+            userAgent: 'CDP-Bridge-Server/1.3.0',
           }
         });
         break;

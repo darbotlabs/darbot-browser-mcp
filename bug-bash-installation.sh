@@ -20,19 +20,19 @@ log() {
 }
 
 error() {
-    log "${RED}❌ ERROR: $1${NC}"
+    log "${RED}ERROR ERROR: $1${NC}"
 }
 
 success() {
-    log "${GREEN}✅ SUCCESS: $1${NC}"
+    log "${GREEN} SUCCESS: $1${NC}"
 }
 
 warning() {
-    log "${YELLOW}⚠️  WARNING: $1${NC}"
+    log "${YELLOW} WARNING: $1${NC}"
 }
 
 info() {
-    log "${BLUE}ℹ️  INFO: $1${NC}"
+    log "${BLUE} INFO: $1${NC}"
 }
 
 # Check prerequisites
@@ -46,14 +46,14 @@ check_prerequisites() {
         
         # Extract major version number
         MAJOR_VERSION=$(echo "$NODE_VERSION" | sed 's/v\([0-9]*\).*/\1/')
-        if [ "$MAJOR_VERSION" -lt 18 ]; then
-            error "Node.js version $NODE_VERSION is too old. Requires ≥18"
+        if [ "$MAJOR_VERSION" -lt 23 ]; then
+            error "Node.js version $NODE_VERSION is too old. Requires ≥23"
             return 1
         else
             success "Node.js version requirement met"
         fi
     else
-        error "Node.js not found. Please install Node.js ≥18"
+        error "Node.js not found. Please install Node.js ≥23"
         return 1
     fi
     
@@ -310,10 +310,10 @@ test_mcp_tools() {
     sleep 2
 }
 
-# Test Persona 7: Microsoft Engineer - Copilot Studio Integration
+# Test Persona 7: Engineer - Copilot Studio Integration
 test_microsoft_engineer() {
-    log "\n=== Testing Persona 7: Microsoft Engineer - Copilot Studio & M365 Integration ==="
-    info "Microsoft Engineer working on Copilot Studio who wants to add MCP tool for M365 agents"
+    log "\n=== Testing Persona 7: Engineer - Copilot Studio & M365 Integration ==="
+    info "Engineer working on Copilot Studio who wants to add MCP tool for M365 agents"
     
     # Priority: Windows 11 + Edge testing
     info "Testing Microsoft Edge browser priority..."
@@ -451,7 +451,7 @@ test_microsoft_engineer() {
     rm -f /tmp/test-edge-config.json
     rm -f /tmp/test-mcp-server-config.json
     
-    success "Microsoft Engineer persona testing completed"
+    success "Engineer persona testing completed"
     info "Ready for Copilot Studio and M365 agent integration!"
 }
 
@@ -480,28 +480,28 @@ echo
 echo -n "Node.js version check... "
 NODE_VERSION=$(node --version)
 MAJOR_VERSION=$(echo "$NODE_VERSION" | sed 's/v\([0-9]*\).*/\1/')
-if [ "$MAJOR_VERSION" -ge 18 ]; then
-    echo -e "${GREEN}✅ $NODE_VERSION${NC}"
+if [ "$MAJOR_VERSION" -ge 23 ]; then
+    echo -e "${GREEN} $NODE_VERSION${NC}"
 else
-    echo -e "${RED}❌ $NODE_VERSION (requires ≥18)${NC}"
+    echo -e "${RED}ERROR $NODE_VERSION (requires ≥23)${NC}"
     exit 1
 fi
 
 # Test 2: NPX package access
 echo -n "Package accessibility... "
 if timeout 30 npx @darbotlabs/darbot-browser-mcp@latest --version >/dev/null 2>&1; then
-    echo -e "${GREEN}✅ Package accessible${NC}"
+    echo -e "${GREEN} Package accessible${NC}"
 else
-    echo -e "${RED}❌ Cannot access package${NC}"
+    echo -e "${RED}ERROR Cannot access package${NC}"
     exit 1
 fi
 
 # Test 3: Headless mode
 echo -n "Headless browser mode... "
 if timeout 20 npx @darbotlabs/darbot-browser-mcp@latest --headless --no-sandbox --version >/dev/null 2>&1; then
-    echo -e "${GREEN}✅ Headless mode works${NC}"
+    echo -e "${GREEN} Headless mode works${NC}"
 else
-    echo -e "${RED}❌ Headless mode failed${NC}"
+    echo -e "${RED}ERROR Headless mode failed${NC}"
     exit 1
 fi
 
@@ -512,16 +512,16 @@ SERVER_PID=$!
 sleep 10
 
 if curl -s http://localhost:8934/ready | grep -q "OK" 2>/dev/null; then
-    echo -e "${GREEN}✅ Server mode works${NC}"
+    echo -e "${GREEN} Server mode works${NC}"
     kill $SERVER_PID 2>/dev/null || true
 else
-    echo -e "${RED}❌ Server mode failed${NC}"
+    echo -e "${RED}ERROR Server mode failed${NC}"
     kill $SERVER_PID 2>/dev/null || true
     exit 1
 fi
 
 echo
-echo -e "${GREEN}🎉 Installation verification completed successfully!${NC}"
+echo -e "${GREEN}Installation verification completed successfully!${NC}"
 echo
 echo "Next steps:"
 echo "1. Configure your MCP client (VS Code, Claude Desktop, etc.)"

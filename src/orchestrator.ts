@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Microsoft Corporation.
+ * Copyright (c) DarbotLabs.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -247,9 +247,9 @@ export class CrawlOrchestrator {
     // Get page title
     const title = await page.title().catch(() => 'Untitled');
 
-    // Get accessibility snapshot
-    const snapshot = await page.accessibility.snapshot() || {};
-    const domSnapshot = JSON.stringify(snapshot);
+    // Get accessibility snapshot using aria snapshot (Playwright 1.57+)
+    const snapshot = await page.locator(':root').ariaSnapshot().catch(() => '');
+    const domSnapshot = snapshot || '';
 
     // Extract links
     const links = await this.extractLinks(page);

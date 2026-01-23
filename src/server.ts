@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Microsoft Corporation.
+ * Copyright (c) DarbotLabs.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,7 +41,7 @@ export class Server {
     return connection;
   }
 
-  setupExitWatchdog() {
+  setupExitWatchdog(mode: 'stdio' | 'http' = 'stdio') {
     let isExiting = false;
     const handleExit = async () => {
       if (isExiting)
@@ -52,7 +52,10 @@ export class Server {
       process.exit(0);
     };
 
-    process.stdin.on('close', handleExit);
+    // Only watch stdin for stdio mode - HTTP server should not exit on stdin close
+    if (mode === 'stdio')
+      process.stdin.on('close', handleExit);
+    
     process.on('SIGINT', handleExit);
     process.on('SIGTERM', handleExit);
   }

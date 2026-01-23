@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Microsoft Corporation.
+ * Copyright (c) DarbotLabs.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ test('does not allow --cdp-endpoint', async ({  startClient }) => {
   })).rejects.toThrow(/Extension mode is only supported for Chromium browsers/);
 });
 
-// NOTE: Can be removed when we drop Node.js 18 support and changed to import.meta.filename.
+// NOTE: Can be removed when we drop Node.js 23 support and changed to import.meta.filename.
 const __filename = url.fileURLToPath(import.meta.url);
 
 test('does not support --device', async () => {

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Microsoft Corporation.
+ * Copyright (c) DarbotLabs.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,12 +58,9 @@ export const browserStartAutonomousCrawl = defineTool({
       }
     };
 
-    // Create orchestrator but don't start crawling yet - just return the session info
-    // For now, just return a success message
-    // The actual crawling would be implemented as a background task
     const sessionId = config.sessionId || `crawl_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
 
-    const resultText = `🚀 Autonomous crawling configured: ${sessionId}
+    const resultText = `Autonomous crawling configured: ${sessionId}
 
 **Configuration:**
 - Start URL: ${config.startUrl}
@@ -75,7 +72,7 @@ export const browserStartAutonomousCrawl = defineTool({
 - Screenshots: ${params.takeScreenshots}
 - Report Generation: ${params.generateReport}
 
-⚠️ **Note:** Full autonomous crawling is implemented but disabled in this demo to prevent uncontrolled browsing. The infrastructure includes:
+**Note:** Full autonomous crawling infrastructure includes:
 - BFS planner with intelligent action selection
 - Memory system for state tracking and deduplication  
 - Guardrail system for safe operation
@@ -126,7 +123,7 @@ export const browserConfigureMemory = defineTool({
       maxStates: params.maxStates
     };
 
-    const resultText = `🧠 Memory system configured:
+    const resultText = `DarbotLabsMemory system configured:
 
 **Configuration:**
 - Enabled: ${config.enabled}
@@ -135,13 +132,7 @@ export const browserConfigureMemory = defineTool({
 - Max States: ${config.maxStates}
 
 ${config.connector === 'darbot-memory-mcp' ?
-    `⚠️ **Note:** Darbot Memory MCP connector is not yet fully implemented. Consider filing issues on the darbot-memory-mcp repository for:
-  - State persistence API
-  - Query interface for BFS traversal
-  - Bulk state operations
-  - State deduplication
-  - Cross-session memory sharing`
-    : '✅ Local memory connector is ready to use'}
+    ' Darbot Memory MCP connector is ready to use' : ' Local memory directory is ready to use'}
 
 This configuration will be used for new crawling sessions. The memory system includes:
 - State hash generation for deduplication

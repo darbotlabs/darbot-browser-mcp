@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Microsoft Corporation.
+ * Copyright (c) DarbotLabs.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,11 @@ import vision from './tools/vision.js';
 import wait from './tools/wait.js';
 import aiNative from './tools/ai-native.js';
 import autonomous from './tools/autonomous.js';
+import scroll from './tools/scroll.js';
+import clock from './tools/clock.js';
+import emulation from './tools/emulation.js';
+import diagnostics from './tools/diagnostics.js';
+import storage from './tools/storage.js';
 
 import type { Tool } from './tools/tool.js';
 
@@ -56,6 +61,11 @@ export const snapshotTools: Tool<any>[] = [
   ...wait(true),
   ...aiNative,
   ...autonomous,
+  ...scroll(true),
+  ...clock(true),
+  ...emulation(true),
+  ...diagnostics,
+  ...storage,
 ];
 
 export const visionTools: Tool<any>[] = [
@@ -78,4 +88,9 @@ export const visionTools: Tool<any>[] = [
   ...wait(false),
   ...aiNative,
   ...autonomous,
+  ...scroll(false),
+  ...clock(false),
+  ...emulation(false),
+  ...diagnostics,
+  ...storage,
 ];

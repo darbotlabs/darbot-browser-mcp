@@ -4,6 +4,21 @@ test-results/
 playwright-report/
 .vscode/mcp.json
 
+# Secrets / local config
+.env
+.env.*
+
+# Certificates / private keys
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+
+# Local-only config folders
+secrets/
+config/local.json
+
 .idea
 .DS_Store
 

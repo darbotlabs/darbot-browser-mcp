@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Microsoft Corporation.
+ * Copyright (c) DarbotLabs.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -76,7 +76,7 @@ export class OpenAPIGenerator {
       openapi: '3.0.3',
       info: {
         title: 'Darbot Browser MCP API',
-        description: 'Autonomous browser automation tools for Microsoft Copilot Studio integration. Provides 29+ AI-driven browser capabilities including navigation, interaction, testing, and work profile management.',
+        description: 'Autonomous browser automation tools for Microsoft Copilot Studio integration. Provides 39 AI-driven browser capabilities including navigation, interaction, testing, and work profile management.',
         version: packageJSON.version,
         contact: {
           name: 'Darbot Labs',

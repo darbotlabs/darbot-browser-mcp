@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Microsoft Corporation.
+ * Copyright (c) DarbotLabs.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,6 +59,14 @@ export type CLIOptions = {
   viewportSize?: string;
   vision?: boolean;
   extension?: boolean;
+  // Edge profile preference options
+  edgeProfile?: string;
+  edgeProfileEmail?: string;
+  autoSignIn?: boolean;
+  profileSwitching?: boolean;
+  intranetSwitch?: boolean;
+  ieModeSwitch?: boolean;
+  defaultProfile?: string;
 };
 
 const defaultConfig: FullConfig = {
@@ -230,6 +238,12 @@ export async function configFromCLIOptions(cliOptions: CLIOptions): Promise<Conf
   if (cliOptions.blockServiceWorkers)
     contextOptions.serviceWorkers = 'block';
 
+  // Set Edge profile environment variables for session state tracking
+  if (cliOptions.edgeProfile)
+    process.env.DARBOT_EDGE_PROFILE = cliOptions.edgeProfile;
+  if (cliOptions.edgeProfileEmail)
+    process.env.DARBOT_EDGE_PROFILE_EMAIL = cliOptions.edgeProfileEmail;
+
   const result: Config = {
     browser: {
       browserAgent: cliOptions.browserAgent ?? process.env.PW_BROWSER_AGENT,
@@ -241,7 +255,8 @@ export async function configFromCLIOptions(cliOptions: CLIOptions): Promise<Conf
       cdpEndpoint: cliOptions.cdpEndpoint,
     },
     server: {
-      port: cliOptions.port,
+      // Support PORT environment variable (common in cloud deployments like Azure)
+      port: cliOptions.port ?? (process.env.PORT ? parseInt(process.env.PORT, 10) : undefined),
       host: cliOptions.host,
     },
     capabilities: cliOptions.caps?.split(',').map((c: string) => c.trim() as ToolCapability),
