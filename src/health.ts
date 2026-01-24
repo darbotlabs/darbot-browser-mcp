@@ -144,9 +144,9 @@ export class HealthCheckService {
       const heapUsedMB = Math.round(memUsage.heapUsed / 1024 / 1024);
       const heapTotalMB = Math.round(memUsage.heapTotal / 1024 / 1024);
 
-      // Warn if heap usage > 80%
+      // Warn if heap usage > 95%, fail if > 98% (relaxed for Playwright workloads)
       const usagePercent = (heapUsedMB / heapTotalMB) * 100;
-      const status = usagePercent > 90 ? 'fail' : usagePercent > 80 ? 'warn' : 'pass';
+      const status = usagePercent > 98 ? 'fail' : usagePercent > 95 ? 'warn' : 'pass';
 
       return {
         name: 'memory',

@@ -1,9 +1,7 @@
 # Cloud VS Code Extension Setup
 
 ## Overview
-Updated VS Code extension to connect to Azure cloud deployment instead of local server.
-
-## Changes Made
+Darbot Browser VS Code extension to connect to Azure cloud deployment instead of local server.
 
 ### 1. **package.json** - Cloud Configuration
 - **Name**: `darbot-browser-mcp-cloud` (cloud-specific)
@@ -134,25 +132,6 @@ Browser Automation Tools (39 tools: 34 accessibility-first + 5 vision mode) — 
 }
 ```
 
-## Verification Checklist
-
-- [x] Updated package.json with cloud configuration
-- [x] Updated README.md with cloud documentation
-- [x] Updated extension.ts with cloud connection logic
-- [x] Changed all command names to cloud-specific
-- [x] Added testConnection function for health checks
-- [x] Updated status bar to show cloud state
-- [x] Removed local browser configuration (browser, headless, noSandbox)
-- [x] Added authentication token support
-- [x] Configured HTTP transport to Azure
-
-## Next Steps
-
-1. Install extension dependencies: `npm install`
-2. Compile TypeScript: `npm run compile`
-3. Test locally with F5 (Extension Development Host)
-4. Package for distribution: `vsce package`
-5. Publish to marketplace (optional): `vsce publish`
 
 ## Azure Resources Connected
 

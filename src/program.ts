@@ -77,8 +77,10 @@ program
       // Use http mode when port is specified to prevent exit on stdin close
       server.setupExitWatchdog(httpServer ? 'http' : 'stdio');
 
-      if (httpServer)
+      if (httpServer && expressApp)
         await startHttpTransport(httpServer, server, expressApp);
+      else if (httpServer)
+        throw new Error('Express app not initialized');
       else
         await startStdioTransport(server);
 

@@ -73,34 +73,57 @@ async function handleSSE(server: Server, req: http.IncomingMessage, res: http.Se
 
 async function handleStreamable(server: Server, req: http.IncomingMessage, res: http.ServerResponse, sessions: Map<string, StreamableHTTPServerTransport>) {
   const sessionId = req.headers['mcp-session-id'] as string | undefined;
+  
+  // If session ID provided, try to use existing session
   if (sessionId) {
-    const transport = sessions.get(sessionId);
-    if (!transport) {
-      res.statusCode = 404;
-      res.end('Session not found');
-      return;
+    const existingTransport = sessions.get(sessionId);
+    if (existingTransport) {
+      return await existingTransport.handleRequest(req, res);
     }
-    return await transport.handleRequest(req, res);
+    // Session not found (server may have restarted) - create new session for POST requests
+    // eslint-disable-next-line no-console
+    console.error(`[MCP] Session ${sessionId} not found, will create new session if POST request`);
   }
 
+  // Handle POST requests - create new session (or recreate if old session expired)
   if (req.method === 'POST') {
     const transport = new StreamableHTTPServerTransport({
       sessionIdGenerator: () => crypto.randomUUID(),
-      onsessioninitialized: sessionId => {
-        sessions.set(sessionId, transport);
+      onsessioninitialized: newSessionId => {
+        sessions.set(newSessionId, transport);
+        // eslint-disable-next-line no-console
+        console.error(`[MCP] New session created: ${newSessionId}`);
       }
     });
     transport.onclose = () => {
-      if (transport.sessionId)
+      if (transport.sessionId) {
         sessions.delete(transport.sessionId);
+        // eslint-disable-next-line no-console
+        console.error(`[MCP] Session closed: ${transport.sessionId}`);
+      }
     };
     await server.createConnection(transport);
     await transport.handleRequest(req, res);
     return;
   }
 
-  res.statusCode = 400;
-  res.end('Invalid request');
+  // GET requests without valid session
+  if (req.method === 'GET') {
+    res.statusCode = 400;
+    res.setHeader('Content-Type', 'application/json');
+    res.end(JSON.stringify({
+      error: 'invalid_request',
+      message: 'GET requests require a valid session. Send a POST to /mcp first to initialize.',
+    }));
+    return;
+  }
+
+  res.statusCode = 405;
+  res.setHeader('Content-Type', 'application/json');
+  res.end(JSON.stringify({
+    error: 'method_not_allowed',
+    message: 'Use POST to send MCP messages',
+  }));
 }
 
 async function killProcessOnPort(port: number): Promise<boolean> {
@@ -164,19 +187,24 @@ export async function startHttpServer(config: { host?: string, port?: number }):
   // Trust proxy for Azure App Service
   app.set('trust proxy', 1);
 
-  // Parse JSON bodies
-  app.use(express.json());
-
-  // CORS middleware
+  // CORS middleware - must come before body parsers
   app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, DELETE');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-API-Key, Mcp-Session-Id');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-API-Key, Mcp-Session-Id, Accept');
     if (req.method === 'OPTIONS') {
       res.status(200).end();
       return;
     }
     next();
+  });
+
+  // Parse JSON bodies - but NOT for /mcp and /sse endpoints (MCP SDK handles its own body parsing)
+  app.use((req, res, next) => {
+    if (req.path === '/mcp' || req.path === '/sse') {
+      return next();
+    }
+    return express.json()(req, res, next);
   });
 
   // Setup OAuth router if configured
@@ -237,7 +265,7 @@ export async function startHttpServer(config: { host?: string, port?: number }):
   return { httpServer, app };
 }
 
-export function startHttpTransport(httpServer: http.Server, mcpServer: Server, app?: express.Express) {
+export function startHttpTransport(httpServer: http.Server, mcpServer: Server, app: express.Express) {
   const sseSessions = new Map<string, SSEServerTransport>();
   const streamableSessions = new Map<string, StreamableHTTPServerTransport>();
 
@@ -250,13 +278,7 @@ export function startHttpTransport(httpServer: http.Server, mcpServer: Server, a
     console.error('[Auth] Failed to initialize async auth providers:', err);
   });
 
-  const sendJson = (res: http.ServerResponse, statusCode: number, body: unknown) => {
-    res.statusCode = statusCode;
-    res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify(body));
-  };
-
-  const enforceAuthIfEnabled = async (req: http.IncomingMessage, res: http.ServerResponse): Promise<boolean> => {
+  const enforceAuthIfEnabled = async (req: express.Request, res: express.Response): Promise<boolean> => {
     // Check if any auth method is configured
     if (!authenticator.isAuthEnabled())
       return true;
@@ -271,7 +293,7 @@ export function startHttpTransport(httpServer: http.Server, mcpServer: Server, a
     }
 
     // Return 401 with helpful error message
-    sendJson(res, 401, {
+    res.status(401).json({
       error: 'unauthorized',
       message: result.error || 'Valid authentication required.',
       hint: 'Use Entra ID OAuth, VS Code tunnel, or Azure Managed Identity.',
@@ -279,106 +301,67 @@ export function startHttpTransport(httpServer: http.Server, mcpServer: Server, a
     return false;
   };
 
-  httpServer.on('request', async (req, res) => {
-    const url = new URL(`http://localhost${req.url}`);
-
-    // Handle CORS preflight requests
-    if (req.method === 'OPTIONS') {
-      res.setHeader('Access-Control-Allow-Origin', '*');
-      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-API-Key');
-      res.statusCode = 200;
-      res.end();
-      return;
-    }
-
-    // Add CORS headers to all responses
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-API-Key');
-
-    // Health check endpoints
-    if (url.pathname === '/health') {
-      try {
-        const { createHealthCheckService } = await import('./health.js');
-        const healthService = createHealthCheckService();
-        await healthService.handleHealthCheck(req, res);
-      } catch (error) {
-        res.statusCode = 500;
-        res.end('Health check service unavailable');
-      }
-      return;
-    }
-
-    if (url.pathname === '/ready') {
-      try {
-        const { createHealthCheckService } = await import('./health.js');
-        const healthService = createHealthCheckService();
-        await healthService.handleReadinessCheck(req, res);
-      } catch (error) {
-        res.statusCode = 503;
-        res.end('Service unavailable');
-      }
-      return;
-    }
-
-    if (url.pathname === '/live') {
-      try {
-        const { createHealthCheckService } = await import('./health.js');
-        const healthService = createHealthCheckService();
-        await healthService.handleLivenessCheck(req, res);
-      } catch (error) {
-        res.statusCode = 503;
-        res.end('Service unavailable');
-      }
-      return;
-    }
-
-    // OpenAPI specification endpoint
-    if (url.pathname === '/openapi.json' || url.pathname === '/swagger.json') {
-      try {
-        const { createOpenAPIGenerator } = await import('./openapi.js');
-        const { snapshotTools } = await import('./tools.js');
-        // Use the static tools list
-        const tools = snapshotTools;
-        const openApiGenerator = createOpenAPIGenerator(tools);
-        openApiGenerator.handleOpenAPISpec(req, res);
-      } catch (error) {
-        res.statusCode = 500;
-        res.setHeader('Content-Type', 'application/json');
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        res.end(JSON.stringify({ error: 'Failed to generate OpenAPI spec', message: errorMessage }));
-      }
-      return;
-    }
-
-    // MCP endpoints with authentication
-    if (url.pathname.startsWith('/mcp')) {
-      if (!(await enforceAuthIfEnabled(req, res)))
-        return;
-      await handleStreamable(mcpServer, req, res, streamableSessions);
-      return;
-    }
-
-    // API endpoints for tools (REST-style access)
-    if (url.pathname.startsWith('/api/v1/')) {
-      // TODO: Implement REST API endpoints for individual tools
-      res.statusCode = 501;
-      res.setHeader('Content-Type', 'application/json');
-      res.end(JSON.stringify({
-        error: 'REST API endpoints not yet implemented',
-        message: 'These endpoints are placeholders for future functionality. Planned features include tool-specific operations and data retrieval. Refer to the API documentation for updates.',
-        documentation_url: 'https://example.com/api-docs'
-      }));
-      return;
-    }
-
-    // Default SSE endpoint
+  // MCP Streamable HTTP endpoint - must be registered as Express route
+  // Cast to http types since Express extends them and MCP SDK needs the base types
+  app.all('/mcp', async (req, res) => {
     if (!(await enforceAuthIfEnabled(req, res)))
       return;
-    await handleSSE(mcpServer, req, res, url, sseSessions);
+    await handleStreamable(mcpServer, req as http.IncomingMessage, res as http.ServerResponse, streamableSessions);
   });
 
+  // SSE endpoint (legacy MCP transport)
+  app.all('/sse', async (req, res) => {
+    if (!(await enforceAuthIfEnabled(req, res)))
+      return;
+    const url = new URL(`http://localhost${req.url}`);
+    await handleSSE(mcpServer, req as http.IncomingMessage, res as http.ServerResponse, url, sseSessions);
+  });
+
+  // Health check endpoints
+  app.get('/health', async (req, res) => {
+    try {
+      const { createHealthCheckService } = await import('./health.js');
+      const healthService = createHealthCheckService();
+      await healthService.handleHealthCheck(req, res);
+    } catch {
+      res.status(500).send('Health check service unavailable');
+    }
+  });
+
+  app.get('/ready', async (req, res) => {
+    try {
+      const { createHealthCheckService } = await import('./health.js');
+      const healthService = createHealthCheckService();
+      await healthService.handleReadinessCheck(req, res);
+    } catch {
+      res.status(503).send('Service unavailable');
+    }
+  });
+
+  app.get('/live', async (req, res) => {
+    try {
+      const { createHealthCheckService } = await import('./health.js');
+      const healthService = createHealthCheckService();
+      await healthService.handleLivenessCheck(req, res);
+    } catch {
+      res.status(503).send('Service unavailable');
+    }
+  });
+
+  // OpenAPI specification endpoint
+  app.get(['/openapi.json', '/swagger.json'], async (req, res) => {
+    try {
+      const { createOpenAPIGenerator } = await import('./openapi.js');
+      const { snapshotTools } = await import('./tools.js');
+      const openApiGenerator = createOpenAPIGenerator(snapshotTools);
+      openApiGenerator.handleOpenAPISpec(req, res);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({ error: 'Failed to generate OpenAPI spec', message: errorMessage });
+    }
+  });
+
+  // Log server info
   const url = httpAddressToString(httpServer.address());
   const message = [
     `Darbot Browser MCP Server listening on ${url}`,
@@ -390,19 +373,8 @@ export function startHttpTransport(httpServer: http.Server, mcpServer: Server, a
     `  OpenAPI:      ${url}/openapi.json`,
     `  MCP:          ${url}/mcp`,
     `  SSE:          ${url}/sse`,
-    '',
-    'Client configuration (MCP):',
-    JSON.stringify({
-      'mcpServers': {
-        'darbot-browser': {
-          'url': `${url}/mcp`
-        }
-      }
-    }, undefined, 2),
-    '',
-    'Copilot Studio integration ready! ',
   ].join('\n');
-    // eslint-disable-next-line no-console
+  // eslint-disable-next-line no-console
   console.error(message);
 }
 

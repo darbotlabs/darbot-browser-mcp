@@ -54,49 +54,117 @@ let isCloudConnected = false;
 let statusBarItem;
 let mcpOutputChannel;
 let healthCheckInterval = null;
+// Cached authentication session
+let cachedAuthSession = null;
+/**
+ * Get Microsoft/Entra ID authentication token using VS Code's built-in auth
+ * This uses the 'microsoft' authentication provider that's built into VS Code
+ * The token is obtained silently if the user is already signed in
+ */
+async function getMicrosoftAuthToken(forceNew = false) {
+    try {
+        // If we have a cached session and don't need to force refresh, use it
+        if (cachedAuthSession && !forceNew) {
+            mcpOutputChannel?.appendLine('Using cached Microsoft auth session');
+            return cachedAuthSession.accessToken;
+        }
+        // Request a Microsoft authentication session
+        // Scopes: openid, profile, email are standard OIDC scopes
+        // User.Read is for Microsoft Graph (validates the user is authenticated)
+        const scopes = ['openid', 'profile', 'email', 'User.Read'];
+        mcpOutputChannel?.appendLine('Requesting Microsoft authentication session...');
+        // First try to get session silently (without prompting)
+        let session = await vscode.authentication.getSession('microsoft', scopes, {
+            createIfNone: false,
+            silent: true
+        });
+        // If no silent session, create one (this may show a one-time sign-in prompt)
+        if (!session) {
+            mcpOutputChannel?.appendLine('No existing session, requesting new authentication...');
+            session = await vscode.authentication.getSession('microsoft', scopes, {
+                createIfNone: true
+            });
+        }
+        if (session) {
+            cachedAuthSession = session;
+            mcpOutputChannel?.appendLine(`Authenticated as: ${session.account.label}`);
+            return session.accessToken;
+        }
+        mcpOutputChannel?.appendLine('Failed to obtain Microsoft authentication session');
+        return null;
+    }
+    catch (error) {
+        mcpOutputChannel?.appendLine(`Microsoft authentication error: ${error}`);
+        return null;
+    }
+}
 /**
  * MCP Server Definition Provider for GitHub Copilot agent mode
  * This class provides the server configuration for VS Code's MCP infrastructure
  * For cloud servers, we use McpHttpServerDefinition with the Streamable HTTP endpoint
- * VS Code's MCP uses POST-based initialization, so we use /mcp instead of /sse
+ *
+ * Authentication is handled automatically using VS Code's built-in Microsoft auth:
+ * - provideMcpServerDefinitions: Returns server definition without auth (called eagerly)
+ * - resolveMcpServerDefinition: Gets Microsoft token and adds auth headers (called when starting)
  */
 class DarbotBrowserMCPProvider {
+    /**
+     * Provides available MCP servers. Called eagerly by VS Code.
+     * We don't do authentication here - that happens in resolveMcpServerDefinition
+     */
     async provideMcpServerDefinitions() {
         const config = vscode.workspace.getConfiguration('darbot-browser-mcp-cloud');
-        // Use /mcp endpoint for Streamable HTTP transport (VS Code uses POST initialization)
         const sseEndpoint = config.get('sseEndpoint', 'https://darbot-browser-mcp.azurewebsites.net/mcp');
-        const authToken = config.get('authToken', '');
-        const apiKey = config.get('apiKey', '');
-        // Build headers for authentication if configured
-        // Prefer API key over Bearer token if both are configured
-        const headers = {};
-        if (apiKey) {
-            headers['X-API-Key'] = apiKey;
-        }
-        else if (authToken) {
-            headers['Authorization'] = `Bearer ${authToken}`;
-        }
-        // Use McpHttpServerDefinition for remote cloud server connection
-        // This is the proper VS Code API for HTTP/SSE-based MCP servers
+        // Return server definition without auth headers - auth is added in resolve
         try {
             const McpHttpServerDefinition = vscode.McpHttpServerDefinition;
             if (McpHttpServerDefinition) {
-                const serverDef = new McpHttpServerDefinition('Darbot Browser MCP Cloud', vscode.Uri.parse(sseEndpoint), Object.keys(headers).length > 0 ? headers : undefined, '1.3.0');
-                mcpOutputChannel?.appendLine(`MCP HTTP Server Definition created: ${sseEndpoint}`);
+                const serverDef = new McpHttpServerDefinition('Darbot Browser MCP Cloud', vscode.Uri.parse(sseEndpoint), undefined, // No headers yet - will be added in resolveMcpServerDefinition
+                '1.3.0');
+                mcpOutputChannel?.appendLine(`MCP Server Definition created: ${sseEndpoint}`);
                 return [serverDef];
             }
         }
         catch (e) {
             mcpOutputChannel?.appendLine(`McpHttpServerDefinition not available: ${e}`);
         }
-        // Fallback: Return a plain object that VS Code may accept
+        // Fallback for older VS Code versions
         mcpOutputChannel?.appendLine('Using fallback MCP server definition format');
         return [{
                 label: 'Darbot Browser MCP Cloud',
                 uri: vscode.Uri.parse(sseEndpoint),
-                headers: Object.keys(headers).length > 0 ? headers : undefined,
                 version: '1.3.0'
             }];
+    }
+    /**
+     * Resolves the MCP server definition before starting.
+     * This is where we do authentication - VS Code calls this when the server is about to be used.
+     * We get a Microsoft token silently and add it to the headers.
+     */
+    async resolveMcpServerDefinition(server, token) {
+        mcpOutputChannel?.appendLine('Resolving MCP server definition with authentication...');
+        try {
+            // Get Microsoft auth token automatically (no user interaction needed if already signed in)
+            const authToken = await getMicrosoftAuthToken();
+            if (!authToken) {
+                mcpOutputChannel?.appendLine('Warning: No Microsoft auth token available. Server may require authentication.');
+                // Return the server as-is, it might work without auth or handle it differently
+                return server;
+            }
+            // Add the Bearer token to headers
+            const serverWithAuth = server;
+            serverWithAuth.headers = {
+                ...serverWithAuth.headers,
+                'Authorization': `Bearer ${authToken}`
+            };
+            mcpOutputChannel?.appendLine('Authentication token added to server headers');
+            return serverWithAuth;
+        }
+        catch (error) {
+            mcpOutputChannel?.appendLine(`Error resolving server with auth: ${error}`);
+            // Return server without auth as fallback
+            return server;
+        }
     }
 }
 function activate(context) {
@@ -160,89 +228,15 @@ function deactivate() {
         mcpOutputChannel.dispose();
 }
 async function configureMCPServer() {
-    // Check if auto-configuration is enabled
+    // The MCP server is registered via McpServerDefinitionProvider API
+    // No need to write to chat.mcp.servers settings - VS Code handles this automatically
+    // when the provider is registered in activate()
     const config = vscode.workspace.getConfiguration('darbot-browser-mcp-cloud');
-    const autoConfigureMCP = config.get('autoConfigureMCP', true);
-    if (!autoConfigureMCP) {
-        mcpOutputChannel.appendLine('Auto-configuration disabled. Please manually configure MCP settings.');
-        return;
-    }
-    try {
-        // Get MCP configuration - note: chat.mcp.enabled may not be a registered setting in all VS Code versions
-        const mcpConfig = vscode.workspace.getConfiguration('chat.mcp');
-        // Skip the enabled check - VS Code automatically enables MCP when servers are configured
-        // The chat.mcp.enabled setting may not exist in all VS Code versions
-        mcpOutputChannel.appendLine('Configuring Darbot Browser MCP Cloud server...');
-        // Check if this MCP server is already configured
-        const servers = mcpConfig.get('servers', {});
-        const serverName = 'darbot-browser-mcp-cloud';
-        if (!servers[serverName]) {
-            // Auto-configure the MCP server with cloud Streamable HTTP connection
-            const darbotConfig = vscode.workspace.getConfiguration('darbot-browser-mcp-cloud');
-            // Use /mcp endpoint for Streamable HTTP transport (VS Code uses POST initialization)
-            const mcpEndpoint = darbotConfig.get('sseEndpoint', 'https://darbot-browser-mcp.azurewebsites.net/mcp');
-            const authToken = darbotConfig.get('authToken', '');
-            const apiKey = darbotConfig.get('apiKey', '');
-            // Use URL-based HTTP transport for remote cloud server
-            // VS Code MCP uses Streamable HTTP (POST-based) rather than SSE (GET-based)
-            const serverConfig = {
-                url: mcpEndpoint,
-                transport: 'http' // Use http transport for Streamable HTTP /mcp endpoint
-            };
-            // Add authentication headers if configured
-            // Prefer API key over Bearer token if both are configured
-            if (apiKey) {
-                serverConfig.headers = {
-                    'X-API-Key': apiKey
-                };
-            }
-            else if (authToken) {
-                serverConfig.headers = {
-                    'Authorization': `Bearer ${authToken}`
-                };
-            }
-            servers[serverName] = serverConfig;
-            await mcpConfig.update('servers', servers, vscode.ConfigurationTarget.Global);
-            mcpOutputChannel.appendLine('Darbot Browser MCP Cloud server configured automatically for GitHub Copilot agent mode.');
-            mcpOutputChannel.appendLine(`Server name: ${serverName}`);
-            mcpOutputChannel.appendLine(`MCP Endpoint: ${mcpEndpoint}`);
-            mcpOutputChannel.appendLine('This server will be available as a selectable tool in GitHub Copilot agent mode.');
-            // Also try to configure the GitHub Copilot Chat MCP settings if available
-            try {
-                const copilotConfig = vscode.workspace.getConfiguration('github.copilot.chat.mcp');
-                if (copilotConfig) {
-                    const copilotServers = copilotConfig.get('servers', {});
-                    if (!copilotServers[serverName]) {
-                        copilotServers[serverName] = serverConfig;
-                        await copilotConfig.update('servers', copilotServers, vscode.ConfigurationTarget.Global);
-                        mcpOutputChannel.appendLine('Darbot Browser MCP also configured for GitHub Copilot Chat MCP integration.');
-                    }
-                }
-            }
-            catch (copilotError) {
-                mcpOutputChannel.appendLine(`GitHub Copilot Chat MCP configuration not available: ${copilotError}`);
-            }
-            const restartResult = await vscode.window.showInformationMessage('Darbot Browser MCP Cloud has been configured for GitHub Copilot agent mode! Please restart VS Code to complete the setup, or use the Command Palette to test the connection.', 'Restart VS Code', 'Test Connection', 'Show Configuration');
-            if (restartResult === 'Restart VS Code') {
-                await vscode.commands.executeCommand('workbench.action.reloadWindow');
-            }
-            else if (restartResult === 'Test Connection') {
-                await testConnection();
-            }
-            else if (restartResult === 'Show Configuration') {
-                mcpOutputChannel.show();
-                await vscode.commands.executeCommand('workbench.action.openSettings', 'chat.mcp');
-            }
-        }
-        else {
-            mcpOutputChannel.appendLine('Darbot Browser MCP Cloud server already configured.');
-            mcpOutputChannel.appendLine('Server is available as a selectable tool in GitHub Copilot agent mode.');
-        }
-    }
-    catch (error) {
-        mcpOutputChannel.appendLine(`Error configuring MCP server: ${error}`);
-        void vscode.window.showErrorMessage(`Failed to configure Darbot Browser MCP: ${error}`);
-    }
+    const mcpEndpoint = config.get('sseEndpoint', 'https://darbot-browser-mcp.azurewebsites.net/mcp');
+    mcpOutputChannel.appendLine('Darbot Browser MCP Cloud server registered via McpServerDefinitionProvider.');
+    mcpOutputChannel.appendLine(`MCP Endpoint: ${mcpEndpoint}`);
+    mcpOutputChannel.appendLine('Authentication: Automatic via VS Code Microsoft account');
+    mcpOutputChannel.appendLine('The server will appear in GitHub Copilot agent mode tools list.');
 }
 async function connectToCloud() {
     if (isCloudConnected) {
@@ -360,14 +354,12 @@ function showStatus() {
     const config = vscode.workspace.getConfiguration('darbot-browser-mcp-cloud');
     const serverUrl = config.get('serverUrl', 'https://darbot-browser-mcp.azurewebsites.net');
     const mcpEndpoint = config.get('sseEndpoint', 'https://darbot-browser-mcp.azurewebsites.net/mcp');
-    const hasApiKey = config.get('apiKey', '') !== '';
-    const hasAuthToken = config.get('authToken', '') !== '';
-    const hasAuth = hasApiKey || hasAuthToken;
+    const hasSession = cachedAuthSession !== null;
     mcpOutputChannel.appendLine(`--- Status Check ---`);
     mcpOutputChannel.appendLine(`Connection: ${status}`);
     mcpOutputChannel.appendLine(`Server URL: ${serverUrl}`);
     mcpOutputChannel.appendLine(`MCP Endpoint: ${mcpEndpoint}`);
-    mcpOutputChannel.appendLine(`Authentication: ${hasAuth ? (hasApiKey ? 'API Key' : 'Bearer Token') : 'None'}`);
+    mcpOutputChannel.appendLine(`Authentication: ${hasSession ? `Microsoft (${cachedAuthSession?.account.label})` : 'Automatic via VS Code'}`);
     mcpOutputChannel.show();
     vscode.window.showInformationMessage(`Browser MCP Cloud: ${status}`, ...(isCloudConnected ? ['Disconnect', 'Test Connection'] : ['Connect', 'Test Connection'])).then((selection) => {
         if (selection === 'Connect')
