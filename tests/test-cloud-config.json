@@ -1,0 +1,23 @@
+{
+  "mcpServers": {
+    "darbot-browser-cloud": {
+      "url": "${CLOUD_SERVER_URL}/sse",
+      "transport": "sse",
+      "description": "Darbot Browser MCP Cloud Instance - Set CLOUD_SERVER_URL env var",
+      "headers": {
+        "Content-Type": "application/json"
+      }
+    },
+    "darbot-browser-local": {
+      "command": "npx",
+      "args": [
+        "@darbotlabs/darbot-browser-mcp@latest",
+        "--headless",
+        "--browser",
+        "msedge"
+      ],
+      "transport": "stdio",
+      "description": "Darbot Browser MCP Local Instance"
+    }
+  }
+}

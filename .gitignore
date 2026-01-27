@@ -1,0 +1,57 @@
+lib/
+node_modules/
+test-results/
+playwright-report/
+
+# VS Code local MCP config
+.vscode/mcp.json
+.mcp.json
+
+# Darbot working memory and reports
+.darbot/
+
+# Visual Studio temp files
+.vs/
+
+# Secrets / local config
+.env
+.env.*
+
+# Certificates / private keys
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+
+# Local-only config folders
+secrets/
+config/local.json
+
+.idea
+.DS_Store
+
+# VS Code extension build artifacts
+vscode-extension/out/
+vscode-extension/node_modules/
+vscode-extension/*.vsix
+darbot-browser-cloud/vscode-extension-cloud/out/
+darbot-browser-cloud/vscode-extension-cloud/node_modules/
+darbot-browser-cloud/vscode-extension-cloud/*.vsix
+darbot-browser-hosted/vscode-extension-hosted/out/
+darbot-browser-hosted/vscode-extension-hosted/node_modules/
+darbot-browser-hosted/vscode-extension-hosted/*.vsix
+
+# .NET build artifacts
+dotnet/*/bin/
+dotnet/*/obj/
+dotnet/*/.vs/
+*.nupkg
+
+# Build artifacts and logs
+*.tgz
+*.zip
+stderr.log
+stdout.log
+
+.fake

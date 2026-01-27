@@ -1,0 +1,9 @@
+{
+    "chat.mcp.servers": {
+        "darbot-browser-bridge": {
+            "type": "http",
+            "url": "http://localhost:9223/mcp"
+        }
+    },
+    "chat.mcp.access": "all"
+}

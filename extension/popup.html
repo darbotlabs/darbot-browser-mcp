@@ -1,0 +1,309 @@
+<!--
+  Copyright (c) DarbotLabs.
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Darbot Browser MCP Bridge</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      width: 340px;
+      padding: 0;
+      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+      font-size: 14px;
+      margin: 0;
+      background: linear-gradient(135deg, #0d0d0d 0%, #1a1a2e 50%, #16213e 100%);
+      color: #e0e0e0;
+      min-height: 400px;
+    }
+
+    .header {
+      padding: 20px 16px 16px;
+      text-align: center;
+      background: linear-gradient(180deg, rgba(0, 255, 255, 0.1) 0%, transparent 100%);
+      border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+    }
+
+    .header-logo {
+      width: 64px;
+      height: 64px;
+      margin-bottom: 8px;
+      filter: drop-shadow(0 0 8px rgba(0, 255, 255, 0.5));
+    }
+
+    .header h3 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 600;
+      background: linear-gradient(90deg, #00ffff, #ff00ff, #00ffff);
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: gradient-shift 3s ease infinite;
+    }
+
+    .header .version {
+      font-size: 11px;
+      color: #888;
+      margin-top: 4px;
+    }
+
+    @keyframes gradient-shift {
+      0% { background-position: 0% center; }
+      50% { background-position: 100% center; }
+      100% { background-position: 0% center; }
+    }
+
+    .content {
+      padding: 16px;
+    }
+
+    .section {
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 500;
+      color: #00ffff;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    input[type="url"] {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid rgba(0, 255, 255, 0.3);
+      border-radius: 6px;
+      font-size: 13px;
+      background: rgba(0, 0, 0, 0.4);
+      color: #fff;
+      transition: all 0.3s ease;
+    }
+
+    input[type="url"]::placeholder {
+      color: #666;
+    }
+
+    input[type="url"]:focus {
+      outline: none;
+      border-color: #00ffff;
+      box-shadow: 0 0 12px rgba(0, 255, 255, 0.3), inset 0 0 6px rgba(0, 255, 255, 0.1);
+    }
+
+    .button {
+      background: linear-gradient(135deg, #00ffff 0%, #00cccc 100%);
+      color: #0d0d0d;
+      border: none;
+      padding: 12px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      width: 100%;
+      margin-top: 8px;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+      transition: left 0.5s ease;
+    }
+
+    .button:hover::before {
+      left: 100%;
+    }
+
+    .button:hover {
+      box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+      transform: translateY(-1px);
+    }
+
+    .button:disabled {
+      background: #333;
+      color: #666;
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none;
+    }
+
+    .button.disconnect {
+      background: linear-gradient(135deg, #ff0066 0%, #cc0052 100%);
+      color: #fff;
+    }
+
+    .button.disconnect:hover {
+      box-shadow: 0 0 20px rgba(255, 0, 102, 0.5);
+    }
+
+    .button.vscode {
+      background: linear-gradient(135deg, #007acc 0%, #005a9e 100%);
+      color: #fff;
+      margin-top: 12px;
+    }
+
+    .button.vscode:hover {
+      box-shadow: 0 0 20px rgba(0, 122, 204, 0.5);
+    }
+
+    .button.focus-button {
+      background: linear-gradient(135deg, #ff00ff 0%, #cc00cc 100%);
+      color: #fff;
+    }
+
+    .button.focus-button:hover {
+      box-shadow: 0 0 20px rgba(255, 0, 255, 0.5);
+    }
+
+    .status {
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 16px;
+      text-align: center;
+      font-weight: 500;
+    }
+
+    .status.connected {
+      background: rgba(0, 255, 136, 0.15);
+      color: #00ff88;
+      border: 1px solid rgba(0, 255, 136, 0.4);
+      box-shadow: 0 0 10px rgba(0, 255, 136, 0.2);
+    }
+
+    .status.error {
+      background: rgba(255, 0, 102, 0.15);
+      color: #ff6699;
+      border: 1px solid rgba(255, 0, 102, 0.4);
+      box-shadow: 0 0 10px rgba(255, 0, 102, 0.2);
+    }
+
+    .status.warning {
+      background: rgba(255, 170, 0, 0.15);
+      color: #ffaa00;
+      border: 1px solid rgba(255, 170, 0, 0.4);
+      box-shadow: 0 0 10px rgba(255, 170, 0, 0.2);
+    }
+
+    .tab-info {
+      background: rgba(0, 0, 0, 0.3);
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .tab-title {
+      font-weight: 500;
+      margin-bottom: 4px;
+      color: #fff;
+    }
+
+    .tab-url {
+      font-size: 11px;
+      color: #888;
+      word-break: break-all;
+    }
+
+    .small-text {
+      font-size: 11px;
+      color: #666;
+      margin-top: 6px;
+    }
+
+    .divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.3), transparent);
+      margin: 16px 0;
+    }
+
+    .footer {
+      padding: 12px 16px;
+      text-align: center;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(0, 0, 0, 0.2);
+    }
+
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+    }
+
+    .footer-link {
+      color: #888;
+      text-decoration: none;
+      font-size: 11px;
+      transition: color 0.3s ease;
+    }
+
+    .footer-link:hover {
+      color: #00ffff;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <img src="icons/icon-128.png" alt="Darbot" class="header-logo">
+    <h3>Darbot MCP Bridge</h3>
+    <div class="version">v1.3.0</div>
+  </div>
+
+  <div class="content">
+    <div id="status-container"></div>
+
+    <div class="section">
+      <label for="bridge-url">Bridge Server URL</label>
+      <input type="url" id="bridge-url" disabled placeholder="ws://localhost:9223/extension" />
+      <div class="small-text">WebSocket endpoint for MCP bridge server</div>
+    </div>
+
+    <div id="action-container">
+      <button id="connect-btn" class="button">Share This Tab</button>
+    </div>
+
+    <div class="divider"></div>
+
+    <button id="vscode-btn" class="button vscode">Open VS Code</button>
+  </div>
+
+  <div class="footer">
+    <div class="footer-links">
+      <a href="https://github.com/darbotlabs/darbot-browser-mcp" target="_blank" class="footer-link">GitHub</a>
+      <a href="https://github.com/darbotlabs/darbot-browser-mcp/blob/main/docs/GUIDE.md" target="_blank" class="footer-link">Docs</a>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

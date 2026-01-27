@@ -1,0 +1,142 @@
+{
+  "name": "darbot-browser-mcp-hosted",
+  "displayName": "Darbot Browser MCP Hosted",
+  "description": "On-premises Docker-hosted autonomous browser for VS Code. 52 AI-driven browser tools via local Docker container with optional MSAL authentication and Dev Tunnel support for secure remote access.",
+  "version": "1.3.0",
+  "publisher": "darbotlabs",
+  "engines": {
+    "vscode": "^1.96.0"
+  },
+  "icon": "icon.png",
+  "categories": [
+    "AI",
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "keywords": [
+    "mcp",
+    "browser",
+    "autonomous",
+    "darbot",
+    "automation",
+    "testing",
+    "screenshot",
+    "copilot",
+    "ai",
+    "docker",
+    "on-premises",
+    "hosted",
+    "web-automation",
+    "playwright",
+    "selenium-alternative",
+    "browser-testing",
+    "accessibility",
+    "work-profiles",
+    "session-management",
+    "github-copilot",
+    "model-context-protocol",
+    "dev-tunnel"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/darbotlabs/darbot-browser-mcp.git"
+  },
+  "homepage": "https://github.com/darbotlabs/darbot-browser-mcp",
+  "bugs": {
+    "url": "https://github.com/darbotlabs/darbot-browser-mcp/issues"
+  },
+  "license": "Apache-2.0",
+  "main": "./out/extension.js",
+  "contributes": {
+    "mcpServerDefinitionProviders": [
+      {
+        "id": "darbot-browser-mcp-hosted",
+        "label": "Darbot Browser MCP Hosted"
+      }
+    ],
+    "commands": [
+      {
+        "command": "darbot-browser-mcp-hosted.connectServer",
+        "title": "Connect to Hosted Server",
+        "category": "Darbot Browser Hosted"
+      },
+      {
+        "command": "darbot-browser-mcp-hosted.disconnectServer",
+        "title": "Disconnect from Hosted Server",
+        "category": "Darbot Browser Hosted"
+      },
+      {
+        "command": "darbot-browser-mcp-hosted.showStatus",
+        "title": "Show Hosted Server Status",
+        "category": "Darbot Browser Hosted"
+      },
+      {
+        "command": "darbot-browser-mcp-hosted.testConnection",
+        "title": "Test Hosted Connection",
+        "category": "Darbot Browser Hosted"
+      }
+    ],
+    "configuration": {
+      "title": "Darbot Browser MCP Hosted",
+      "properties": {
+        "darbot-browser-mcp-hosted.serverUrl": {
+          "type": "string",
+          "default": "http://localhost:8080",
+          "description": "Hosted server URL (local Docker container or Dev Tunnel endpoint)"
+        },
+        "darbot-browser-mcp-hosted.mcpEndpoint": {
+          "type": "string",
+          "default": "http://localhost:8080/mcp",
+          "description": "MCP endpoint for Streamable HTTP transport"
+        },
+        "darbot-browser-mcp-hosted.autoConnect": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically connect to hosted server when VS Code starts"
+        },
+        "darbot-browser-mcp-hosted.connectionTimeout": {
+          "type": "number",
+          "default": 10000,
+          "description": "Connection timeout in milliseconds"
+        },
+        "darbot-browser-mcp-hosted.enableHealthChecks": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable periodic health checks to hosted server"
+        },
+        "darbot-browser-mcp-hosted.healthCheckInterval": {
+          "type": "number",
+          "default": 30000,
+          "description": "Health check interval in milliseconds"
+        },
+        "darbot-browser-mcp-hosted.useMsalAuth": {
+          "type": "boolean",
+          "default": false,
+          "description": "Use Microsoft Entra ID (MSAL) authentication for hosted server"
+        },
+        "darbot-browser-mcp-hosted.autoStartContainer": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically start Docker container if server is not responding"
+        },
+        "darbot-browser-mcp-hosted.containerName": {
+          "type": "string",
+          "default": "darbot-browser-hosted",
+          "description": "Docker container name to start automatically"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.96.0",
+    "@types/node": "^22.13.10",
+    "typescript": "^5.8.2"
+  }
+}

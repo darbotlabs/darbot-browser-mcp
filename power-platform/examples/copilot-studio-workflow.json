@@ -1,0 +1,173 @@
+{
+  "name": "DarbotBrowserAutomation",
+  "description": "Example Copilot Studio workflow using Darbot Browser MCP connector",
+  "version": "1.3.0",
+  "triggers": [
+    {
+      "type": "manual",
+      "name": "When a user asks about website automation",
+      "description": "Triggered when user mentions website, browser, or automation tasks"
+    }
+  ],
+  "actions": [
+    {
+      "id": "navigate_to_site",
+      "name": "Navigate to Website",
+      "type": "connector",
+      "connector": "DarbotBrowserMCP",
+      "operation": "BrowserNavigate",
+      "inputs": {
+        "url": "@{triggerBody()['text_url']}"
+      },
+      "description": "Navigate to the user-specified website"
+    },
+    {
+      "id": "wait_for_page_load",
+      "name": "Wait for Page Load",
+      "type": "connector",
+      "connector": "DarbotBrowserMCP",
+      "operation": "BrowserWaitFor",
+      "inputs": {
+        "time": 3
+      },
+      "description": "Wait 3 seconds for page to fully load",
+      "runAfter": {
+        "navigate_to_site": ["Succeeded"]
+      }
+    },
+    {
+      "id": "take_screenshot",
+      "name": "Capture Screenshot",
+      "type": "connector",
+      "connector": "DarbotBrowserMCP",
+      "operation": "BrowserTakeScreenshot",
+      "inputs": {},
+      "description": "Take a screenshot of the loaded page",
+      "runAfter": {
+        "wait_for_page_load": ["Succeeded"]
+      }
+    },
+    {
+      "id": "get_page_snapshot",
+      "name": "Get Page Content",
+      "type": "connector",
+      "connector": "DarbotBrowserMCP",
+      "operation": "BrowserSnapshot",
+      "inputs": {},
+      "description": "Get structured content of the page",
+      "runAfter": {
+        "take_screenshot": ["Succeeded"]
+      }
+    },
+    {
+      "id": "save_work_profile",
+      "name": "Save as Work Profile",
+      "type": "connector",
+      "connector": "DarbotBrowserMCP",
+      "operation": "BrowserSaveProfile",
+      "inputs": {
+        "name": "@{concat('profile_', formatDateTime(utcNow(), 'yyyyMMdd_HHmmss'))}",
+        "description": "@{concat('Auto-saved profile for ', triggerBody()['text_url'])}"
+      },
+      "description": "Save current browser state as a work profile",
+      "runAfter": {
+        "get_page_snapshot": ["Succeeded"]
+      }
+    }
+  ],
+  "responses": [
+    {
+      "type": "text",
+      "content": "I've successfully navigated to @{triggerBody()['text_url']} and captured the page information. Here's what I found:\n\n**Page Title:** @{body('get_page_snapshot')['result']['title']}\n**Current URL:** @{body('get_page_snapshot')['result']['url']}\n\nI've also taken a screenshot and saved this as a work profile named '@{body('save_work_profile')['result']['name']}' for future reference.\n\n**Page Content Summary:**\n@{substring(body('get_page_snapshot')['result']['snapshot'], 0, 500)}...\n\nWould you like me to interact with any specific elements on this page?"
+    }
+  ],
+  "examples": [
+    {
+      "userInput": "Navigate to google.com and take a screenshot",
+      "expectedBehavior": "The bot will navigate to Google, wait for the page to load, capture a screenshot, get the page content, and save it as a work profile for future use."
+    },
+    {
+      "userInput": "Go to wikipedia.org and show me what's on the page",
+      "expectedBehavior": "The bot will navigate to Wikipedia, capture the page structure, and provide a summary of the page content including title and main elements."
+    }
+  ],
+  "advanced_examples": [
+    {
+      "name": "Form Filling Workflow",
+      "description": "A more complex workflow that fills out a web form",
+      "steps": [
+        {
+          "action": "Navigate to form page",
+          "connector_operation": "BrowserNavigate"
+        },
+        {
+          "action": "Click on first input field",
+          "connector_operation": "BrowserClick",
+          "notes": "Requires element reference from page snapshot"
+        },
+        {
+          "action": "Type user data",
+          "connector_operation": "BrowserType"
+        },
+        {
+          "action": "Submit form",
+          "connector_operation": "BrowserClick",
+          "target": "Submit button"
+        },
+        {
+          "action": "Wait for confirmation",
+          "connector_operation": "BrowserWaitFor",
+          "condition": "Success message appears"
+        }
+      ]
+    },
+    {
+      "name": "Work Profile Management",
+      "description": "Workflow for managing different work contexts",
+      "steps": [
+        {
+          "action": "List available profiles",
+          "connector_operation": "BrowserListProfiles"
+        },
+        {
+          "action": "Switch to CRM profile",
+          "connector_operation": "BrowserSwitchProfile",
+          "profile_name": "crm_session"
+        },
+        {
+          "action": "Verify profile loaded",
+          "connector_operation": "BrowserSnapshot"
+        },
+        {
+          "action": "Update profile if needed",
+          "connector_operation": "BrowserSaveProfile"
+        }
+      ]
+    }
+  ],
+  "error_handling": {
+    "navigation_failure": {
+      "response": "I'm sorry, I couldn't navigate to that website. Please check the URL and try again, or let me know if you'd like help with a different site."
+    },
+    "timeout_error": {
+      "response": "The page is taking longer than expected to load. Would you like me to try again or proceed with a different task?"
+    },
+    "authentication_error": {
+      "response": "There seems to be an authentication issue with the browser automation service. Please contact your administrator to check the connector configuration."
+    }
+  },
+  "best_practices": {
+    "user_prompts": [
+      "Always ask for confirmation before performing destructive actions",
+      "Provide clear feedback about what actions are being performed",
+      "Offer to save important browser states as work profiles",
+      "Suggest relevant follow-up actions based on page content"
+    ],
+    "performance": [
+      "Use wait conditions instead of fixed delays when possible",
+      "Take screenshots sparingly to avoid large data transfers",
+      "Reuse work profiles for frequently accessed sites",
+      "Handle errors gracefully with helpful suggestions"
+    ]
+  }
+}

@@ -1,0 +1,1673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Darbot Browser MCP - Your Autonomous Browser Buddy. AI-driven browser automation with 52 tools for VS Code, Azure, and enterprise deployments.">
+  <meta name="keywords" content="browser automation, MCP, Model Context Protocol, VS Code, GitHub Copilot, AI automation, Playwright, Microsoft Edge">
+  <meta name="author" content="Darbot Labs">
+  <meta property="og:title" content="Darbot Browser MCP Documentation">
+  <meta property="og:description" content="Enterprise-grade autonomous browser automation framework with 52 AI-driven tools.">
+  <meta property="og:image" content="https://raw.githubusercontent.com/darbotlabs/darbot-browser-mcp/main/assets/darbot_logo_icon_pack/darbot-horizontal-banner-1500x500.png">
+  <meta property="og:url" content="https://darbotlabs.github.io/darbot-browser-mcp/">
+  <title>Darbot Browser MCP - Documentation</title>
+  <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/darbotlabs/darbot-browser-mcp/main/assets/darbot_logo_icon_pack/icons/icon-128.png">
+  <style>
+    /* ============================================
+       CYBER RETRO FLUENT UI THEME
+       Matching the Darbot Browser MCP Extension
+       ============================================ */
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg-primary: #0d0d0d;
+      --bg-secondary: #1a1a2e;
+      --bg-tertiary: #16213e;
+      --bg-card: rgba(0, 0, 0, 0.4);
+      --accent-cyan: #00ffff;
+      --accent-magenta: #ff00ff;
+      --accent-green: #00ff88;
+      --accent-orange: #ffaa00;
+      --accent-red: #ff0066;
+      --accent-blue: #007acc;
+      --text-primary: #e0e0e0;
+      --text-secondary: #888;
+      --text-muted: #666;
+      --border-subtle: rgba(255, 255, 255, 0.1);
+      --border-accent: rgba(0, 255, 255, 0.3);
+      --glow-cyan: rgba(0, 255, 255, 0.5);
+      --glow-magenta: rgba(255, 0, 255, 0.5);
+      --sidebar-width: 280px;
+      --header-height: 70px;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, 'Helvetica Neue', sans-serif;
+      font-size: 15px;
+      line-height: 1.6;
+      background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 50%, var(--bg-tertiary) 100%);
+      background-attachment: fixed;
+      color: var(--text-primary);
+      min-height: 100vh;
+    }
+
+    /* ============================================
+       HEADER
+       ============================================ */
+    
+    .header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: var(--header-height);
+      background: linear-gradient(180deg, rgba(13, 13, 13, 0.98) 0%, rgba(26, 26, 46, 0.95) 100%);
+      border-bottom: 1px solid var(--border-accent);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      z-index: 1000;
+      backdrop-filter: blur(10px);
+    }
+
+    .header-brand {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      text-decoration: none;
+    }
+
+    .header-logo {
+      width: 48px;
+      height: 48px;
+      filter: drop-shadow(0 0 8px var(--glow-cyan));
+      animation: logo-pulse 3s ease-in-out infinite;
+    }
+
+    @keyframes logo-pulse {
+      0%, 100% { filter: drop-shadow(0 0 8px var(--glow-cyan)); }
+      50% { filter: drop-shadow(0 0 16px var(--glow-magenta)); }
+    }
+
+    .header-title {
+      font-size: 22px;
+      font-weight: 700;
+      background: linear-gradient(90deg, var(--accent-cyan), var(--accent-magenta), var(--accent-cyan));
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: gradient-shift 3s ease infinite;
+    }
+
+    @keyframes gradient-shift {
+      0% { background-position: 0% center; }
+      50% { background-position: 100% center; }
+      100% { background-position: 0% center; }
+    }
+
+    .header-nav {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .header-link {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      padding: 8px 16px;
+      border-radius: 6px;
+    }
+
+    .header-link:hover {
+      color: var(--accent-cyan);
+      background: rgba(0, 255, 255, 0.1);
+    }
+
+    .header-btn {
+      background: linear-gradient(135deg, var(--accent-cyan) 0%, #00cccc 100%);
+      color: var(--bg-primary);
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .header-btn:hover {
+      box-shadow: 0 0 20px var(--glow-cyan);
+      transform: translateY(-2px);
+    }
+
+    .mobile-menu-btn {
+      display: none;
+      background: none;
+      border: none;
+      color: var(--accent-cyan);
+      font-size: 24px;
+      cursor: pointer;
+    }
+
+    /* ============================================
+       SIDEBAR NAVIGATION
+       ============================================ */
+    
+    .sidebar {
+      position: fixed;
+      top: var(--header-height);
+      left: 0;
+      width: var(--sidebar-width);
+      height: calc(100vh - var(--header-height));
+      background: linear-gradient(180deg, rgba(13, 13, 13, 0.95) 0%, rgba(22, 33, 62, 0.9) 100%);
+      border-right: 1px solid var(--border-accent);
+      overflow-y: auto;
+      padding: 24px 0;
+      z-index: 900;
+      backdrop-filter: blur(10px);
+    }
+
+    .sidebar::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .sidebar::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .sidebar::-webkit-scrollbar-thumb {
+      background: var(--border-accent);
+      border-radius: 3px;
+    }
+
+    .sidebar::-webkit-scrollbar-thumb:hover {
+      background: var(--accent-cyan);
+    }
+
+    .nav-section {
+      margin-bottom: 24px;
+    }
+
+    .nav-section-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--accent-cyan);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 0 24px;
+      margin-bottom: 8px;
+    }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 24px;
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      border-left: 3px solid transparent;
+    }
+
+    .nav-link:hover {
+      color: var(--text-primary);
+      background: rgba(0, 255, 255, 0.05);
+      border-left-color: var(--accent-cyan);
+    }
+
+    .nav-link.active {
+      color: var(--accent-cyan);
+      background: rgba(0, 255, 255, 0.1);
+      border-left-color: var(--accent-cyan);
+    }
+
+    .nav-icon {
+      font-size: 16px;
+      width: 20px;
+      text-align: center;
+    }
+
+    /* ============================================
+       MAIN CONTENT
+       ============================================ */
+    
+    .main {
+      margin-left: var(--sidebar-width);
+      margin-top: var(--header-height);
+      padding: 40px;
+      min-height: calc(100vh - var(--header-height));
+    }
+
+    .content {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    /* Hero Section */
+    .hero {
+      text-align: center;
+      padding: 60px 0;
+      margin-bottom: 40px;
+    }
+
+    .hero-banner {
+      width: 100%;
+      max-width: 800px;
+      border-radius: 12px;
+      margin-bottom: 32px;
+      box-shadow: 0 0 40px rgba(0, 255, 255, 0.2);
+    }
+
+    .hero-title {
+      font-size: 48px;
+      font-weight: 800;
+      background: linear-gradient(90deg, var(--accent-cyan), var(--accent-magenta));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 16px;
+    }
+
+    .hero-subtitle {
+      font-size: 22px;
+      color: var(--text-secondary);
+      margin-bottom: 32px;
+    }
+
+    .hero-badges {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 32px;
+    }
+
+    .hero-badges img {
+      height: 24px;
+    }
+
+    .hero-cta {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 28px;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      border: none;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-cyan) 0%, #00cccc 100%);
+      color: var(--bg-primary);
+    }
+
+    .btn-primary:hover {
+      box-shadow: 0 0 25px var(--glow-cyan);
+      transform: translateY(-2px);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-primary);
+      border: 1px solid var(--border-accent);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(0, 255, 255, 0.15);
+      border-color: var(--accent-cyan);
+    }
+
+    .btn-vscode {
+      background: linear-gradient(135deg, var(--accent-blue) 0%, #005a9e 100%);
+      color: #fff;
+    }
+
+    .btn-vscode:hover {
+      box-shadow: 0 0 25px rgba(0, 122, 204, 0.5);
+      transform: translateY(-2px);
+    }
+
+    /* Section Styles */
+    .section {
+      margin-bottom: 60px;
+    }
+
+    .section-title {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--accent-cyan);
+      margin-bottom: 24px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid var(--border-accent);
+    }
+
+    .section-subtitle {
+      font-size: 18px;
+      color: var(--text-secondary);
+      margin-bottom: 32px;
+    }
+
+    /* Cards */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 24px;
+      transition: all 0.3s ease;
+    }
+
+    .card:hover {
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 20px rgba(0, 255, 255, 0.1);
+      transform: translateY(-4px);
+    }
+
+    .card-icon {
+      font-size: 32px;
+      margin-bottom: 16px;
+    }
+
+    .card-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+
+    .card-description {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    .card-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--accent-cyan);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      margin-top: 16px;
+      transition: gap 0.3s ease;
+    }
+
+    .card-link:hover {
+      gap: 10px;
+    }
+
+    /* Feature Cards with Icons */
+    .feature-card {
+      background: linear-gradient(135deg, rgba(0, 255, 255, 0.05) 0%, rgba(255, 0, 255, 0.05) 100%);
+      border: 1px solid var(--border-accent);
+    }
+
+    .feature-card .card-icon {
+      color: var(--accent-cyan);
+    }
+
+    /* Edition Cards */
+    .edition-card {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .edition-card.recommended::before {
+      content: 'RECOMMENDED';
+      position: absolute;
+      top: 12px;
+      right: -30px;
+      background: var(--accent-cyan);
+      color: var(--bg-primary);
+      font-size: 10px;
+      font-weight: 700;
+      padding: 4px 40px;
+      transform: rotate(45deg);
+    }
+
+    .edition-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .edition-badge.local {
+      background: rgba(0, 255, 136, 0.2);
+      color: var(--accent-green);
+    }
+
+    .edition-badge.cloud {
+      background: rgba(0, 122, 204, 0.2);
+      color: var(--accent-blue);
+    }
+
+    .edition-badge.hosted {
+      background: rgba(255, 0, 255, 0.2);
+      color: var(--accent-magenta);
+    }
+
+    /* Code Blocks */
+    .code-block {
+      background: rgba(0, 0, 0, 0.6);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 20px;
+      margin: 16px 0;
+      overflow-x: auto;
+    }
+
+    .code-block code {
+      font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+      font-size: 13px;
+      color: var(--accent-cyan);
+      line-height: 1.8;
+    }
+
+    .code-block .comment {
+      color: var(--text-muted);
+    }
+
+    .code-block .keyword {
+      color: var(--accent-magenta);
+    }
+
+    .code-block .string {
+      color: var(--accent-green);
+    }
+
+    /* Tools Grid */
+    .tools-category {
+      margin-bottom: 32px;
+    }
+
+    .tools-category-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--accent-magenta);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .tools-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 12px;
+    }
+
+    .tool-item {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      padding: 12px 16px;
+      font-family: 'Cascadia Code', 'Fira Code', monospace;
+      font-size: 13px;
+      color: var(--accent-cyan);
+      transition: all 0.3s ease;
+    }
+
+    .tool-item:hover {
+      border-color: var(--accent-cyan);
+      background: rgba(0, 255, 255, 0.05);
+    }
+
+    /* Stats */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+      margin: 40px 0;
+    }
+
+    .stat-item {
+      text-align: center;
+      padding: 24px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+    }
+
+    .stat-value {
+      font-size: 42px;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-magenta));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .stat-label {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-top: 8px;
+    }
+
+    /* Table */
+    .table-wrapper {
+      overflow-x: auto;
+      margin: 24px 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    th, td {
+      padding: 14px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    th {
+      background: rgba(0, 255, 255, 0.1);
+      color: var(--accent-cyan);
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 12px;
+      letter-spacing: 0.5px;
+    }
+
+    tr:hover {
+      background: rgba(0, 255, 255, 0.03);
+    }
+
+    /* Architecture Diagram */
+    .architecture-diagram {
+      background: var(--bg-card);
+      border: 1px solid var(--border-accent);
+      border-radius: 12px;
+      padding: 32px;
+      margin: 24px 0;
+      font-family: 'Cascadia Code', 'Fira Code', monospace;
+      font-size: 12px;
+      line-height: 1.4;
+      overflow-x: auto;
+      white-space: pre;
+      color: var(--accent-cyan);
+    }
+
+    /* Accordion */
+    .accordion {
+      margin: 24px 0;
+    }
+
+    .accordion-item {
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      margin-bottom: 12px;
+      overflow: hidden;
+    }
+
+    .accordion-header {
+      background: var(--bg-card);
+      padding: 16px 20px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .accordion-header:hover {
+      background: rgba(0, 255, 255, 0.05);
+    }
+
+    .accordion-header.active {
+      background: rgba(0, 255, 255, 0.1);
+      color: var(--accent-cyan);
+    }
+
+    .accordion-icon {
+      transition: transform 0.3s ease;
+    }
+
+    .accordion-header.active .accordion-icon {
+      transform: rotate(180deg);
+    }
+
+    .accordion-content {
+      display: none;
+      padding: 20px;
+      background: rgba(0, 0, 0, 0.2);
+    }
+
+    .accordion-content.active {
+      display: block;
+    }
+
+    /* Footer */
+    .footer {
+      margin-left: var(--sidebar-width);
+      padding: 40px;
+      background: rgba(0, 0, 0, 0.3);
+      border-top: 1px solid var(--border-subtle);
+      text-align: center;
+    }
+
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 32px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .footer-link {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 14px;
+      transition: color 0.3s ease;
+    }
+
+    .footer-link:hover {
+      color: var(--accent-cyan);
+    }
+
+    .footer-copyright {
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+
+    .footer-copyright a {
+      color: var(--accent-cyan);
+      text-decoration: none;
+    }
+
+    /* ============================================
+       RESPONSIVE DESIGN
+       ============================================ */
+    
+    @media (max-width: 1024px) {
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+      }
+
+      .sidebar.open {
+        transform: translateX(0);
+      }
+
+      .main {
+        margin-left: 0;
+        padding: 24px;
+      }
+
+      .footer {
+        margin-left: 0;
+      }
+
+      .mobile-menu-btn {
+        display: block;
+      }
+
+      .header-nav {
+        display: none;
+      }
+
+      .hero-title {
+        font-size: 32px;
+      }
+
+      .hero-subtitle {
+        font-size: 18px;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .card-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-cta {
+        flex-direction: column;
+      }
+
+      .btn {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+
+    /* ============================================
+       UTILITY CLASSES
+       ============================================ */
+    
+    .text-cyan { color: var(--accent-cyan); }
+    .text-magenta { color: var(--accent-magenta); }
+    .text-green { color: var(--accent-green); }
+    .text-orange { color: var(--accent-orange); }
+    .text-muted { color: var(--text-muted); }
+    
+    .mt-1 { margin-top: 8px; }
+    .mt-2 { margin-top: 16px; }
+    .mt-3 { margin-top: 24px; }
+    .mt-4 { margin-top: 32px; }
+    
+    .mb-1 { margin-bottom: 8px; }
+    .mb-2 { margin-bottom: 16px; }
+    .mb-3 { margin-bottom: 24px; }
+    .mb-4 { margin-bottom: 32px; }
+
+    .hidden { display: none; }
+
+    /* ============================================
+       ASCII ICONS - Cyber Retro Style
+       ============================================ */
+    
+    .ascii-icon {
+      font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--accent-cyan);
+      display: inline-block;
+      width: 24px;
+      text-align: center;
+      opacity: 0.9;
+    }
+
+    .nav-icon {
+      font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--accent-cyan);
+      width: 22px;
+      text-align: center;
+      opacity: 0.85;
+    }
+
+    .card-icon {
+      font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      color: var(--accent-cyan);
+      text-shadow: 0 0 10px var(--glow-cyan);
+    }
+
+    .section-icon {
+      font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+      font-weight: 700;
+      color: var(--accent-magenta);
+      margin-right: 12px;
+    }
+
+    .check-mark { color: var(--accent-green); }
+    .x-mark { color: var(--accent-red); }
+  </style>
+</head>
+<body>
+  <!-- ============================================
+       HEADER
+       ============================================ -->
+  <header class="header">
+    <a href="#" class="header-brand">
+      <img src="https://raw.githubusercontent.com/darbotlabs/darbot-browser-mcp/main/assets/darbot_logo_icon_pack/icons/icon-128.png" alt="Darbot" class="header-logo">
+      <span class="header-title">Darbot Browser MCP</span>
+    </a>
+    <nav class="header-nav">
+      <a href="#getting-started" class="header-link">Get Started</a>
+      <a href="#tools" class="header-link">52 Tools</a>
+      <a href="#editions" class="header-link">Editions</a>
+      <a href="https://github.com/darbotlabs/darbot-browser-mcp" target="_blank" class="header-link">GitHub</a>
+      <a href="https://marketplace.visualstudio.com/items?itemName=darbotlabs.darbot-browser-mcp" target="_blank" class="header-btn">Install Extension</a>
+    </nav>
+    <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
+  </header>
+
+  <!-- ============================================
+       SIDEBAR NAVIGATION
+       ============================================ -->
+  <aside class="sidebar" id="sidebar">
+    <nav>
+      <!-- Getting Started -->
+      <div class="nav-section">
+        <div class="nav-section-title">Getting Started</div>
+        <a href="#home" class="nav-link active"><span class="nav-icon">[~]</span> Home</a>
+        <a href="#installation" class="nav-link"><span class="nav-icon">{+}</span> Installation</a>
+        <a href="#quick-start" class="nav-link"><span class="nav-icon">>_</span> Quick Start</a>
+        <a href="#requirements" class="nav-link"><span class="nav-icon">[*]</span> Requirements</a>
+      </div>
+
+      <!-- Editions -->
+      <div class="nav-section">
+        <div class="nav-section-title">Editions</div>
+        <a href="#editions" class="nav-link"><span class="nav-icon">///</span> Overview</a>
+        <a href="#local-edition" class="nav-link"><span class="nav-icon">[#]</span> Local Edition</a>
+        <a href="#cloud-edition" class="nav-link"><span class="nav-icon">(_)</span> Cloud Edition</a>
+        <a href="#hosted-edition" class="nav-link"><span class="nav-icon">[=]</span> Hosted Edition</a>
+      </div>
+
+      <!-- Tools Reference -->
+      <div class="nav-section">
+        <div class="nav-section-title">Tools Reference</div>
+        <a href="#tools" class="nav-link"><span class="nav-icon">/|\</span> All 52 Tools</a>
+        <a href="#core-tools" class="nav-link"><span class="nav-icon">(o)</span> Core Operations</a>
+        <a href="#ai-tools" class="nav-link"><span class="nav-icon">[A]</span> AI-Native Tools</a>
+        <a href="#crawling-tools" class="nav-link"><span class="nav-icon">-%-</span> Autonomous Crawling</a>
+        <a href="#session-tools" class="nav-link"><span class="nav-icon">[S]</span> Session Management</a>
+      </div>
+
+      <!-- Integration -->
+      <div class="nav-section">
+        <div class="nav-section-title">Integration</div>
+        <a href="#vscode" class="nav-link"><span class="nav-icon">&lt;&gt;</span> VS Code Extension</a>
+        <a href="#copilot-studio" class="nav-link"><span class="nav-icon">[C]</span> Copilot Studio</a>
+        <a href="#browser-extension" class="nav-link"><span class="nav-icon">@[]</span> Browser Extension</a>
+        <a href="#azure" class="nav-link"><span class="nav-icon">^_^</span> Azure Deployment</a>
+      </div>
+
+      <!-- Documentation -->
+      <div class="nav-section">
+        <div class="nav-section-title">Documentation</div>
+        <a href="DarbotGuide.html" class="nav-link"><span class="nav-icon">=[]</span> Complete Guide</a>
+        <a href="AI_NATIVE_FEATURES.html" class="nav-link"><span class="nav-icon">(&)</span> AI Features</a>
+        <a href="AUTONOMOUS_FEATURES.html" class="nav-link"><span class="nav-icon">->></span> Autonomous Features</a>
+        <a href="Browser-Extension-Integration.html" class="nav-link"><span class="nav-icon">-o-</span> Extension Integration</a>
+        <a href="Cloud-Config.html" class="nav-link"><span class="nav-icon">{*}</span> Cloud Config</a>
+      </div>
+
+      <!-- SDK & API -->
+      <div class="nav-section">
+        <div class="nav-section-title">SDK & API</div>
+        <a href="#mcp-protocol" class="nav-link"><span class="nav-icon">[|]</span> MCP Protocol</a>
+        <a href="#npm-package" class="nav-link"><span class="nav-icon">{+}</span> NPM Package</a>
+        <a href="#dotnet-sdk" class="nav-link"><span class="nav-icon">#_#</span> .NET SDK</a>
+        <a href="#openapi" class="nav-link"><span class="nav-icon">|=|</span> OpenAPI Spec</a>
+      </div>
+
+      <!-- Backlog & Roadmap -->
+      <div class="nav-section">
+        <div class="nav-section-title">Roadmap</div>
+        <a href="backlog/darbot-browser_backlog.html" class="nav-link"><span class="nav-icon">|=|</span> Development Backlog</a>
+        <a href="backlog/Browser-Extension-Backlog.html" class="nav-link"><span class="nav-icon">@[]</span> Extension Backlog</a>
+        <a href="backlog/darbot-browser_session-sync_backlog.html" class="nav-link"><span class="nav-icon"><=></span> Session Sync</a>
+        <a href="backlog/darbot-browser_swarm-mcp_backlog.html" class="nav-link"><span class="nav-icon">*.*</span> Swarm MCP</a>
+      </div>
+
+      <!-- Resources -->
+      <div class="nav-section">
+        <div class="nav-section-title">Resources</div>
+        <a href="https://www.npmjs.com/package/@darbotlabs/darbot-browser-mcp" target="_blank" class="nav-link"><span class="nav-icon">{+}</span> NPM Package</a>
+        <a href="https://marketplace.visualstudio.com/items?itemName=darbotlabs.darbot-browser-mcp" target="_blank" class="nav-link"><span class="nav-icon">[$]</span> VS Code Marketplace</a>
+        <a href="https://github.com/darbotlabs/darbot-browser-mcp" target="_blank" class="nav-link"><span class="nav-icon">&lt;/></span> GitHub Repository</a>
+        <a href="https://github.com/darbotlabs/darbot-browser-mcp/issues" target="_blank" class="nav-link"><span class="nav-icon">[!]</span> Issue Tracker</a>
+      </div>
+    </nav>
+  </aside>
+
+  <!-- ============================================
+       MAIN CONTENT
+       ============================================ -->
+  <main class="main">
+    <div class="content">
+      
+      <!-- Hero Section -->
+      <section class="hero" id="home">
+        <img src="https://raw.githubusercontent.com/darbotlabs/darbot-browser-mcp/main/assets/darbot_logo_icon_pack/darbot-horizontal-banner-1500x500.png" alt="Darbot Browser MCP" class="hero-banner">
+        <h1 class="hero-title">Your Autonomous Browser Buddy</h1>
+        <p class="hero-subtitle">Enterprise-grade AI browser automation with 52 tools for VS Code, Azure, and beyond</p>
+        
+        <div class="hero-badges">
+          <a href="https://www.npmjs.com/package/@darbotlabs/darbot-browser-mcp" target="_blank">
+            <img src="https://img.shields.io/npm/v/@darbotlabs/darbot-browser-mcp?style=flat-square&color=00ffff&labelColor=1a1a2e" alt="NPM Version">
+          </a>
+          <a href="https://www.npmjs.com/package/@darbotlabs/darbot-browser-mcp" target="_blank">
+            <img src="https://img.shields.io/npm/dm/@darbotlabs/darbot-browser-mcp?style=flat-square&color=ff00ff&labelColor=1a1a2e" alt="Downloads">
+          </a>
+          <a href="https://marketplace.visualstudio.com/items?itemName=darbotlabs.darbot-browser-mcp" target="_blank">
+            <img src="https://img.shields.io/visual-studio-marketplace/v/darbotlabs.darbot-browser-mcp?style=flat-square&color=00ff88&labelColor=1a1a2e&label=VS%20Code" alt="VS Code Extension">
+          </a>
+          <img src="https://img.shields.io/badge/license-Apache%202.0-blue?style=flat-square&labelColor=1a1a2e" alt="License">
+        </div>
+
+        <div class="hero-cta">
+          <a href="#installation" class="btn btn-primary">>_ Get Started</a>
+          <a href="https://marketplace.visualstudio.com/items?itemName=darbotlabs.darbot-browser-mcp" target="_blank" class="btn btn-vscode">&lt;> VS Code Extension</a>
+          <a href="https://github.com/darbotlabs/darbot-browser-mcp" target="_blank" class="btn btn-secondary">&lt;/> View on GitHub</a>
+        </div>
+      </section>
+
+      <!-- Stats -->
+      <div class="stats-grid">
+        <div class="stat-item">
+          <div class="stat-value">52</div>
+          <div class="stat-label">Autonomous Tools</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">3</div>
+          <div class="stat-label">Deployment Editions</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">v1.3</div>
+          <div class="stat-label">Current Version</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">∞</div>
+          <div class="stat-label">Automation Possibilities</div>
+        </div>
+      </div>
+
+      <!-- Key Features -->
+      <section class="section" id="features">
+        <h2 class="section-title"><span class="section-icon">>></span> Key Features</h2>
+        <p class="section-subtitle">Built for AI agents and humans alike - autonomous browser automation without vision models</p>
+        
+        <div class="card-grid">
+          <div class="card feature-card">
+            <div class="card-icon">(o)</div>
+            <h3 class="card-title">Accessibility-First</h3>
+            <p class="card-description">Uses structured accessibility tree snapshots instead of pixel-based input. Fast, deterministic, and AI-friendly.</p>
+          </div>
+          <div class="card feature-card">
+            <div class="card-icon">(&)</div>
+            <h3 class="card-title">No Vision Models</h3>
+            <p class="card-description">Operates purely on structured data - no GPU or vision models required. Works with any LLM or AI agent.</p>
+          </div>
+          <div class="card feature-card">
+            <div class="card-icon">[S]</div>
+            <h3 class="card-title">Session States</h3>
+            <p class="card-description">Save and restore complete browser sessions with Edge profile context. Resume workflows exactly where you left off.</p>
+          </div>
+          <div class="card feature-card">
+            <div class="card-icon">-%-</div>
+            <h3 class="card-title">Autonomous Crawling</h3>
+            <p class="card-description">BFS strategy with memory, guardrails, and HTML reporting. Intelligent site exploration with safety controls.</p>
+          </div>
+          <div class="card feature-card">
+            <div class="card-icon">[X]</div>
+            <h3 class="card-title">Enterprise Security</h3>
+            <p class="card-description">Microsoft Entra ID authentication, rate limiting, audit logging, and comprehensive error handling.</p>
+          </div>
+          <div class="card feature-card">
+            <div class="card-icon">>-></div>
+            <h3 class="card-title">Multi-Platform</h3>
+            <p class="card-description">Available as NPM package, VS Code extension, NuGet package, browser extension, and Docker container.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Installation -->
+      <section class="section" id="installation">
+        <h2 class="section-title"><span class="section-icon">{+}</span> Installation</h2>
+        <p class="section-subtitle">Multiple ways to get started with Darbot Browser MCP</p>
+
+        <h3 class="mt-4 text-cyan">NPX (Recommended - Zero Install)</h3>
+        <div class="code-block">
+          <code><span class="comment"># Run directly with npx</span>
+npx @darbotlabs/darbot-browser-mcp@latest
+
+<span class="comment"># With Microsoft Edge</span>
+npx @darbotlabs/darbot-browser-mcp@latest --browser msedge
+
+<span class="comment"># Headless mode with SSE server</span>
+npx @darbotlabs/darbot-browser-mcp@latest --headless --port 8931</code>
+        </div>
+
+        <h3 class="mt-4 text-cyan">VS Code Extension</h3>
+        <div class="code-block">
+          <code><span class="comment"># Install from command line</span>
+code --install-extension darbotlabs.darbot-browser-mcp
+
+<span class="comment"># Or search in VS Code marketplace:</span>
+<span class="string">"Darbot Browser MCP"</span></code>
+        </div>
+
+        <h3 class="mt-4 text-cyan">Global NPM Install</h3>
+        <div class="code-block">
+          <code>npm install -g @darbotlabs/darbot-browser-mcp
+darbot-browser-mcp --browser msedge</code>
+        </div>
+
+        <h3 class="mt-4 text-cyan">.NET SDK</h3>
+        <div class="code-block">
+          <code>dotnet add package DarbotLabs.Browser.MCP</code>
+        </div>
+      </section>
+
+      <!-- Quick Start -->
+      <section class="section" id="quick-start">
+        <h2 class="section-title"><span class="section-icon">>_</span> Quick Start</h2>
+        
+        <h3 class="mt-4 text-cyan">VS Code + GitHub Copilot</h3>
+        <div class="code-block">
+          <code><span class="comment">// 1. Install the VS Code extension</span>
+<span class="comment">// 2. Enable MCP in settings.json:</span>
+{
+  <span class="string">"chat.mcp.enabled"</span>: <span class="keyword">true</span>
+}
+
+<span class="comment">// 3. Start chatting with Copilot:</span>
+<span class="string">"Navigate to github.com and take a screenshot"</span>
+<span class="string">"Fill out the login form with test@example.com"</span>
+<span class="string">"Save this browser session as 'research-profile'"</span></code>
+        </div>
+
+        <h3 class="mt-4 text-cyan">MCP Configuration</h3>
+        <div class="code-block">
+          <code><span class="comment">// VS Code settings.json</span>
+{
+  <span class="string">"chat.mcp.enabled"</span>: <span class="keyword">true</span>,
+  <span class="string">"chat.mcp.servers"</span>: {
+    <span class="string">"darbot-browser-mcp"</span>: {
+      <span class="string">"command"</span>: <span class="string">"npx"</span>,
+      <span class="string">"args"</span>: [<span class="string">"@darbotlabs/darbot-browser-mcp@latest"</span>]
+    }
+  }
+}</code>
+        </div>
+      </section>
+
+      <!-- Requirements -->
+      <section class="section" id="requirements">
+        <h2 class="section-title"><span class="section-icon">[*]</span> Requirements</h2>
+        
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Requirement</th>
+                <th>Version</th>
+                <th>Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Node.js</strong></td>
+                <td>23+</td>
+                <td>Required for NPM package</td>
+              </tr>
+              <tr>
+                <td><strong>VS Code</strong></td>
+                <td>1.96+</td>
+                <td>For extension and MCP support</td>
+              </tr>
+              <tr>
+                <td><strong>Browser</strong></td>
+                <td>Latest</td>
+                <td>Edge (recommended), Chrome, Firefox, WebKit</td>
+              </tr>
+              <tr>
+                <td><strong>MCP Client</strong></td>
+                <td>Any</td>
+                <td>VS Code, Claude Desktop, Cursor, Windsurf</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Editions -->
+      <section class="section" id="editions">
+        <h2 class="section-title"><span class="section-icon">///</span> Deployment Editions</h2>
+        <p class="section-subtitle">Choose the right edition for your deployment needs</p>
+
+        <div class="card-grid">
+          <div class="card edition-card recommended" id="local-edition">
+            <span class="edition-badge local">Local</span>
+            <h3 class="card-title">Local Edition</h3>
+            <p class="card-description">Standard installation runs entirely on your local machine. Perfect for development and prototyping.</p>
+            <ul class="mt-2">
+              <li><span class="check-mark">[+]</span> Easy setup with npx</li>
+              <li><span class="check-mark">[+]</span> Full 52 tools</li>
+              <li><span class="check-mark">[+]</span> No network dependencies</li>
+              <li><span class="check-mark">[+]</span> stdio transport</li>
+            </ul>
+            <a href="#installation" class="card-link">Get Started -></a>
+          </div>
+          
+          <div class="card edition-card" id="cloud-edition">
+            <span class="edition-badge cloud">Cloud</span>
+            <h3 class="card-title">Cloud Edition</h3>
+            <p class="card-description">Hosted on Azure App Service with Microsoft Entra ID authentication for enterprise deployments.</p>
+            <ul class="mt-2">
+              <li><span class="text-cyan">(_)</span> Azure App Service</li>
+              <li><span class="text-cyan">[X]</span> Entra ID auth</li>
+              <li><span class="text-cyan">|=|</span> Application Insights</li>
+              <li><span class="text-cyan">@[]</span> Streamable HTTP</li>
+            </ul>
+            <a href="Cloud-Config.html" class="card-link">Deploy to Azure -></a>
+          </div>
+          
+          <div class="card edition-card" id="hosted-edition">
+            <span class="edition-badge hosted">Hosted</span>
+            <h3 class="card-title">Hosted Edition</h3>
+            <p class="card-description">Self-hosted Docker container with VS Code Dev Tunnels for on-premises enterprise deployments.</p>
+            <ul class="mt-2">
+              <li><span class="text-magenta">[=]</span> Docker container</li>
+              <li><span class="text-magenta">[X]</span> Data sovereignty</li>
+              <li><span class="text-magenta">@[]</span> Dev Tunnel support</li>
+              <li><span class="text-magenta">{*}</span> Custom policies</li>
+            </ul>
+            <a href="INTEGRATION.html" class="card-link">Self-Host Guide -></a>
+          </div>
+        </div>
+      </section>
+
+      <!-- Tools Reference -->
+      <section class="section" id="tools">
+        <h2 class="section-title"><span class="section-icon">/|\</span> Complete Toolbox (52 Tools)</h2>
+        <p class="section-subtitle">Comprehensive autonomous browser capabilities organized by category</p>
+
+        <div class="tools-category" id="core-tools">
+          <h3 class="tools-category-title"><span class="section-icon">(o)</span> Core Browser Operations (8 Tools)</h3>
+          <div class="tools-list">
+            <div class="tool-item">browser_navigate</div>
+            <div class="tool-item">browser_snapshot</div>
+            <div class="tool-item">browser_click</div>
+            <div class="tool-item">browser_type</div>
+            <div class="tool-item">browser_select_option</div>
+            <div class="tool-item">browser_press_key</div>
+            <div class="tool-item">browser_wait_for</div>
+            <div class="tool-item">browser_close</div>
+          </div>
+        </div>
+
+        <div class="tools-category">
+          <h3 class="tools-category-title"><span class="section-icon">[^]</span> Advanced Interactions (5 Tools)</h3>
+          <div class="tools-list">
+            <div class="tool-item">browser_hover</div>
+            <div class="tool-item">browser_drag</div>
+            <div class="tool-item">browser_handle_dialog</div>
+            <div class="tool-item">browser_file_upload</div>
+            <div class="tool-item">browser_resize</div>
+          </div>
+        </div>
+
+        <div class="tools-category">
+          <h3 class="tools-category-title"><span class="section-icon">|=|</span> Tab Management (4 Tools)</h3>
+          <div class="tools-list">
+            <div class="tool-item">browser_tab_new</div>
+            <div class="tool-item">browser_tab_list</div>
+            <div class="tool-item">browser_tab_select</div>
+            <div class="tool-item">browser_tab_close</div>
+          </div>
+        </div>
+
+        <div class="tools-category" id="session-tools">
+          <h3 class="tools-category-title"><span class="section-icon">[S]</span> Session Management (4 Tools)</h3>
+          <div class="tools-list">
+            <div class="tool-item">browser_save_profile</div>
+            <div class="tool-item">browser_switch_profile</div>
+            <div class="tool-item">browser_list_profiles</div>
+            <div class="tool-item">browser_delete_profile</div>
+          </div>
+        </div>
+
+        <div class="tools-category">
+          <h3 class="tools-category-title"><span class="section-icon"><-></span> Navigation Controls (2 Tools)</h3>
+          <div class="tools-list">
+            <div class="tool-item">browser_navigate_back</div>
+            <div class="tool-item">browser_navigate_forward</div>
+          </div>
+        </div>
+
+        <div class="tools-category">
+          <h3 class="tools-category-title"><span class="section-icon">[#]</span> Media & Resources (2 Tools)</h3>
+          <div class="tools-list">
+            <div class="tool-item">browser_take_screenshot</div>
+            <div class="tool-item">browser_pdf_save</div>
+          </div>
+        </div>
+
+        <div class="tools-category">
+          <h3 class="tools-category-title"><span class="section-icon">{?}</span> Debugging & Analysis (2 Tools)</h3>
+          <div class="tools-list">
+            <div class="tool-item">browser_console_messages</div>
+            <div class="tool-item">browser_network_requests</div>
+          </div>
+        </div>
+
+        <div class="tools-category">
+          <h3 class="tools-category-title"><span class="section-icon">[T]</span> Testing & Development (2 Tools)</h3>
+          <div class="tools-list">
+            <div class="tool-item">browser_generate_playwright_test</div>
+            <div class="tool-item">browser_install</div>
+          </div>
+        </div>
+
+        <div class="tools-category" id="ai-tools">
+          <h3 class="tools-category-title"><span class="section-icon">[A]</span> AI-Native Tools (4 Tools)</h3>
+          <div class="tools-list">
+            <div class="tool-item">browser_execute_intent</div>
+            <div class="tool-item">browser_execute_workflow</div>
+            <div class="tool-item">browser_analyze_context</div>
+            <div class="tool-item">browser_emulate_media</div>
+          </div>
+        </div>
+
+        <div class="tools-category" id="crawling-tools">
+          <h3 class="tools-category-title"><span class="section-icon">-%-</span> Autonomous Crawling (3 Tools)</h3>
+          <div class="tools-list">
+            <div class="tool-item">browser_start_autonomous_crawl</div>
+            <div class="tool-item">browser_configure_memory</div>
+            <div class="tool-item">browser_get_crawl_report</div>
+          </div>
+        </div>
+
+        <div class="tools-category">
+          <h3 class="tools-category-title"><span class="section-icon">@_@</span> Environment Emulation (5 Tools)</h3>
+          <div class="tools-list">
+            <div class="tool-item">browser_save_session</div>
+            <div class="tool-item">browser_restore_session</div>
+            <div class="tool-item">browser_emulate_geolocation</div>
+            <div class="tool-item">browser_emulate_timezone</div>
+            <div class="tool-item">browser_scroll</div>
+          </div>
+        </div>
+
+        <div class="tools-category">
+          <h3 class="tools-category-title"><span class="section-icon">[:]</span> Time Control (4 Tools)</h3>
+          <div class="tools-list">
+            <div class="tool-item">browser_clock_fast_forward</div>
+            <div class="tool-item">browser_clock_pause</div>
+            <div class="tool-item">browser_clock_resume</div>
+            <div class="tool-item">browser_clock_set_fixed_time</div>
+          </div>
+        </div>
+
+        <div class="tools-category">
+          <h3 class="tools-category-title"><span class="section-icon">{~}</span> Cookie & Storage (4 Tools)</h3>
+          <div class="tools-list">
+            <div class="tool-item">browser_get_cookies</div>
+            <div class="tool-item">browser_clear_cookies</div>
+            <div class="tool-item">browser_get_local_storage</div>
+            <div class="tool-item">browser_set_local_storage</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VS Code Integration -->
+      <section class="section" id="vscode">
+        <h2 class="section-title"><span class="section-icon">&lt;></span> VS Code Extension</h2>
+        <p class="section-subtitle">Seamless integration with GitHub Copilot Chat</p>
+
+        <div class="card">
+          <h3 class="card-title">Auto-Configuration</h3>
+          <p class="card-description">The extension automatically configures MCP settings when installed:</p>
+          <ul class="mt-2">
+            <li><span class="check-mark">[+]</span> Prompts to enable MCP in VS Code settings</li>
+            <li><span class="check-mark">[+]</span> Configures the Darbot Browser MCP server</li>
+            <li><span class="check-mark">[+]</span> Sets up optimal server path with <code>npx @darbotlabs/darbot-browser-mcp@latest</code></li>
+            <li><span class="check-mark">[+]</span> Adds status bar indicator for server health</li>
+          </ul>
+        </div>
+
+        <h3 class="mt-4 text-cyan">Available Commands</h3>
+        <div class="code-block">
+          <code><span class="comment"># Command Palette (Ctrl+Shift+P)</span>
+Darbot Browser MCP: Start Server
+Darbot Browser MCP: Stop Server
+Darbot Browser MCP: Show Status</code>
+        </div>
+
+        <h3 class="mt-4 text-cyan">Configuration Options</h3>
+        <div class="code-block">
+          <code>{
+  <span class="string">"darbot-browser-mcp.serverPath"</span>: <span class="string">"npx @darbotlabs/darbot-browser-mcp@latest"</span>,
+  <span class="string">"darbot-browser-mcp.autoStart"</span>: <span class="keyword">false</span>,
+  <span class="string">"darbot-browser-mcp.autoConfigureMCP"</span>: <span class="keyword">true</span>,
+  <span class="string">"darbot-browser-mcp.logLevel"</span>: <span class="string">"info"</span>
+}</code>
+        </div>
+      </section>
+
+      <!-- Copilot Studio -->
+      <section class="section" id="copilot-studio">
+        <h2 class="section-title"><span class="section-icon">[C]</span> Microsoft Copilot Studio</h2>
+        <p class="section-subtitle">Enterprise integration with Microsoft 365 and Power Platform</p>
+
+        <div class="architecture-diagram">
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│ Copilot Studio  │    │   Power Platform │    │  Azure App      │
+│                 │◄──►│   Connector     │◄──►│  Service        │
+│ - Topics        │    │                 │    │                 │
+│ - Actions       │    │ - Authentication│    │ - MCP Server    │
+│ - Workflows     │    │ - Action Mapping│    │ - Browser Pool  │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+                                               │
+                       ┌─────────────────┐    │
+                       │   Azure         │    │
+                       │   Resources     │◄───┘
+                       │                 │
+                       │ - Key Vault     │
+                       │ - App Insights  │
+                       │ - Storage       │
+                       └─────────────────┘
+        </div>
+
+        <h3 class="mt-4 text-cyan">Deploy to Azure</h3>
+        <div class="code-block">
+          <code><span class="comment"># Clone and deploy</span>
+git clone https://github.com/darbotlabs/darbot-browser-mcp.git
+cd darbot-browser-mcp
+./azure/deploy.sh my-resource-group darbot-mcp-prod eastus</code>
+        </div>
+
+        <h3 class="mt-4 text-cyan">Environment Variables</h3>
+        <div class="code-block">
+          <code><span class="comment"># Authentication</span>
+ENTRA_AUTH_ENABLED=<span class="keyword">true</span>
+AZURE_TENANT_ID=your-tenant-id
+AZURE_CLIENT_ID=your-client-id
+
+<span class="comment"># Copilot Studio</span>
+COPILOT_STUDIO_ENABLED=<span class="keyword">true</span>
+MAX_CONCURRENT_SESSIONS=20
+SESSION_TIMEOUT_MS=1800000</code>
+        </div>
+      </section>
+
+      <!-- Browser Extension -->
+      <section class="section" id="browser-extension">
+        <h2 class="section-title"><span class="section-icon">@[]</span> Browser Extension Bridge</h2>
+        <p class="section-subtitle">Control existing browser tabs through Chrome/Edge extension</p>
+
+        <div class="architecture-diagram">
+┌──────────────────┐     MCP      ┌──────────────────┐
+│   VS Code        │◄────────────►│  CDP Relay       │
+│   Copilot Chat   │   HTTP/WS    │  Server :9223    │
+└──────────────────┘              └────────┬─────────┘
+                                           │ WebSocket
+                                  ┌────────▼─────────┐
+                                  │  Chrome/Edge     │
+                                  │  Extension       │
+                                  └────────┬─────────┘
+                                           │ chrome.debugger
+                                  ┌────────▼─────────┐
+                                  │  Existing Tab    │
+                                  │  (User's Browser)│
+                                  └──────────────────┘
+        </div>
+
+        <div class="card mt-4">
+          <h3 class="card-title">Bridge Mode Features</h3>
+          <ul>
+            <li><span class="text-cyan">-o-</span> Control existing browser tabs (not isolated Playwright)</li>
+            <li><span class="text-cyan">[X]</span> Maintain user's authenticated sessions</li>
+            <li><span class="text-cyan">[#]</span> Cyber retro UI with dark gradients</li>
+            <li><span class="text-cyan"><=></span> Auto-reconnection (3 attempts, 10s timeout)</li>
+            <li><span class="text-cyan">&lt;></span> "Open VS Code" button with protocol handler</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- Azure Deployment -->
+      <section class="section" id="azure">
+        <h2 class="section-title"><span class="section-icon">(_)</span> Azure Deployment</h2>
+        <p class="section-subtitle">Production-ready hosting with enterprise features</p>
+
+        <div class="card-grid">
+          <div class="card">
+            <h3 class="card-title">Infrastructure</h3>
+            <ul>
+              <li>Azure App Service (Linux)</li>
+              <li>Azure Key Vault</li>
+              <li>Application Insights</li>
+              <li>Azure Storage</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3 class="card-title">Security</h3>
+            <ul>
+              <li>Microsoft Entra ID</li>
+              <li>HTTPS enforcement</li>
+              <li>Rate limiting</li>
+              <li>Audit logging</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3 class="card-title">Endpoints</h3>
+            <ul>
+              <li><code>/mcp</code> - MCP protocol</li>
+              <li><code>/health</code> - Health check</li>
+              <li><code>/ready</code> - Readiness</li>
+              <li><code>/openapi.json</code> - API spec</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- SDK & API -->
+      <section class="section" id="mcp-protocol">
+        <h2 class="section-title"><span class="section-icon">[|]</span> SDK & API Reference</h2>
+        
+        <div class="card" id="npm-package">
+          <h3 class="card-title">NPM Package</h3>
+          <div class="code-block">
+            <code><span class="comment"># Install</span>
+npm install @darbotlabs/darbot-browser-mcp
+
+<span class="comment"># Use programmatically</span>
+<span class="keyword">import</span> { createServer } <span class="keyword">from</span> <span class="string">'@darbotlabs/darbot-browser-mcp'</span>;
+
+<span class="keyword">const</span> server = createServer({
+  browser: <span class="string">'msedge'</span>,
+  headless: <span class="keyword">true</span>
+});</code>
+          </div>
+        </div>
+
+        <div class="card mt-4" id="dotnet-sdk">
+          <h3 class="card-title">.NET SDK</h3>
+          <div class="code-block">
+            <code><span class="comment">// Install NuGet package</span>
+dotnet add package DarbotLabs.Browser.MCP
+
+<span class="comment">// Use in C#</span>
+<span class="keyword">using</span> DarbotLabs.Browser.MCP;
+
+<span class="keyword">var</span> client = <span class="keyword">new</span> BrowserMcpClient();
+<span class="keyword">await</span> client.NavigateAsync(<span class="string">"https://example.com"</span>);</code>
+          </div>
+        </div>
+
+        <div class="card mt-4" id="openapi">
+          <h3 class="card-title">OpenAPI Specification</h3>
+          <p class="card-description">Auto-generated API documentation available at:</p>
+          <div class="code-block">
+            <code><span class="comment"># Local development</span>
+http://localhost:8931/openapi.json
+
+<span class="comment"># Azure deployment</span>
+https://your-app.azurewebsites.net/openapi.json</code>
+          </div>
+        </div>
+      </section>
+
+      <!-- Comparison Table -->
+      <section class="section">
+        <h2 class="section-title"><span class="section-icon">|=|</span> Why Darbot Browser MCP?</h2>
+        
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Feature</th>
+                <th>Traditional Automation</th>
+                <th>Darbot Browser MCP</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Input Method</td>
+                <td><span class="x-mark">[-]</span> Pixel-based, brittle</td>
+                <td><span class="check-mark">[+]</span> Accessibility snapshots</td>
+              </tr>
+              <tr>
+                <td>AI Requirements</td>
+                <td><span class="x-mark">[-]</span> Vision models, GPU</td>
+                <td><span class="check-mark">[+]</span> Pure structured data</td>
+              </tr>
+              <tr>
+                <td>Setup</td>
+                <td><span class="x-mark">[-]</span> Complex, hours</td>
+                <td><span class="check-mark">[+]</span> npx, seconds</td>
+              </tr>
+              <tr>
+                <td>Protocol</td>
+                <td><span class="x-mark">[-]</span> Browser-specific</td>
+                <td><span class="check-mark">[+]</span> Universal MCP</td>
+              </tr>
+              <tr>
+                <td>Session State</td>
+                <td><span class="x-mark">[-]</span> None or basic</td>
+                <td><span class="check-mark">[+]</span> Full profile save/restore</td>
+              </tr>
+              <tr>
+                <td>Enterprise Ready</td>
+                <td><span class="x-mark">[-]</span> Requires custom work</td>
+                <td><span class="check-mark">[+]</span> Azure, Entra ID, M365</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- ============================================
+       FOOTER
+       ============================================ -->
+  <footer class="footer">
+    <div class="footer-links">
+      <a href="https://github.com/darbotlabs/darbot-browser-mcp" target="_blank" class="footer-link">GitHub</a>
+      <a href="https://www.npmjs.com/package/@darbotlabs/darbot-browser-mcp" target="_blank" class="footer-link">NPM</a>
+      <a href="https://marketplace.visualstudio.com/items?itemName=darbotlabs.darbot-browser-mcp" target="_blank" class="footer-link">VS Code Marketplace</a>
+      <a href="https://github.com/darbotlabs/darbot-browser-mcp/issues" target="_blank" class="footer-link">Issues</a>
+      <a href="https://github.com/darbotlabs/darbot-browser-mcp/blob/main/LICENSE" target="_blank" class="footer-link">License</a>
+    </div>
+    <p class="footer-copyright">
+      Made with <span class="text-magenta">&lt;3</span> by <a href="https://github.com/darbotlabs" target="_blank">Darbot Labs</a> | 
+      Darbot Browser MCP v1.3.0 | 
+      Apache License 2.0
+    </p>
+  </footer>
+
+  <!-- ============================================
+       JAVASCRIPT
+       ============================================ -->
+  <script>
+    // Mobile sidebar toggle
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      sidebar.classList.toggle('open');
+    }
+
+    // Active navigation link
+    const navLinks = document.querySelectorAll('.nav-link');
+    const sections = document.querySelectorAll('.section, .hero');
+
+    function updateActiveNav() {
+      let current = '';
+      
+      sections.forEach(section => {
+        const sectionTop = section.offsetTop;
+        const sectionHeight = section.clientHeight;
+        if (window.scrollY >= sectionTop - 200) {
+          current = section.getAttribute('id');
+        }
+      });
+
+      navLinks.forEach(link => {
+        link.classList.remove('active');
+        if (link.getAttribute('href') === '#' + current) {
+          link.classList.add('active');
+        }
+      });
+    }
+
+    window.addEventListener('scroll', updateActiveNav);
+
+    // Smooth scroll for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function(e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          // Close mobile sidebar
+          document.getElementById('sidebar').classList.remove('open');
+        }
+      });
+    });
+
+    // Accordion functionality
+    document.querySelectorAll('.accordion-header').forEach(header => {
+      header.addEventListener('click', function() {
+        this.classList.toggle('active');
+        const content = this.nextElementSibling;
+        content.classList.toggle('active');
+      });
+    });
+
+    // Close sidebar on outside click (mobile)
+    document.addEventListener('click', function(e) {
+      const sidebar = document.getElementById('sidebar');
+      const menuBtn = document.querySelector('.mobile-menu-btn');
+      
+      if (window.innerWidth <= 768 && 
+          sidebar.classList.contains('open') && 
+          !sidebar.contains(e.target) && 
+          !menuBtn.contains(e.target)) {
+        sidebar.classList.remove('open');
+      }
+    });
+  </script>
+</body>
+</html>

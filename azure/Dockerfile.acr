@@ -1,0 +1,77 @@
+# Azure Container Registry compatible Dockerfile
+# Simplified without BuildKit features for ACR build compatibility
+
+FROM node:23-bookworm-slim
+
+# Set environment variables
+ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+ENV NODE_ENV=production
+ENV PORT=8080
+ENV WEBSITES_PORT=8080
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies and security updates
+RUN apt-get update && apt-get install -y \
+    ca-certificates \
+    curl \
+    dumb-init \
+    && apt-get upgrade -y \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy package files
+COPY package.json package-lock.json ./
+
+# Install all dependencies (including devDependencies for build)
+# Note: npm ci in production mode skips devDependencies, so we need to override NODE_ENV temporarily
+RUN NODE_ENV=development npm ci
+
+# Install Playwright browser dependencies
+RUN npx -y playwright-core install-deps chromium
+
+# Copy application code
+COPY *.json *.js *.ts ./
+COPY src src/
+
+# Build the application
+RUN npm run build
+
+# Clean up devDependencies after build to reduce image size
+RUN npm prune --omit=dev
+
+# Install Chromium browser
+RUN npx -y playwright-core install --no-shell chromium
+
+# Security hardening - create non-root user
+RUN groupadd --gid 1001 app && \
+    useradd --uid 1001 --gid app --shell /bin/bash --create-home app
+
+# Set correct ownership
+RUN chown -R app:app /app node_modules ${PLAYWRIGHT_BROWSERS_PATH}
+
+# Create directories for data and logs
+RUN mkdir -p /app/data /app/logs && \
+    chown -R app:app /app/data /app/logs
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:${PORT}/health || exit 1
+
+# Switch to non-root user
+USER app
+
+# Expose port
+EXPOSE 8080
+
+# Use dumb-init for proper signal handling
+ENTRYPOINT ["dumb-init", "--"]
+
+# Start the server
+CMD ["node", "cli.js", \
+     "--headless", \
+     "--browser", "chromium", \
+     "--no-sandbox", \
+     "--host", "0.0.0.0", \
+     "--port", "8080", \
+     "--output-dir", "/app/data"]

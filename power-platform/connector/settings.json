@@ -1,0 +1,7 @@
+{
+  "connectorId": "shared_darbotbrowsermcp",
+  "environment": "tip1-shared-002.azure-apim.net",
+  "apiDefinition": "apiDefinition.swagger.json",
+  "apiProperties": "apiProperties.json",
+  "icon": "icon.png"
+}

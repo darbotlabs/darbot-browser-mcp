@@ -1,0 +1,90 @@
+version: '3.8'
+
+services:
+  darbot-browser-hosted:
+    build:
+      context: ..
+      dockerfile: darbot-browser-hosted/Dockerfile
+      args:
+        NODE_VERSION: 22
+        PLAYWRIGHT_VERSION: 1.55.0-alpha
+    image: darbot-browser-hosted:latest
+    container_name: darbot-browser-hosted
+    hostname: darbot-browser-mcp
+    
+    ports:
+      - "8080:8080"
+    
+    environment:
+      # MSAL Authentication
+      - AZURE_TENANT_ID=${AZURE_TENANT_ID}
+      - AZURE_CLIENT_ID=${AZURE_CLIENT_ID}
+      - AZURE_CLIENT_SECRET=${AZURE_CLIENT_SECRET}
+      - AZURE_REDIRECT_URI=${AZURE_REDIRECT_URI:-http://localhost:8080/auth/callback}
+      
+      # Server Configuration
+      - PORT=8080
+      - HOST=0.0.0.0
+      - NODE_ENV=production
+      - SERVER_BASE_URL=${SERVER_BASE_URL:-http://localhost:8080}
+      
+      # MCP Configuration
+      - MAX_CONCURRENT_SESSIONS=${MAX_CONCURRENT_SESSIONS:-10}
+      - SESSION_TIMEOUT_MS=${SESSION_TIMEOUT_MS:-1800000}
+      
+      # Browser Configuration
+      - BROWSER=chromium
+      - HEADLESS=true
+      - PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+      
+      # Security
+      - REQUIRE_AUTH=${REQUIRE_AUTH:-true}
+      - ALLOW_LOCALHOST=${ALLOW_LOCALHOST:-true}
+      - AUDIT_LOGGING_ENABLED=true
+      
+      # Dev Tunnel
+      - TUNNEL_NAME=${TUNNEL_NAME:-darbot-browser-mcp}
+      - TUNNEL_ACCESS=${TUNNEL_ACCESS:-private}
+      - GITHUB_TOKEN=${GITHUB_TOKEN:-}
+    
+    volumes:
+      # Persistent data storage
+      - ./data/sessions:/app/data/sessions
+      - ./data/logs:/app/data/logs
+      - ./data/screenshots:/app/data/screenshots
+      - ./data/tunnel:/app/data/tunnel
+    
+    restart: unless-stopped
+    
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 8G
+        reservations:
+          cpus: '2'
+          memory: 4G
+    
+    networks:
+      - darbot-network
+    
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  darbot-network:
+    driver: bridge
+
+volumes:
+  darbot-data:
+    driver: local

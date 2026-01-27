@@ -1,0 +1,36 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.3.0.0",
+  "parameters": {
+    "appName": {
+      "value": "darbot-browser-mcp"
+    },
+    "location": {
+      "value": "East US"
+    },
+    "sku": {
+      "value": "S1"
+    },
+    "dockerImage": {
+      "value": "darbotlabs/darbot-browser-mcp:latest"
+    },
+    "azureTenantId": {
+      "value": "YOUR_TENANT_ID_HERE"
+    },
+    "azureClientId": {
+      "value": "YOUR_CLIENT_ID_HERE"
+    },
+    "azureClientSecret": {
+      "value": "YOUR_CLIENT_SECRET_HERE"
+    },
+    "copilotStudioCallbackUrl": {
+      "value": "https://YOUR_COPILOT_STUDIO_DOMAIN/auth/callback"
+    },
+    "maxConcurrentSessions": {
+      "value": 20
+    },
+    "sessionTimeoutMs": {
+      "value": 1800000
+    }
+  }
+}

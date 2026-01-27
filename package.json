@@ -1,0 +1,101 @@
+{
+  "name": "@darbotlabs/darbot-browser-mcp",
+  "version": "1.3.0",
+  "description": "Darbot Browser - framework for 52 AI-driven browser tools with session state support and VS Code GitHub Copilot agent mode integration",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/darbotlabs/darbot-browser-mcp.git"
+  },
+  "homepage": "https://github.com/darbotlabs/darbot-browser-mcp",
+  "keywords": [
+    "mcp",
+    "browser",
+    "autonomous",
+    "darbot",
+    "automation",
+    "testing",
+    "screenshot",
+    "copilot",
+    "ai",
+    "edge",
+    "chrome",
+    "web-automation",
+    "playwright",
+    "selenium-alternative",
+    "browser-testing",
+    "accessibility",
+    "session-states",
+    "session-management",
+    "github-copilot",
+    "model-context-protocol",
+    "vscode-extension",
+    "agent-mode",
+    "copilot-integration"
+  ],
+  "engines": {
+    "node": ">=23"
+  },
+  "author": {
+    "name": "DarbotLabs"
+  },
+  "license": "Apache-2.0",
+  "scripts": {
+    "build": "tsc",
+    "lint": "npm run update-readme && eslint . && tsc --noEmit",
+    "update-readme": "node utils/update-readme.js",
+    "watch": "tsc --watch",
+    "test": "npx playwright test",
+    "test:msedge": "npx playwright test --project=msedge",
+    "run-server": "node cli.js",
+    "run-darbot": "node cli.js",
+    "clean": "rmdir /s /q lib 2>nul || echo Clean completed",
+    "npm-publish": "npm run clean && npm run build && npm run test && npm publish",
+    "package": "npm run build && npm pack",
+    "prepublishOnly": "npm run clean && npm run build"
+  },
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "types": "./index.d.ts",
+      "default": "./index.js"
+    }
+  },
+  "dependencies": {
+    "@azure/identity": "^4.5.0",
+    "@azure/keyvault-secrets": "^4.9.0",
+    "@azure/msal-node": "^5.0.2",
+    "@darbotlabs/darbot-browser-mcp": "^1.3.0",
+    "@modelcontextprotocol/sdk": "^1.25.3",
+    "commander": "^13.1.0",
+    "debug": "^4.4.3",
+    "express": "^4.21.2",
+    "mime": "^4.1.0",
+    "playwright": "^1.57.0",
+    "playwright-core": "^1.57.0",
+    "ws": "^8.19.0",
+    "zod": "^3.25.76",
+    "zod-to-json-schema": "^3.25.1"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3.2.0",
+    "@eslint/js": "^9.39.2",
+    "@playwright/test": "^1.57.0",
+    "@stylistic/eslint-plugin": "^3.0.1",
+    "@types/chrome": "^0.0.315",
+    "@types/debug": "^4.1.12",
+    "@types/express": "^5.0.0",
+    "@types/node": "^25.0.10",
+    "@types/ws": "^8.18.1",
+    "@typescript-eslint/eslint-plugin": "^8.53.1",
+    "@typescript-eslint/parser": "^8.53.1",
+    "@typescript-eslint/utils": "^8.26.1",
+    "eslint": "^9.39.2",
+    "eslint-plugin-import": "^2.31.0",
+    "eslint-plugin-notice": "^1.0.0",
+    "typescript": "^5.9.3"
+  },
+  "bin": {
+    "darbot-browser-mcp": "cli.js"
+  }
+}

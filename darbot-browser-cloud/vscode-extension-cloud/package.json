@@ -1,0 +1,125 @@
+{
+  "name": "darbot-browser-mcp-cloud",
+  "displayName": "Darbot Browser MCP Cloud",
+  "description": "Cloud-connected autonomous browser for VS Code. 52 AI-driven browser tools via Azure deployment with enterprise-grade security, automatic Microsoft authentication, and Microsoft Copilot Studio integration.",
+  "version": "1.3.0",
+  "publisher": "darbotlabs",
+  "engines": {
+    "vscode": "^1.96.0"
+  },
+  "icon": "icon.png",
+  "categories": [
+    "AI",
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "keywords": [
+    "mcp",
+    "browser",
+    "autonomous",
+    "darbot",
+    "automation",
+    "testing",
+    "screenshot",
+    "copilot",
+    "ai",
+    "edge",
+    "chrome",
+    "web-automation",
+    "playwright",
+    "selenium-alternative",
+    "browser-testing",
+    "accessibility",
+    "work-profiles",
+    "session-management",
+    "github-copilot",
+    "model-context-protocol"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/darbotlabs/darbot-browser-mcp.git"
+  },
+  "homepage": "https://github.com/darbotlabs/darbot-browser-mcp",
+  "bugs": {
+    "url": "https://github.com/darbotlabs/darbot-browser-mcp/issues"
+  },
+  "license": "Apache-2.0",
+  "main": "./out/extension.js",
+  "contributes": {
+    "mcpServerDefinitionProviders": [
+      {
+        "id": "darbot-browser-mcp-cloud",
+        "label": "Darbot Browser MCP Cloud"
+      }
+    ],
+    "commands": [
+      {
+        "command": "darbot-browser-mcp-cloud.connectServer",
+        "title": "Connect to Cloud Server",
+        "category": "Darbot Browser Cloud"
+      },
+      {
+        "command": "darbot-browser-mcp-cloud.disconnectServer",
+        "title": "Disconnect from Cloud Server",
+        "category": "Darbot Browser Cloud"
+      },
+      {
+        "command": "darbot-browser-mcp-cloud.showStatus",
+        "title": "Show Cloud Server Status",
+        "category": "Darbot Browser Cloud"
+      },
+      {
+        "command": "darbot-browser-mcp-cloud.testConnection",
+        "title": "Test Cloud Connection",
+        "category": "Darbot Browser Cloud"
+      }
+    ],
+    "configuration": {
+      "title": "Darbot Browser MCP Cloud",
+      "properties": {
+        "darbot-browser-mcp-cloud.serverUrl": {
+          "type": "string",
+          "default": "",
+          "description": "Cloud server URL (Azure App Service endpoint) - configure with your deployment URL"
+        },
+        "darbot-browser-mcp-cloud.sseEndpoint": {
+          "type": "string",
+          "default": "",
+          "description": "MCP endpoint for Streamable HTTP transport - configure with your deployment URL/mcp"
+        },
+        "darbot-browser-mcp-cloud.autoConnect": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically connect to cloud server when VS Code starts"
+        },
+        "darbot-browser-mcp-cloud.connectionTimeout": {
+          "type": "number",
+          "default": 30000,
+          "description": "Connection timeout in milliseconds"
+        },
+        "darbot-browser-mcp-cloud.enableHealthChecks": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable periodic health checks to cloud server"
+        },
+        "darbot-browser-mcp-cloud.healthCheckInterval": {
+          "type": "number",
+          "default": 60000,
+          "description": "Health check interval in milliseconds"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.96.0",
+    "@types/node": "^22.13.10",
+    "typescript": "^5.8.2"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "url": "https://example.com",
+  "title": "Example Page",
+  "stateHash": "6a4c9ca33aae0f4c",
+  "timestamp": 1769397573256,
+  "links": [
+    "https://example.com/page1",
+    "https://example.com/page2"
+  ],
+  "visited": true
+}
