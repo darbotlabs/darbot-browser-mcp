@@ -4,9 +4,7 @@
 
 **Darbot Browser MCP Your Autonomous Browser Buddy**
 
-Darbot Browser is a framework for highly extensible autonomous web automation with enterprise grade security controls. This tool enables agents, LLMs, and applications to interact with UI through structured accessibility snapshots, delivering autonomous browsing without requiring vision models. Optimized for Microsoft Edge with comprehensive session state support.
-
-Darbot Browser is great for leader/follower training too! Once you capture/automate a workflow, you can easily share it with other agents or LLMs to follow the same steps autonomously. Since all tasks are completed in the UI, humans can also learn how to perform the same actions. 
+Darbot Browser MCP enables agents, LLMs, and applications to interact with UI through structured accessibility snapshots, delivering autonomous browsing without requiring vision models. Optimized for Microsoft Edge with comprehensive session state support.
 
 
 Capture once, repeat everywhere 
@@ -21,13 +19,6 @@ Programmatic execution ensures consistent, accurate results.
 Built‑in learning loop 
 Humans learn the exact clicks/inputs; agents/LLMs validate UI, content, layout, and API behaviors.
 
-Human creates/captures workflow and validates all steps in the automation script
-
-That automation script can be shared with human users, customers, partners, etc. to be able to complete all of the same steps programatically with repeatable accuracy. 
-
-Automation scripts work great for humans to learn UI navigation while also being able to monitor and validate. 
-
-The same automation scripts can also be used by agents and LLMs to validate UI functionality, content, layout, design, api schema, etc. 
 
 [![NPM Version](https://img.shields.io/npm/v/@darbotlabs/darbot-browser-mcp?style=flat-square&color=0098FF)](https://www.npmjs.com/package/@darbotlabs/darbot-browser-mcp)
 [![Downloads](https://img.shields.io/npm/dm/@darbotlabs/darbot-browser-mcp?style=flat-square&color=0098FF)](https://www.npmjs.com/package/@darbotlabs/darbot-browser-mcp)
@@ -1080,4 +1071,5 @@ X Y coordinate space, based on the provided screenshot.
 - Darbot-memory-mcp integration for persistent memory  
 - HTML report generation with screenshots and statistics
 - Configurable domain filtering and safety policies
+
 
