@@ -25,23 +25,23 @@
     }
 
     :root {
-      --bg-primary: #0d0d0d;
-      --bg-secondary: #1a1a2e;
-      --bg-tertiary: #16213e;
-      --bg-card: rgba(0, 0, 0, 0.4);
-      --accent-cyan: #00ffff;
-      --accent-magenta: #ff00ff;
-      --accent-green: #00ff88;
-      --accent-orange: #ffaa00;
-      --accent-red: #ff0066;
-      --accent-blue: #007acc;
-      --text-primary: #e0e0e0;
-      --text-secondary: #888;
+      --bg-primary: #0a0a0a;
+      --bg-secondary: #121218;
+      --bg-tertiary: #1a1a24;
+      --bg-card: rgba(18, 18, 24, 0.6);
+      --accent-cyan: #4dd0e1;
+      --accent-magenta: #ba68c8;
+      --accent-green: #4db6ac;
+      --accent-orange: #ffb74d;
+      --accent-red: #e57373;
+      --accent-blue: #64b5f6;
+      --text-primary: #e8e8e8;
+      --text-secondary: #999;
       --text-muted: #666;
-      --border-subtle: rgba(255, 255, 255, 0.1);
-      --border-accent: rgba(0, 255, 255, 0.3);
-      --glow-cyan: rgba(0, 255, 255, 0.5);
-      --glow-magenta: rgba(255, 0, 255, 0.5);
+      --border-subtle: rgba(255, 255, 255, 0.06);
+      --border-accent: rgba(77, 208, 225, 0.2);
+      --glow-cyan: rgba(77, 208, 225, 0.15);
+      --glow-magenta: rgba(186, 104, 200, 0.15);
       --sidebar-width: 280px;
       --header-height: 70px;
     }
@@ -54,8 +54,7 @@
       font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, 'Helvetica Neue', sans-serif;
       font-size: 15px;
       line-height: 1.6;
-      background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 50%, var(--bg-tertiary) 100%);
-      background-attachment: fixed;
+      background: var(--bg-primary);
       color: var(--text-primary);
       min-height: 100vh;
     }
@@ -70,14 +69,14 @@
       left: 0;
       right: 0;
       height: var(--header-height);
-      background: linear-gradient(180deg, rgba(13, 13, 13, 0.98) 0%, rgba(26, 26, 46, 0.95) 100%);
+      background: rgba(10, 10, 10, 0.95);
       border-bottom: 1px solid var(--border-accent);
       display: flex;
       align-items: center;
       justify-content: space-between;
       padding: 0 24px;
       z-index: 1000;
-      backdrop-filter: blur(10px);
+      backdrop-filter: blur(12px);
     }
 
     .header-brand {
@@ -90,30 +89,19 @@
     .header-logo {
       width: 48px;
       height: 48px;
-      filter: drop-shadow(0 0 8px var(--glow-cyan));
-      animation: logo-pulse 3s ease-in-out infinite;
+      filter: drop-shadow(0 0 4px var(--glow-cyan));
+      transition: filter 0.3s ease;
     }
 
-    @keyframes logo-pulse {
-      0%, 100% { filter: drop-shadow(0 0 8px var(--glow-cyan)); }
-      50% { filter: drop-shadow(0 0 16px var(--glow-magenta)); }
+    .header-logo:hover {
+      filter: drop-shadow(0 0 8px var(--glow-cyan));
     }
 
     .header-title {
       font-size: 22px;
-      font-weight: 700;
-      background: linear-gradient(90deg, var(--accent-cyan), var(--accent-magenta), var(--accent-cyan));
-      background-size: 200% auto;
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      animation: gradient-shift 3s ease infinite;
-    }
-
-    @keyframes gradient-shift {
-      0% { background-position: 0% center; }
-      50% { background-position: 100% center; }
-      100% { background-position: 0% center; }
+      font-weight: 600;
+      color: var(--text-primary);
+      letter-spacing: -0.5px;
     }
 
     .header-nav {
@@ -134,11 +122,11 @@
 
     .header-link:hover {
       color: var(--accent-cyan);
-      background: rgba(0, 255, 255, 0.1);
+      background: rgba(77, 208, 225, 0.08);
     }
 
     .header-btn {
-      background: linear-gradient(135deg, var(--accent-cyan) 0%, #00cccc 100%);
+      background: var(--accent-cyan);
       color: var(--bg-primary);
       border: none;
       padding: 10px 20px;
@@ -146,13 +134,13 @@
       font-size: 14px;
       font-weight: 600;
       text-decoration: none;
-      transition: all 0.3s ease;
+      transition: all 0.2s ease;
       cursor: pointer;
     }
 
     .header-btn:hover {
-      box-shadow: 0 0 20px var(--glow-cyan);
-      transform: translateY(-2px);
+      background: #5dd8e9;
+      transform: translateY(-1px);
     }
 
     .mobile-menu-btn {
@@ -174,12 +162,12 @@
       left: 0;
       width: var(--sidebar-width);
       height: calc(100vh - var(--header-height));
-      background: linear-gradient(180deg, rgba(13, 13, 13, 0.95) 0%, rgba(22, 33, 62, 0.9) 100%);
+      background: rgba(12, 12, 15, 0.8);
       border-right: 1px solid var(--border-accent);
       overflow-y: auto;
       padding: 24px 0;
       z-index: 900;
-      backdrop-filter: blur(10px);
+      backdrop-filter: blur(12px);
     }
 
     .sidebar::-webkit-scrollbar {
@@ -220,7 +208,7 @@
     }
 
     .nav-section-title:hover {
-      background: rgba(0, 255, 255, 0.05);
+      background: rgba(77, 208, 225, 0.05);
     }
 
     .nav-section-title::after {
@@ -259,13 +247,13 @@
 
     .nav-link:hover {
       color: var(--text-primary);
-      background: rgba(0, 255, 255, 0.05);
+      background: rgba(77, 208, 225, 0.06);
       border-left-color: var(--accent-cyan);
     }
 
     .nav-link.active {
       color: var(--accent-cyan);
-      background: rgba(0, 255, 255, 0.1);
+      background: rgba(77, 208, 225, 0.1);
       border-left-color: var(--accent-cyan);
     }
 
@@ -303,17 +291,15 @@
       max-width: 800px;
       border-radius: 12px;
       margin-bottom: 32px;
-      box-shadow: 0 0 40px rgba(0, 255, 255, 0.2);
+      box-shadow: 0 0 12px rgba(77, 208, 225, 0.08);
     }
 
     .hero-title {
       font-size: 48px;
-      font-weight: 800;
-      background: linear-gradient(90deg, var(--accent-cyan), var(--accent-magenta));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+      font-weight: 700;
+      color: var(--text-primary);
       margin-bottom: 16px;
+      letter-spacing: -1px;
     }
 
     .hero-subtitle {
@@ -350,40 +336,40 @@
       font-size: 15px;
       font-weight: 600;
       text-decoration: none;
-      transition: all 0.3s ease;
+      transition: all 0.2s ease;
       cursor: pointer;
       border: none;
     }
 
     .btn-primary {
-      background: linear-gradient(135deg, var(--accent-cyan) 0%, #00cccc 100%);
+      background: var(--accent-cyan);
       color: var(--bg-primary);
     }
 
     .btn-primary:hover {
-      box-shadow: 0 0 25px var(--glow-cyan);
-      transform: translateY(-2px);
+      background: #5dd8e9;
+      transform: translateY(-1px);
     }
 
     .btn-secondary {
-      background: rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.05);
       color: var(--text-primary);
       border: 1px solid var(--border-accent);
     }
 
     .btn-secondary:hover {
-      background: rgba(0, 255, 255, 0.15);
+      background: rgba(77, 208, 225, 0.08);
       border-color: var(--accent-cyan);
     }
 
     .btn-vscode {
-      background: linear-gradient(135deg, var(--accent-blue) 0%, #005a9e 100%);
+      background: var(--accent-blue);
       color: #fff;
     }
 
     .btn-vscode:hover {
-      box-shadow: 0 0 25px rgba(0, 122, 204, 0.5);
-      transform: translateY(-2px);
+      background: #75bdf7;
+      transform: translateY(-1px);
     }
 
     /* Section Styles */
@@ -393,11 +379,11 @@
 
     .section-title {
       font-size: 32px;
-      font-weight: 700;
+      font-weight: 600;
       color: var(--accent-cyan);
       margin-bottom: 24px;
       padding-bottom: 12px;
-      border-bottom: 2px solid var(--border-accent);
+      border-bottom: 1px solid var(--border-accent);
     }
 
     .section-subtitle {
@@ -416,15 +402,15 @@
     .card {
       background: var(--bg-card);
       border: 1px solid var(--border-subtle);
-      border-radius: 12px;
+      border-radius: 8px;
       padding: 24px;
-      transition: all 0.3s ease;
+      transition: all 0.2s ease;
     }
 
     .card:hover {
       border-color: var(--accent-cyan);
-      box-shadow: 0 0 20px rgba(0, 255, 255, 0.1);
-      transform: translateY(-4px);
+      box-shadow: 0 2px 12px rgba(77, 208, 225, 0.1);
+      transform: translateY(-2px);
     }
 
     .card-icon {
@@ -463,7 +449,7 @@
 
     /* Feature Cards with Icons */
     .feature-card {
-      background: linear-gradient(135deg, rgba(0, 255, 255, 0.05) 0%, rgba(255, 0, 255, 0.05) 100%);
+      background: rgba(77, 208, 225, 0.03);
       border: 1px solid var(--border-accent);
     }
 
@@ -599,11 +585,8 @@
 
     .stat-value {
       font-size: 42px;
-      font-weight: 800;
-      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-magenta));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+      font-weight: 700;
+      color: var(--accent-cyan);
     }
 
     .stat-label {
@@ -928,9 +911,8 @@
     }
 
     .md-back-btn:hover {
-      background: linear-gradient(135deg, rgba(0, 255, 255, 0.2) 0%, rgba(255, 0, 255, 0.2) 100%);
-      box-shadow: 0 0 20px var(--glow-cyan);
-      transform: translateY(-2px);
+      background: rgba(77, 208, 225, 0.08);
+      transform: translateY(-1px);
     }
 
     .md-viewer-title {
@@ -1190,9 +1172,8 @@
     }
 
     .doc-back-btn:hover {
-      background: linear-gradient(135deg, rgba(0, 255, 255, 0.2) 0%, rgba(255, 0, 255, 0.2) 100%);
-      box-shadow: 0 0 20px var(--glow-cyan);
-      transform: translateY(-2px);
+      background: rgba(77, 208, 225, 0.08);
+      transform: translateY(-1px);
     }
 
     .doc-tabs-title {
@@ -1514,19 +1495,19 @@
       position: absolute;
       inset: -1px;
       border-radius: 12px;
-      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-magenta));
+      background: var(--accent-cyan);
       opacity: 0;
       z-index: -1;
       transition: opacity 0.4s ease;
     }
 
     .stat-item:hover {
-      transform: translateY(-4px);
-      background: rgba(0, 0, 0, 0.6);
+      transform: translateY(-2px);
+      background: rgba(18, 18, 24, 0.8);
     }
 
     .stat-item:hover::after {
-      opacity: 0.15;
+      opacity: 0.08;
     }
 
     .stat-value {
@@ -1566,12 +1547,11 @@
 
     .btn-primary:active {
       transform: translateY(0) scale(0.98);
-      box-shadow: 0 0 15px var(--glow-cyan);
     }
 
     .btn-secondary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 16px rgba(0, 255, 255, 0.15);
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(77, 208, 225, 0.08);
     }
 
     .btn-secondary:active {
@@ -1964,7 +1944,7 @@
       right: 30px;
       width: 48px;
       height: 48px;
-      background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+      background: var(--bg-card);
       border: 1px solid var(--border-accent);
       border-radius: 50%;
       color: var(--accent-cyan);
@@ -1993,12 +1973,10 @@
     }
 
     .back-to-top:hover {
-      background: linear-gradient(135deg, rgba(0, 255, 255, 0.15) 0%, rgba(255, 0, 255, 0.1) 100%);
+      background: rgba(77, 208, 225, 0.08);
       border-color: var(--accent-cyan);
-      box-shadow:
-        0 0 20px rgba(0, 255, 255, 0.3),
-        inset 0 0 20px rgba(0, 255, 255, 0.1);
-      transform: translateY(-4px) scale(1.05);
+      box-shadow: 0 2px 12px rgba(77, 208, 225, 0.15);
+      transform: translateY(-2px) scale(1.05);
     }
 
     .back-to-top:active {
@@ -2140,13 +2118,7 @@
       height: 60%;
       background: var(--accent-cyan);
       border-radius: 0 2px 2px 0;
-      box-shadow: 0 0 8px var(--glow-cyan);
-      animation: nav-pulse 2s ease-in-out infinite;
     }
-
-    @keyframes nav-pulse {
-      0%, 100% { opacity: 1; box-shadow: 0 0 8px var(--glow-cyan); }
-      50% { opacity: 0.7; box-shadow: 0 0 12px var(--glow-magenta); }
     }
 
     /* --- Keyboard Navigation Enhancement --- */
@@ -2155,7 +2127,7 @@
     .btn:focus-visible {
       outline: 2px solid var(--accent-cyan);
       outline-offset: 2px;
-      box-shadow: 0 0 0 4px rgba(0, 255, 255, 0.1);
+      box-shadow: 0 0 0 4px rgba(77, 208, 225, 0.1);
     }
 
     /* --- Mobile Back to Top Adjustment --- */
@@ -2256,10 +2228,6 @@
         <div class="nav-section-title" onclick="toggleNavSection('nav-deployment')">Deployment</div>
         <div class="nav-section-content">
           <a href="#editions" onclick="closeDocTabs(); return true;" class="nav-link">Editions Overview</a>
-          <a href="#local-edition" onclick="closeDocTabs(); return true;" class="nav-link">Local Edition</a>
-          <a href="#cloud-edition" onclick="closeDocTabs(); return true;" class="nav-link">Cloud Edition</a>
-          <a href="#hosted-edition" onclick="closeDocTabs(); return true;" class="nav-link">Hosted Edition</a>
-          <a href="#" onclick="showDocTab('cloud-config'); return false;" class="nav-link" data-doc="cloud-config">Cloud Config Guide</a>
         </div>
       </div>
 
@@ -2290,6 +2258,7 @@
       <div class="nav-section" id="nav-docs">
         <div class="nav-section-title" onclick="toggleNavSection('nav-docs')">Documentation</div>
         <div class="nav-section-content">
+          <a href="#" onclick="showDocTab('cloud-config'); return false;" class="nav-link" data-doc="cloud-config">Cloud Config Guide</a>
           <a href="#" onclick="showDocTab('darbot-guide'); return false;" class="nav-link" data-doc="darbot-guide">Complete Guide</a>
           <a href="#" onclick="showDocTab('ai-autonomous'); return false;" class="nav-link" data-doc="ai-autonomous">AI & Automation</a>
         </div>
@@ -2351,89 +2320,61 @@
       </section>
 
       <!-- Stats -->
-      <div class="stats-grid">
-        <div class="stat-item">
-          <div class="stat-value">52</div>
-          <div class="stat-label">Autonomous Tools</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-value">3</div>
-          <div class="stat-label">Deployment Editions</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-value">v1.3</div>
-          <div class="stat-label">Current Version</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-value">∞</div>
-          <div class="stat-label">Automation Possibilities</div>
-        </div>
-      </div>
-
-      <!-- Key Features -->
-      <section class="section" id="features">
-        <h2 class="section-title">Key Features</h2>
-        <p class="section-subtitle">Built for AI agents and humans alike - autonomous browser automation without vision models</p>
-        
-        <div class="card-grid">
-          <div class="card feature-card">
-            <h3 class="card-title">Accessibility-First</h3>
-            <p class="card-description">Uses structured accessibility tree snapshots instead of pixel-based input. Fast, deterministic, and AI-friendly.</p>
-          </div>
-          <div class="card feature-card">
-            <h3 class="card-title">No Vision Models</h3>
-            <p class="card-description">Operates purely on structured data - no GPU or vision models required. Works with any LLM or AI agent.</p>
-          </div>
-          <div class="card feature-card">
-            <h3 class="card-title">Session States</h3>
-            <p class="card-description">Save and restore complete browser sessions with Edge profile context. Resume workflows exactly where you left off.</p>
-          </div>
-          <div class="card feature-card">
-            <h3 class="card-title">Autonomous Crawling</h3>
-            <p class="card-description">BFS strategy with memory, guardrails, and HTML reporting. Intelligent site exploration with safety controls.</p>
-          </div>
-          <div class="card feature-card">
-            <h3 class="card-title">Enterprise Security</h3>
-            <p class="card-description">Microsoft Entra ID authentication, rate limiting, audit logging, and comprehensive error handling.</p>
-          </div>
-          <div class="card feature-card">
-            <h3 class="card-title">Multi-Platform</h3>
-            <p class="card-description">Available as NPM package, VS Code extension, NuGet package, browser extension, and Docker container.</p>
-          </div>
-        </div>
-      </section>
 
       <!-- Installation -->
       <section class="section" id="installation">
         <h2 class="section-title">Installation</h2>
         <p class="section-subtitle">Follow these steps to get Darbot Browser MCP running on your machine</p>
 
-        <!-- Prerequisites -->
-        <div class="config-guide" style="background: linear-gradient(135deg, rgba(255, 107, 107, 0.1) 0%, rgba(78, 205, 196, 0.1) 100%); border: 1px solid var(--accent-red); border-radius: 12px; padding: 24px; margin-bottom: 24px;">
-          <h3 style="color: var(--accent-red); margin-bottom: 16px;">⚠️ Before You Begin - Prerequisites</h3>
-          <p style="color: var(--text-muted); margin-bottom: 16px;">Make sure you have these installed on your computer first:</p>
+        <!-- Quick Install Options -->
+        <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 32px; padding: 20px; background: var(--bg-card); border: 1px solid var(--border-accent); border-radius: 8px;">
+          <a href="https://github.com/darbotlabs/darbot-browser-mcp/raw/main/add-darbot-browser-mcp.ps1" download class="btn btn-primary" style="flex: 1; min-width: 180px; text-align: center; font-size: 14px;">
+            PowerShell Script
+          </a>
+          <a href="https://github.com/darbotlabs/darbot-browser-mcp/raw/main/install.sh" download class="btn btn-primary" style="flex: 1; min-width: 180px; text-align: center; font-size: 14px;">
+            Linux/macOS Script
+          </a>
+          <a href="https://marketplace.visualstudio.com/items?itemName=darbotlabs.darbot-browser-mcp" target="_blank" class="btn btn-vscode" style="flex: 1; min-width: 180px; text-align: center; font-size: 14px;">
+            VS Code Extension
+          </a>
+          <a href="https://www.npmjs.com/package/@darbotlabs/darbot-browser-mcp" target="_blank" class="btn btn-secondary" style="flex: 1; min-width: 180px; text-align: center; font-size: 14px;">
+            NPM Package
+          </a>
+          <button onclick="showCopilotCLIGuide()" class="btn btn-secondary" style="flex: 1; min-width: 180px; text-align: center; font-size: 14px;">
+            Add to Copilot CLI
+          </button>
+        </div>
 
-          <div style="display: grid; gap: 16px;">
-            <div style="background: var(--bg-darker); border-radius: 8px; padding: 16px;">
-              <div style="color: var(--accent-cyan); font-weight: 600; margin-bottom: 8px;">1. Node.js (Version 23 or higher)</div>
-              <p style="color: var(--text-muted); margin-bottom: 8px; font-size: 14px;">Node.js is required to run the MCP server. Download from <a href="https://nodejs.org" target="_blank" style="color: var(--accent-cyan);">nodejs.org</a></p>
-              <p style="color: var(--text-muted); margin-bottom: 8px; font-size: 14px;"><strong>How to check if you have it:</strong></p>
-              <div class="code-block" style="margin-bottom: 8px;">
-                <code>node --version</code>
+        <!-- Prerequisites (Collapsible) -->
+        <div class="config-guide" style="background: rgba(229, 115, 115, 0.06); border: 1px solid var(--accent-red); border-radius: 8px; padding: 24px; margin-bottom: 24px;">
+          <h3 onclick="toggleSection('prerequisites-content')" style="color: var(--accent-red); margin-bottom: 16px; cursor: pointer; display: flex; align-items: center; gap: 10px; user-select: none;">
+            <span id="prerequisites-content-icon">−</span> Before You Begin - Prerequisites
+          </h3>
+          <div id="prerequisites-content">
+            <p style="color: var(--text-muted); margin-bottom: 16px;">Make sure you have these installed on your computer first:</p>
+
+            <div style="display: grid; gap: 16px;">
+              <div style="background: var(--bg-darker); border-radius: 8px; padding: 16px;">
+                <div style="color: var(--accent-cyan); font-weight: 600; margin-bottom: 8px;">1. Node.js (Version 23 or higher)</div>
+                <p style="color: var(--text-muted); margin-bottom: 8px; font-size: 14px;">Node.js is required to run the MCP server. Download from <a href="https://nodejs.org" target="_blank" style="color: var(--accent-cyan);">nodejs.org</a></p>
+                <p style="color: var(--text-muted); margin-bottom: 8px; font-size: 14px;"><strong>How to check if you have it:</strong></p>
+                <div class="code-block" style="margin-bottom: 8px;">
+                  <code>node --version</code>
+                </div>
+                <p style="color: var(--text-muted); font-size: 13px;">You should see something like <code>v23.0.0</code> or higher. If you get an error or a lower version, install/update Node.js.</p>
               </div>
-              <p style="color: var(--text-muted); font-size: 13px;">You should see something like <code>v23.0.0</code> or higher. If you get an error or a lower version, install/update Node.js.</p>
-            </div>
 
-            <div style="background: var(--bg-darker); border-radius: 8px; padding: 16px;">
-              <div style="color: var(--accent-cyan); font-weight: 600; margin-bottom: 8px;">2. An MCP-Compatible Client</div>
-              <p style="color: var(--text-muted); font-size: 14px;">You need one of these applications to use Darbot Browser MCP:</p>
-              <ul style="color: var(--text-muted); font-size: 14px; margin: 8px 0 0 20px;">
-                <li><strong>Claude Desktop</strong> - Desktop app from Anthropic (<a href="https://claude.ai/download" target="_blank" style="color: var(--accent-cyan);">Download</a>)</li>
-                <li><strong>Claude Code</strong> - CLI tool for developers (<code>npm install -g @anthropic-ai/claude-code</code>)</li>
-                <li><strong>VS Code</strong> - With GitHub Copilot extension</li>
-                <li><strong>Cursor</strong> - AI-powered code editor</li>
-                <li><strong>Windsurf</strong> - Codeium's AI editor</li>
-              </ul>
+              <div style="background: var(--bg-darker); border-radius: 8px; padding: 16px;">
+                <div style="color: var(--accent-cyan); font-weight: 600; margin-bottom: 8px;">2. An MCP-Compatible Client</div>
+                <p style="color: var(--text-muted); font-size: 14px;">You need one of these applications to use Darbot Browser MCP:</p>
+                <ul style="color: var(--text-muted); font-size: 14px; margin: 8px 0 0 20px;">
+                  <li><strong>Claude Desktop</strong> - Desktop app from Anthropic (<a href="https://claude.ai/download" target="_blank" style="color: var(--accent-cyan);">Download</a>)</li>
+                  <li><strong>Claude Code</strong> - CLI tool for developers (<code>npm install -g @anthropic-ai/claude-code</code>)</li>
+                  <li><strong>VS Code</strong> - With GitHub Copilot extension</li>
+                  <li><strong>Cursor</strong> - AI-powered code editor</li>
+                  <li><strong>Windsurf</strong> - Codeium's AI editor</li>
+                </ul>
+              </div>
             </div>
           </div>
         </div>
@@ -2486,36 +2427,6 @@
             <div class="step">
               <div style="color: var(--accent-cyan); font-weight: 600; margin-bottom: 8px;">Step 4: Configure your MCP client</div>
               <p style="color: var(--text-muted);">Jump to the <a href="#mcp-config" style="color: var(--accent-cyan);">MCP Client Configuration</a> section below and follow the guide for your specific client (Claude Desktop, Claude Code, VS Code, etc.).</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Alternative: NPX -->
-        <div class="config-guide" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 24px; margin-bottom: 24px;">
-          <h3 style="color: var(--accent-orange); margin-bottom: 16px;">Alternative: Use NPX (No Install Required)</h3>
-          <p style="color: var(--text-muted); margin-bottom: 16px;">If you prefer not to install globally, you can use NPX which downloads and runs the package on-demand. This is useful for trying it out or when you want automatic updates.</p>
-
-          <div class="steps" style="margin-left: 8px;">
-            <div class="step" style="margin-bottom: 16px;">
-              <div style="color: var(--accent-cyan); font-weight: 600; margin-bottom: 8px;">How it works</div>
-              <p style="color: var(--text-muted); margin-bottom: 8px;">Instead of installing, NPX downloads the latest version each time. Use this config in your MCP client:</p>
-              <div class="code-block">
-                <code>{
-  <span class="string">"mcpServers"</span>: {
-    <span class="string">"darbot-browser-mcp"</span>: {
-      <span class="string">"command"</span>: <span class="string">"npx"</span>,
-      <span class="string">"args"</span>: [<span class="string">"@darbotlabs/darbot-browser-mcp@latest"</span>]
-    }
-  }
-}</code>
-              </div>
-            </div>
-
-            <div class="step">
-              <div style="color: var(--text-muted); font-size: 13px;">
-                <strong>Pros:</strong> Always uses latest version, no manual updates needed<br>
-                <strong>Cons:</strong> Slightly slower startup (downloads each time), requires internet connection
-              </div>
             </div>
           </div>
         </div>
@@ -2573,7 +2484,7 @@
         <!-- Claude Desktop - Detailed -->
         <div class="config-guide" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 24px; margin-top: 24px;">
           <h3 style="color: var(--accent-orange); margin-bottom: 16px; display: flex; align-items: center; gap: 10px;">
-            <span style="font-size: 20px;">🖥️</span> Claude Desktop
+            Claude Desktop
           </h3>
 
           <div class="steps" style="margin-left: 8px;">
@@ -2634,7 +2545,7 @@
 
             <div class="step">
               <div style="color: var(--accent-cyan); font-weight: 600; margin-bottom: 8px;">Step 6: Verify Connection</div>
-              <p style="color: var(--text-muted); margin-bottom: 8px;">Look for the 🔌 icon in the input area indicating MCP tools are available. Try asking: <em>"Navigate to github.com and take a screenshot"</em></p>
+              <p style="color: var(--text-muted); margin-bottom: 8px;">Look for the plug icon in the input area indicating MCP tools are available. Try asking: <em>"Navigate to github.com and take a screenshot"</em></p>
             </div>
           </div>
         </div>
@@ -2642,7 +2553,7 @@
         <!-- Claude Code - Detailed -->
         <div class="config-guide" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 24px; margin-top: 24px;">
           <h3 style="color: var(--accent-purple); margin-bottom: 16px; display: flex; align-items: center; gap: 10px;">
-            <span style="font-size: 20px;">⌨️</span> Claude Code (CLI)
+            Claude Code (CLI)
           </h3>
 
           <div class="steps" style="margin-left: 8px;">
@@ -2720,7 +2631,7 @@ claude mcp remove darbot-browser-mcp</code>
         <!-- VS Code + GitHub Copilot -->
         <div class="config-guide" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 24px; margin-top: 24px;">
           <h3 style="color: var(--accent-blue); margin-bottom: 16px; display: flex; align-items: center; gap: 10px;">
-            <span style="font-size: 20px;">💻</span> VS Code + GitHub Copilot
+            VS Code + GitHub Copilot
           </h3>
 
           <div class="steps" style="margin-left: 8px;">
@@ -2770,7 +2681,7 @@ claude mcp remove darbot-browser-mcp</code>
         <!-- Cursor -->
         <div class="config-guide" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 24px; margin-top: 24px;">
           <h3 style="color: var(--accent-green); margin-bottom: 16px; display: flex; align-items: center; gap: 10px;">
-            <span style="font-size: 20px;">🖱️</span> Cursor
+            Cursor
           </h3>
 
           <div class="steps" style="margin-left: 8px;">
@@ -2818,7 +2729,7 @@ claude mcp remove darbot-browser-mcp</code>
         <!-- Windsurf -->
         <div class="config-guide" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 24px; margin-top: 24px;">
           <h3 style="color: var(--text-white); margin-bottom: 16px; display: flex; align-items: center; gap: 10px;">
-            <span style="font-size: 20px;">🌊</span> Windsurf
+            Windsurf
           </h3>
 
           <div class="steps" style="margin-left: 8px;">
@@ -2952,7 +2863,7 @@ mkdir -p ~/.codeium/windsurf</code>
           <div style="display: grid; gap: 16px;">
             <div style="background: var(--bg-darker); border-radius: 8px; padding: 16px;">
               <div style="color: var(--accent-orange); font-weight: 600; margin-bottom: 8px;">In Claude Desktop:</div>
-              <p style="color: var(--text-muted); font-size: 14px;">Look for the <strong>🔌 plug icon</strong> or <strong>hammer icon</strong> in the message input area. Click it to see available tools. You should see "darbot-browser-mcp" listed with 52 tools.</p>
+              <p style="color: var(--text-muted); font-size: 14px;">Look for the <strong>plug icon</strong> or <strong>hammer icon</strong> in the message input area. Click it to see available tools. You should see "darbot-browser-mcp" listed with 52 tools.</p>
             </div>
 
             <div style="background: var(--bg-darker); border-radius: 8px; padding: 16px;">
@@ -2999,7 +2910,7 @@ mkdir -p ~/.codeium/windsurf</code>
           </ol>
 
           <div style="background: var(--bg-darker); border-radius: 8px; padding: 16px; margin-top: 16px;">
-            <div style="color: var(--accent-cyan); font-weight: 600; margin-bottom: 8px;">💡 Pro Tip</div>
+            <div style="color: var(--accent-cyan); font-weight: 600; margin-bottom: 8px;">Pro Tip</div>
             <p style="color: var(--text-muted); font-size: 14px;">The browser stays open between commands. You can have a conversation about what's on the page, and ask the AI to click buttons, fill forms, or navigate further.</p>
           </div>
         </div>
@@ -3012,7 +2923,7 @@ mkdir -p ~/.codeium/windsurf</code>
           <div style="display: grid; gap: 20px;">
             <!-- Navigation & Screenshots -->
             <div style="background: var(--bg-darker); border-radius: 8px; padding: 16px;">
-              <div style="color: var(--accent-green); font-weight: 600; margin-bottom: 12px;">📍 Navigation & Screenshots</div>
+              <div style="color: var(--accent-green); font-weight: 600; margin-bottom: 12px;">Navigation & Screenshots</div>
               <div class="code-block" style="margin-bottom: 8px;">
                 <code><span class="string">"Navigate to github.com and take a screenshot"</span></code>
               </div>
@@ -3026,7 +2937,7 @@ mkdir -p ~/.codeium/windsurf</code>
 
             <!-- Clicking & Interactions -->
             <div style="background: var(--bg-darker); border-radius: 8px; padding: 16px;">
-              <div style="color: var(--accent-orange); font-weight: 600; margin-bottom: 12px;">👆 Clicking & Interactions</div>
+              <div style="color: var(--accent-orange); font-weight: 600; margin-bottom: 12px;">Clicking & Interactions</div>
               <div class="code-block" style="margin-bottom: 8px;">
                 <code><span class="string">"Click the Sign In button"</span></code>
               </div>
@@ -3040,7 +2951,7 @@ mkdir -p ~/.codeium/windsurf</code>
 
             <!-- Form Filling -->
             <div style="background: var(--bg-darker); border-radius: 8px; padding: 16px;">
-              <div style="color: var(--accent-blue); font-weight: 600; margin-bottom: 12px;">📝 Form Filling</div>
+              <div style="color: var(--accent-blue); font-weight: 600; margin-bottom: 12px;">Form Filling</div>
               <div class="code-block" style="margin-bottom: 8px;">
                 <code><span class="string">"Type 'hello world' in the search box"</span></code>
               </div>
@@ -3054,7 +2965,7 @@ mkdir -p ~/.codeium/windsurf</code>
 
             <!-- Session Management -->
             <div style="background: var(--bg-darker); border-radius: 8px; padding: 16px;">
-              <div style="color: var(--accent-purple); font-weight: 600; margin-bottom: 12px;">💾 Session Management</div>
+              <div style="color: var(--accent-purple); font-weight: 600; margin-bottom: 12px;">Session Management</div>
               <div class="code-block" style="margin-bottom: 8px;">
                 <code><span class="string">"Save this browser session as 'my-research'"</span></code>
               </div>
@@ -3068,7 +2979,7 @@ mkdir -p ~/.codeium/windsurf</code>
 
             <!-- Multi-Tab -->
             <div style="background: var(--bg-darker); border-radius: 8px; padding: 16px;">
-              <div style="color: var(--accent-cyan); font-weight: 600; margin-bottom: 12px;">📑 Multi-Tab Browsing</div>
+              <div style="color: var(--accent-cyan); font-weight: 600; margin-bottom: 12px;">Multi-Tab Browsing</div>
               <div class="code-block" style="margin-bottom: 8px;">
                 <code><span class="string">"Open a new tab and go to twitter.com"</span></code>
               </div>
@@ -3082,7 +2993,7 @@ mkdir -p ~/.codeium/windsurf</code>
 
             <!-- Autonomous Crawling -->
             <div style="background: var(--bg-darker); border-radius: 8px; padding: 16px;">
-              <div style="color: var(--accent-red); font-weight: 600; margin-bottom: 12px;">🤖 Autonomous Crawling (Advanced)</div>
+              <div style="color: var(--accent-red); font-weight: 600; margin-bottom: 12px;">Autonomous Crawling (Advanced)</div>
               <div class="code-block" style="margin-bottom: 8px;">
                 <code><span class="string">"Start autonomous crawl of docs.python.org with max depth 2"</span></code>
               </div>
@@ -3104,8 +3015,8 @@ mkdir -p ~/.codeium/windsurf</code>
         </div>
 
         <!-- What's Next -->
-        <div style="background: linear-gradient(135deg, rgba(78, 205, 196, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%); border: 1px solid var(--accent-cyan); border-radius: 12px; padding: 24px;">
-          <h3 style="color: var(--accent-cyan); margin-bottom: 16px;">🎉 You're Ready!</h3>
+        <div style="background: rgba(77, 208, 225, 0.04); border: 1px solid var(--accent-cyan); border-radius: 8px; padding: 24px;">
+          <h3 style="color: var(--accent-cyan); margin-bottom: 16px;">You're Ready!</h3>
           <p style="color: var(--text-muted); margin-bottom: 16px;">You now know the basics. Here's what to explore next:</p>
           <ul style="color: var(--text-muted); margin-left: 20px; line-height: 2;">
             <li><a href="#tools" style="color: var(--accent-cyan);">Complete Toolbox (52 Tools)</a> - See all available browser automation capabilities</li>
@@ -3160,49 +3071,90 @@ mkdir -p ~/.codeium/windsurf</code>
         <h2 class="section-title">Deployment Editions</h2>
         <p class="section-subtitle">Choose the right edition for your deployment needs</p>
 
-        <div class="card-grid">
-          <div class="card edition-card recommended" id="local-edition">
-            <span class="edition-badge local">Local</span>
-            <h3 class="card-title">Local Edition</h3>
-            <p class="card-description">Standard installation runs entirely on your local machine. Perfect for development and prototyping.</p>
-            <ul class="mt-2">
-              <li>Easy setup with npx</li>
-              <li>Full 52 tools</li>
-              <li>No network dependencies</li>
-              <li>stdio transport</li>
-            </ul>
-            <a href="#installation" class="card-link">Get Started →</a>
-          </div>
-
-          <div class="card edition-card" id="cloud-edition">
-            <span class="edition-badge cloud">Cloud</span>
-            <h3 class="card-title">Cloud Edition</h3>
-            <p class="card-description">Hosted on Azure App Service with Microsoft Entra ID authentication for enterprise deployments.</p>
-            <ul class="mt-2">
-              <li>Azure App Service</li>
-              <li>Entra ID authentication</li>
-              <li>Application Insights</li>
-              <li>Streamable HTTP transport</li>
-            </ul>
-            <a href="#" onclick="showDocTab('cloud-config'); return false;" class="card-link">Deploy to Azure →</a>
-          </div>
-
-          <div class="card edition-card" id="hosted-edition">
-            <span class="edition-badge hosted">Hosted</span>
-            <h3 class="card-title">Hosted Edition</h3>
-            <p class="card-description">Self-hosted Docker container with VS Code Dev Tunnels for on-premises enterprise deployments.</p>
-            <ul class="mt-2">
-              <li>Docker container</li>
-              <li>Data sovereignty</li>
-              <li>Dev Tunnel support</li>
-              <li>Custom policies</li>
-            </ul>
-            <a href="#" onclick="showDocTab('extension-integration'); return false;" class="card-link">Self-Host Guide →</a>
-          </div>
+        <!-- Editions Table -->
+        <div style="background: var(--bg-card); border: 1px solid var(--border-accent); border-radius: 8px; overflow: hidden; margin-bottom: 32px;">
+          <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+              <tr style="background: rgba(77, 208, 225, 0.04);">
+                <th style="padding: 16px; text-align: left; color: var(--accent-cyan); font-weight: 600; border-bottom: 1px solid var(--border-accent); width: 20%;">Feature</th>
+                <th style="padding: 16px; text-align: left; color: var(--accent-green); font-weight: 600; border-bottom: 1px solid var(--border-accent);">Local Edition</th>
+                <th style="padding: 16px; text-align: left; color: var(--accent-blue); font-weight: 600; border-bottom: 1px solid var(--border-accent);">Cloud Edition</th>
+                <th style="padding: 16px; text-align: left; color: var(--accent-magenta); font-weight: 600; border-bottom: 1px solid var(--border-accent);">Hosted Edition</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="border-bottom: 1px solid var(--border-subtle);">
+                <td style="padding: 14px 16px; color: var(--text-secondary); font-weight: 600;">Description</td>
+                <td style="padding: 14px 16px; color: var(--text-primary);">Runs entirely on your local machine</td>
+                <td style="padding: 14px 16px; color: var(--text-primary);">Hosted on Azure App Service</td>
+                <td style="padding: 14px 16px; color: var(--text-primary);">Self-hosted Docker container</td>
+              </tr>
+              <tr style="border-bottom: 1px solid var(--border-subtle);">
+                <td style="padding: 14px 16px; color: var(--text-secondary); font-weight: 600;">Transport</td>
+                <td style="padding: 14px 16px; color: var(--text-primary);">stdio</td>
+                <td style="padding: 14px 16px; color: var(--text-primary);">Streamable HTTP (SSE)</td>
+                <td style="padding: 14px 16px; color: var(--text-primary);">Dev Tunnel / HTTP</td>
+              </tr>
+              <tr style="border-bottom: 1px solid var(--border-subtle);">
+                <td style="padding: 14px 16px; color: var(--text-secondary); font-weight: 600;">Authentication</td>
+                <td style="padding: 14px 16px; color: var(--text-primary);">None (local)</td>
+                <td style="padding: 14px 16px; color: var(--text-primary);">Microsoft Entra ID</td>
+                <td style="padding: 14px 16px; color: var(--text-primary);">Custom / OAuth</td>
+              </tr>
+              <tr style="border-bottom: 1px solid var(--border-subtle);">
+                <td style="padding: 14px 16px; color: var(--text-secondary); font-weight: 600;">Browser Mode</td>
+                <td style="padding: 14px 16px; color: var(--text-primary);">Headed / Headless</td>
+                <td style="padding: 14px 16px; color: var(--text-primary);">Headless only</td>
+                <td style="padding: 14px 16px; color: var(--text-primary);">Headed / Headless</td>
+              </tr>
+              <tr style="border-bottom: 1px solid var(--border-subtle);">
+                <td style="padding: 14px 16px; color: var(--text-secondary); font-weight: 600;">Setup Time</td>
+                <td style="padding: 14px 16px; color: var(--text-primary);">~1 minute</td>
+                <td style="padding: 14px 16px; color: var(--text-primary);">~30 minutes</td>
+                <td style="padding: 14px 16px; color: var(--text-primary);">~15 minutes</td>
+              </tr>
+              <tr style="border-bottom: 1px solid var(--border-subtle);">
+                <td style="padding: 14px 16px; color: var(--text-secondary); font-weight: 600;">Network Access</td>
+                <td style="padding: 14px 16px; color: var(--text-primary);">Public internet</td>
+                <td style="padding: 14px 16px; color: var(--text-primary);">Public internet</td>
+                <td style="padding: 14px 16px; color: var(--text-primary);">Internal + Public</td>
+              </tr>
+              <tr style="border-bottom: 1px solid var(--border-subtle);">
+                <td style="padding: 14px 16px; color: var(--text-secondary); font-weight: 600;">Data Location</td>
+                <td style="padding: 14px 16px; color: var(--text-primary);">Local machine</td>
+                <td style="padding: 14px 16px; color: var(--text-primary);">Azure region</td>
+                <td style="padding: 14px 16px; color: var(--text-primary);">Your infrastructure</td>
+              </tr>
+              <tr style="border-bottom: 1px solid var(--border-subtle);">
+                <td style="padding: 14px 16px; color: var(--text-secondary); font-weight: 600;">Scaling</td>
+                <td style="padding: 14px 16px; color: var(--text-primary);">Single instance</td>
+                <td style="padding: 14px 16px; color: var(--text-primary);">Auto-scale</td>
+                <td style="padding: 14px 16px; color: var(--text-primary);">Manual / K8s</td>
+              </tr>
+              <tr style="border-bottom: 1px solid var(--border-subtle);">
+                <td style="padding: 14px 16px; color: var(--text-secondary); font-weight: 600;">Tools Available</td>
+                <td style="padding: 14px 16px; color: var(--text-primary);">All 52 tools</td>
+                <td style="padding: 14px 16px; color: var(--text-primary);">All 52 tools</td>
+                <td style="padding: 14px 16px; color: var(--text-primary);">All 52 tools</td>
+              </tr>
+              <tr style="border-bottom: 1px solid var(--border-subtle);">
+                <td style="padding: 14px 16px; color: var(--text-secondary); font-weight: 600;">Best For</td>
+                <td style="padding: 14px 16px; color: var(--text-primary);">Development & prototyping</td>
+                <td style="padding: 14px 16px; color: var(--text-primary);">Enterprise SaaS</td>
+                <td style="padding: 14px 16px; color: var(--text-primary);">Regulated industries</td>
+              </tr>
+              <tr>
+                <td style="padding: 14px 16px; color: var(--text-secondary); font-weight: 600;">Quick Start</td>
+                <td style="padding: 14px 16px;"><a href="#installation" style="color: var(--accent-green); text-decoration: none;">Get Started →</a></td>
+                <td style="padding: 14px 16px;"><a href="#" onclick="showDocTab('cloud-config'); return false;" style="color: var(--accent-blue); text-decoration: none;">Deploy to Azure →</a></td>
+                <td style="padding: 14px 16px;"><a href="#" onclick="showDocTab('extension-integration'); return false;" style="color: var(--accent-magenta); text-decoration: none;">Self-Host Guide →</a></td>
+              </tr>
+            </tbody>
+          </table>
         </div>
 
         <!-- Architecture Diagrams -->
-        <h3 class="mt-4 text-cyan" style="margin-top: 48px;">Architecture Comparison</h3>
+        <h3 class="mt-4 text-cyan" style="margin-top: 24px;">Architecture Diagrams</h3>
 
         <!-- Local Edition Architecture -->
         <div class="architecture-diagram" style="margin-top: 24px;">
@@ -3284,71 +3236,6 @@ mkdir -p ~/.codeium/windsurf</code>
             Can access internal resources (APIs, databases) that cloud edition cannot. Full data sovereignty.
           </p>
         </div>
-
-        <!-- Comparison Table -->
-        <h3 class="mt-4 text-cyan" style="margin-top: 48px;">Edition Comparison</h3>
-        <div class="table-wrapper" style="margin-top: 16px;">
-          <table>
-            <thead>
-              <tr>
-                <th>Feature</th>
-                <th><span style="color: var(--accent-green);">Local</span></th>
-                <th><span style="color: var(--accent-blue);">Cloud</span></th>
-                <th><span style="color: var(--accent-purple);">Hosted</span></th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Transport</td>
-                <td>stdio</td>
-                <td>Streamable HTTP</td>
-                <td>Dev Tunnel / HTTP</td>
-              </tr>
-              <tr>
-                <td>Authentication</td>
-                <td>None (local)</td>
-                <td>Microsoft Entra ID</td>
-                <td>Custom / OAuth</td>
-              </tr>
-              <tr>
-                <td>Browser Mode</td>
-                <td>Headed / Headless</td>
-                <td>Headless only</td>
-                <td>Headed / Headless</td>
-              </tr>
-              <tr>
-                <td>Setup Time</td>
-                <td>~1 minute</td>
-                <td>~30 minutes</td>
-                <td>~15 minutes</td>
-              </tr>
-              <tr>
-                <td>Network Access</td>
-                <td>Public internet</td>
-                <td>Public internet</td>
-                <td>Internal + Public</td>
-              </tr>
-              <tr>
-                <td>Data Location</td>
-                <td>Local machine</td>
-                <td>Azure region</td>
-                <td>Your infrastructure</td>
-              </tr>
-              <tr>
-                <td>Scaling</td>
-                <td>Single instance</td>
-                <td>Auto-scale</td>
-                <td>Manual / K8s</td>
-              </tr>
-              <tr>
-                <td>Best For</td>
-                <td>Development</td>
-                <td>Enterprise SaaS</td>
-                <td>Regulated industries</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
       </section>
 
       <!-- Tools Reference -->
@@ -3356,131 +3243,96 @@ mkdir -p ~/.codeium/windsurf</code>
         <h2 class="section-title">Complete Toolbox (52 Tools)</h2>
         <p class="section-subtitle">Comprehensive autonomous browser capabilities organized by category</p>
 
-        <div class="tools-category" id="core-tools">
-          <h3 class="tools-category-title">Core Browser Operations (8 Tools)</h3>
-          <div class="tools-list">
-            <div class="tool-item">browser_navigate</div>
-            <div class="tool-item">browser_snapshot</div>
-            <div class="tool-item">browser_click</div>
-            <div class="tool-item">browser_type</div>
-            <div class="tool-item">browser_select_option</div>
-            <div class="tool-item">browser_press_key</div>
-            <div class="tool-item">browser_wait_for</div>
-            <div class="tool-item">browser_close</div>
-          </div>
+        <!-- Tools Tab Navigation -->
+        <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; border-bottom: 2px solid var(--border-accent); padding-bottom: 2px;">
+          <button onclick="showToolsTab('core')" id="tab-core" class="tools-tab-btn active" style="padding: 10px 20px; background: var(--accent-cyan); border: none; border-radius: 6px 6px 0 0; color: var(--bg-primary); font-weight: 600; cursor: pointer; transition: all 0.2s;">Core (8)</button>
+          <button onclick="showToolsTab('advanced')" id="tab-advanced" class="tools-tab-btn" style="padding: 10px 20px; background: var(--bg-card); border: none; border-radius: 6px 6px 0 0; color: var(--text-secondary); font-weight: 600; cursor: pointer; transition: all 0.2s;">Advanced (5)</button>
+          <button onclick="showToolsTab('tabs')" id="tab-tabs" class="tools-tab-btn" style="padding: 10px 20px; background: var(--bg-card); border: none; border-radius: 6px 6px 0 0; color: var(--text-secondary); font-weight: 600; cursor: pointer; transition: all 0.2s;">Tabs (4)</button>
+          <button onclick="showToolsTab('session')" id="tab-session" class="tools-tab-btn" style="padding: 10px 20px; background: var(--bg-card); border: none; border-radius: 6px 6px 0 0; color: var(--text-secondary); font-weight: 600; cursor: pointer; transition: all 0.2s;">Session (4)</button>
+          <button onclick="showToolsTab('ai')" id="tab-ai" class="tools-tab-btn" style="padding: 10px 20px; background: var(--bg-card); border: none; border-radius: 6px 6px 0 0; color: var(--text-secondary); font-weight: 600; cursor: pointer; transition: all 0.2s;">AI-Native (4)</button>
+          <button onclick="showToolsTab('crawling')" id="tab-crawling" class="tools-tab-btn" style="padding: 10px 20px; background: var(--bg-card); border: none; border-radius: 6px 6px 0 0; color: var(--text-secondary); font-weight: 600; cursor: pointer; transition: all 0.2s;">Crawling (3)</button>
+          <button onclick="showToolsTab('other')" id="tab-other" class="tools-tab-btn" style="padding: 10px 20px; background: var(--bg-card); border: none; border-radius: 6px 6px 0 0; color: var(--text-secondary); font-weight: 600; cursor: pointer; transition: all 0.2s;">Other (24)</button>
         </div>
 
-        <div class="tools-category">
-          <h3 class="tools-category-title">Advanced Interactions (5 Tools)</h3>
-          <div class="tools-list">
-            <div class="tool-item">browser_hover</div>
-            <div class="tool-item">browser_drag</div>
-            <div class="tool-item">browser_handle_dialog</div>
-            <div class="tool-item">browser_file_upload</div>
-            <div class="tool-item">browser_resize</div>
-          </div>
-        </div>
+        <!-- Tools Table -->
+        <div style="background: var(--bg-card); border: 1px solid var(--border-accent); border-radius: 8px; overflow: hidden;">
+          <table id="tools-table" style="width: 100%; border-collapse: collapse;">
+            <thead>
+              <tr style="background: rgba(77, 208, 225, 0.04);">
+                <th style="padding: 16px; text-align: left; color: var(--accent-cyan); font-weight: 600; border-bottom: 1px solid var(--border-accent);">Tool Name</th>
+                <th style="padding: 16px; text-align: left; color: var(--accent-cyan); font-weight: 600; border-bottom: 1px solid var(--border-accent);">Description</th>
+              </tr>
+            </thead>
+            <tbody id="tools-tbody">
+              <!-- Core Tools -->
+              <tr class="tool-row tool-core" style="border-bottom: 1px solid var(--border-subtle);"><td style="padding: 12px; font-family: 'Cascadia Code', monospace; color: var(--accent-green);">browser_navigate</td><td style="padding: 12px; color: var(--text-primary);">Navigate to a URL</td></tr>
+              <tr class="tool-row tool-core" style="border-bottom: 1px solid var(--border-subtle);"><td style="padding: 12px; font-family: 'Cascadia Code', monospace; color: var(--accent-green);">browser_snapshot</td><td style="padding: 12px; color: var(--text-primary);">Capture page accessibility snapshot</td></tr>
+              <tr class="tool-row tool-core" style="border-bottom: 1px solid var(--border-subtle);"><td style="padding: 12px; font-family: 'Cascadia Code', monospace; color: var(--accent-green);">browser_click</td><td style="padding: 12px; color: var(--text-primary);">Click on page elements</td></tr>
+              <tr class="tool-row tool-core" style="border-bottom: 1px solid var(--border-subtle);"><td style="padding: 12px; font-family: 'Cascadia Code', monospace; color: var(--accent-green);">browser_type</td><td style="padding: 12px; color: var(--text-primary);">Type text into input fields</td></tr>
+              <tr class="tool-row tool-core" style="border-bottom: 1px solid var(--border-subtle);"><td style="padding: 12px; font-family: 'Cascadia Code', monospace; color: var(--accent-green);">browser_select_option</td><td style="padding: 12px; color: var(--text-primary);">Select options from dropdowns</td></tr>
+              <tr class="tool-row tool-core" style="border-bottom: 1px solid var(--border-subtle);"><td style="padding: 12px; font-family: 'Cascadia Code', monospace; color: var(--accent-green);">browser_press_key</td><td style="padding: 12px; color: var(--text-primary);">Press keyboard keys</td></tr>
+              <tr class="tool-row tool-core" style="border-bottom: 1px solid var(--border-subtle);"><td style="padding: 12px; font-family: 'Cascadia Code', monospace; color: var(--accent-green);">browser_wait_for</td><td style="padding: 12px; color: var(--text-primary);">Wait for conditions</td></tr>
+              <tr class="tool-row tool-core" style="border-bottom: 1px solid var(--border-subtle);"><td style="padding: 12px; font-family: 'Cascadia Code', monospace; color: var(--accent-green);">browser_close</td><td style="padding: 12px; color: var(--text-primary);">Close browser session</td></tr>
 
-        <div class="tools-category">
-          <h3 class="tools-category-title">Tab Management (4 Tools)</h3>
-          <div class="tools-list">
-            <div class="tool-item">browser_tab_new</div>
-            <div class="tool-item">browser_tab_list</div>
-            <div class="tool-item">browser_tab_select</div>
-            <div class="tool-item">browser_tab_close</div>
-          </div>
-        </div>
+              <!-- Advanced Tools -->
+              <tr class="tool-row tool-advanced hidden" style="border-bottom: 1px solid var(--border-subtle);"><td style="padding: 12px; font-family: 'Cascadia Code', monospace; color: var(--accent-green);">browser_hover</td><td style="padding: 12px; color: var(--text-primary);">Hover over elements</td></tr>
+              <tr class="tool-row tool-advanced hidden" style="border-bottom: 1px solid var(--border-subtle);"><td style="padding: 12px; font-family: 'Cascadia Code', monospace; color: var(--accent-green);">browser_drag</td><td style="padding: 12px; color: var(--text-primary);">Drag and drop elements</td></tr>
+              <tr class="tool-row tool-advanced hidden" style="border-bottom: 1px solid var(--border-subtle);"><td style="padding: 12px; font-family: 'Cascadia Code', monospace; color: var(--accent-green);">browser_handle_dialog</td><td style="padding: 12px; color: var(--text-primary);">Handle alert/confirm dialogs</td></tr>
+              <tr class="tool-row tool-advanced hidden" style="border-bottom: 1px solid var(--border-subtle);"><td style="padding: 12px; font-family: 'Cascadia Code', monospace; color: var(--accent-green);">browser_file_upload</td><td style="padding: 12px; color: var(--text-primary);">Upload files</td></tr>
+              <tr class="tool-row tool-advanced hidden" style="border-bottom: 1px solid var(--border-subtle);"><td style="padding: 12px; font-family: 'Cascadia Code', monospace; color: var(--accent-green);">browser_resize</td><td style="padding: 12px; color: var(--text-primary);">Resize browser window</td></tr>
 
-        <div class="tools-category" id="session-tools">
-          <h3 class="tools-category-title">Session Management (4 Tools)</h3>
-          <div class="tools-list">
-            <div class="tool-item">browser_save_profile</div>
-            <div class="tool-item">browser_switch_profile</div>
-            <div class="tool-item">browser_list_profiles</div>
-            <div class="tool-item">browser_delete_profile</div>
-          </div>
-        </div>
+              <!-- Tab Management Tools -->
+              <tr class="tool-row tool-tabs hidden" style="border-bottom: 1px solid var(--border-subtle);"><td style="padding: 12px; font-family: 'Cascadia Code', monospace; color: var(--accent-green);">browser_tab_new</td><td style="padding: 12px; color: var(--text-primary);">Open new browser tab</td></tr>
+              <tr class="tool-row tool-tabs hidden" style="border-bottom: 1px solid var(--border-subtle);"><td style="padding: 12px; font-family: 'Cascadia Code', monospace; color: var(--accent-green);">browser_tab_list</td><td style="padding: 12px; color: var(--text-primary);">List all open tabs</td></tr>
+              <tr class="tool-row tool-tabs hidden" style="border-bottom: 1px solid var(--border-subtle);"><td style="padding: 12px; font-family: 'Cascadia Code', monospace; color: var(--accent-green);">browser_tab_select</td><td style="padding: 12px; color: var(--text-primary);">Switch to specific tab</td></tr>
+              <tr class="tool-row tool-tabs hidden" style="border-bottom: 1px solid var(--border-subtle);"><td style="padding: 12px; font-family: 'Cascadia Code', monospace; color: var(--accent-green);">browser_tab_close</td><td style="padding: 12px; color: var(--text-primary);">Close browser tab</td></tr>
 
-        <div class="tools-category">
-          <h3 class="tools-category-title">Navigation Controls (2 Tools)</h3>
-          <div class="tools-list">
-            <div class="tool-item">browser_navigate_back</div>
-            <div class="tool-item">browser_navigate_forward</div>
-          </div>
-        </div>
+              <!-- Session Management Tools -->
+              <tr class="tool-row tool-session hidden" style="border-bottom: 1px solid var(--border-subtle);"><td style="padding: 12px; font-family: 'Cascadia Code', monospace; color: var(--accent-green);">browser_save_profile</td><td style="padding: 12px; color: var(--text-primary);">Save browser session state</td></tr>
+              <tr class="tool-row tool-session hidden" style="border-bottom: 1px solid var(--border-subtle);"><td style="padding: 12px; font-family: 'Cascadia Code', monospace; color: var(--accent-green);">browser_switch_profile</td><td style="padding: 12px; color: var(--text-primary);">Switch between saved profiles</td></tr>
+              <tr class="tool-row tool-session hidden" style="border-bottom: 1px solid var(--border-subtle);"><td style="padding: 12px; font-family: 'Cascadia Code', monospace; color: var(--accent-green);">browser_list_profiles</td><td style="padding: 12px; color: var(--text-primary);">List saved browser profiles</td></tr>
+              <tr class="tool-row tool-session hidden" style="border-bottom: 1px solid var(--border-subtle);"><td style="padding: 12px; font-family: 'Cascadia Code', monospace; color: var(--accent-green);">browser_delete_profile</td><td style="padding: 12px; color: var(--text-primary);">Delete saved profile</td></tr>
 
-        <div class="tools-category">
-          <h3 class="tools-category-title">Media & Resources (2 Tools)</h3>
-          <div class="tools-list">
-            <div class="tool-item">browser_take_screenshot</div>
-            <div class="tool-item">browser_pdf_save</div>
-          </div>
-        </div>
+              <!-- AI-Native Tools -->
+              <tr class="tool-row tool-ai hidden" style="border-bottom: 1px solid var(--border-subtle);"><td style="padding: 12px; font-family: 'Cascadia Code', monospace; color: var(--accent-green);">browser_execute_intent</td><td style="padding: 12px; color: var(--text-primary);">Execute natural language intentions</td></tr>
+              <tr class="tool-row tool-ai hidden" style="border-bottom: 1px solid var(--border-subtle);"><td style="padding: 12px; font-family: 'Cascadia Code', monospace; color: var(--accent-green);">browser_execute_workflow</td><td style="padding: 12px; color: var(--text-primary);">Run predefined workflows</td></tr>
+              <tr class="tool-row tool-ai hidden" style="border-bottom: 1px solid var(--border-subtle);"><td style="padding: 12px; font-family: 'Cascadia Code', monospace; color: var(--accent-green);">browser_analyze_context</td><td style="padding: 12px; color: var(--text-primary);">Analyze current page context</td></tr>
+              <tr class="tool-row tool-ai hidden" style="border-bottom: 1px solid var(--border-subtle);"><td style="padding: 12px; font-family: 'Cascadia Code', monospace; color: var(--accent-green);">browser_emulate_media</td><td style="padding: 12px; color: var(--text-primary);">Emulate media features</td></tr>
 
-        <div class="tools-category">
-          <h3 class="tools-category-title">Debugging & Analysis (2 Tools)</h3>
-          <div class="tools-list">
-            <div class="tool-item">browser_console_messages</div>
-            <div class="tool-item">browser_network_requests</div>
-          </div>
-        </div>
+              <!-- Autonomous Crawling Tools -->
+              <tr class="tool-row tool-crawling hidden" style="border-bottom: 1px solid var(--border-subtle);"><td style="padding: 12px; font-family: 'Cascadia Code', monospace; color: var(--accent-green);">browser_start_autonomous_crawl</td><td style="padding: 12px; color: var(--text-primary);">Start autonomous website crawling</td></tr>
+              <tr class="tool-row tool-crawling hidden" style="border-bottom: 1px solid var(--border-subtle);"><td style="padding: 12px; font-family: 'Cascadia Code', monospace; color: var(--accent-green);">browser_configure_memory</td><td style="padding: 12px; color: var(--text-primary);">Configure crawl memory system</td></tr>
+              <tr class="tool-row tool-crawling hidden" style="border-bottom: 1px solid var(--border-subtle);"><td style="padding: 12px; font-family: 'Cascadia Code', monospace; color: var(--accent-green);">browser_get_crawl_report</td><td style="padding: 12px; color: var(--text-primary);">Get crawl session report</td></tr>
 
-        <div class="tools-category">
-          <h3 class="tools-category-title">Testing & Development (2 Tools)</h3>
-          <div class="tools-list">
-            <div class="tool-item">browser_generate_playwright_test</div>
-            <div class="tool-item">browser_install</div>
-          </div>
-        </div>
-
-        <div class="tools-category" id="ai-tools">
-          <h3 class="tools-category-title">AI-Native Tools (4 Tools)</h3>
-          <div class="tools-list">
-            <div class="tool-item">browser_execute_intent</div>
-            <div class="tool-item">browser_execute_workflow</div>
-            <div class="tool-item">browser_analyze_context</div>
-            <div class="tool-item">browser_emulate_media</div>
-          </div>
-        </div>
-
-        <div class="tools-category" id="crawling-tools">
-          <h3 class="tools-category-title">Autonomous Crawling (3 Tools)</h3>
-          <div class="tools-list">
-            <div class="tool-item">browser_start_autonomous_crawl</div>
-            <div class="tool-item">browser_configure_memory</div>
-            <div class="tool-item">browser_get_crawl_report</div>
-          </div>
-        </div>
-
-        <div class="tools-category">
-          <h3 class="tools-category-title">Environment Emulation (5 Tools)</h3>
-          <div class="tools-list">
-            <div class="tool-item">browser_save_session</div>
-            <div class="tool-item">browser_restore_session</div>
-            <div class="tool-item">browser_emulate_geolocation</div>
-            <div class="tool-item">browser_emulate_timezone</div>
-            <div class="tool-item">browser_scroll</div>
-          </div>
-        </div>
-
-        <div class="tools-category">
-          <h3 class="tools-category-title">Time Control (4 Tools)</h3>
-          <div class="tools-list">
-            <div class="tool-item">browser_clock_fast_forward</div>
-            <div class="tool-item">browser_clock_pause</div>
-            <div class="tool-item">browser_clock_resume</div>
-            <div class="tool-item">browser_clock_set_fixed_time</div>
-          </div>
-        </div>
-
-        <div class="tools-category">
-          <h3 class="tools-category-title">Cookie & Storage (4 Tools)</h3>
-          <div class="tools-list">
-            <div class="tool-item">browser_get_cookies</div>
-            <div class="tool-item">browser_clear_cookies</div>
-            <div class="tool-item">browser_get_local_storage</div>
-            <div class="tool-item">browser_set_local_storage</div>
-          </div>
+              <!-- Other Tools -->
+              <tr class="tool-row tool-other hidden" style="border-bottom: 1px solid var(--border-subtle);"><td style="padding: 12px; font-family: 'Cascadia Code', monospace; color: var(--accent-green);">browser_navigate_back</td><td style="padding: 12px; color: var(--text-primary);">Navigate back in history</td></tr>
+              <tr class="tool-row tool-other hidden" style="border-bottom: 1px solid var(--border-subtle);"><td style="padding: 12px; font-family: 'Cascadia Code', monospace; color: var(--accent-green);">browser_navigate_forward</td><td style="padding: 12px; color: var(--text-primary);">Navigate forward in history</td></tr>
+              <tr class="tool-row tool-other hidden" style="border-bottom: 1px solid var(--border-subtle);"><td style="padding: 12px; font-family: 'Cascadia Code', monospace; color: var(--accent-green);">browser_take_screenshot</td><td style="padding: 12px; color: var(--text-primary);">Capture visual screenshots</td></tr>
+              <tr class="tool-row tool-other hidden" style="border-bottom: 1px solid var(--border-subtle);"><td style="padding: 12px; font-family: 'Cascadia Code', monospace; color: var(--accent-green);">browser_pdf_save</td><td style="padding: 12px; color: var(--text-primary);">Save page as PDF</td></tr>
+              <tr class="tool-row tool-other hidden" style="border-bottom: 1px solid var(--border-subtle);"><td style="padding: 12px; font-family: 'Cascadia Code', monospace; color: var(--accent-green);">browser_console_messages</td><td style="padding: 12px; color: var(--text-primary);">Get console messages</td></tr>
+              <tr class="tool-row tool-other hidden" style="border-bottom: 1px solid var(--border-subtle);"><td style="padding: 12px; font-family: 'Cascadia Code', monospace; color: var(--accent-green);">browser_network_requests</td><td style="padding: 12px; color: var(--text-primary);">Capture network traffic</td></tr>
+              <tr class="tool-row tool-other hidden" style="border-bottom: 1px solid var(--border-subtle);"><td style="padding: 12px; font-family: 'Cascadia Code', monospace; color: var(--accent-green);">browser_generate_playwright_test</td><td style="padding: 12px; color: var(--text-primary);">Generate Playwright tests</td></tr>
+              <tr class="tool-row tool-other hidden" style="border-bottom: 1px solid var(--border-subtle);"><td style="padding: 12px; font-family: 'Cascadia Code', monospace; color: var(--accent-green);">browser_install</td><td style="padding: 12px; color: var(--text-primary);">Install browser engines</td></tr>
+              <tr class="tool-row tool-other hidden" style="border-bottom: 1px solid var(--border-subtle);"><td style="padding: 12px; font-family: 'Cascadia Code', monospace; color: var(--accent-green);">browser_save_session</td><td style="padding: 12px; color: var(--text-primary);">Save current session</td></tr>
+              <tr class="tool-row tool-other hidden" style="border-bottom: 1px solid var(--border-subtle);"><td style="padding: 12px; font-family: 'Cascadia Code', monospace; color: var(--accent-green);">browser_restore_session</td><td style="padding: 12px; color: var(--text-primary);">Restore saved session</td></tr>
+              <tr class="tool-row tool-other hidden" style="border-bottom: 1px solid var(--border-subtle);"><td style="padding: 12px; font-family: 'Cascadia Code', monospace; color: var(--accent-green);">browser_emulate_geolocation</td><td style="padding: 12px; color: var(--text-primary);">Emulate location</td></tr>
+              <tr class="tool-row tool-other hidden" style="border-bottom: 1px solid var(--border-subtle);"><td style="padding: 12px; font-family: 'Cascadia Code', monospace; color: var(--accent-green);">browser_emulate_timezone</td><td style="padding: 12px; color: var(--text-primary);">Emulate timezone</td></tr>
+              <tr class="tool-row tool-other hidden" style="border-bottom: 1px solid var(--border-subtle);"><td style="padding: 12px; font-family: 'Cascadia Code', monospace; color: var(--accent-green);">browser_scroll</td><td style="padding: 12px; color: var(--text-primary);">Scroll page</td></tr>
+              <tr class="tool-row tool-other hidden" style="border-bottom: 1px solid var(--border-subtle);"><td style="padding: 12px; font-family: 'Cascadia Code', monospace; color: var(--accent-green);">browser_scroll_to_element</td><td style="padding: 12px; color: var(--text-primary);">Scroll to specific element</td></tr>
+              <tr class="tool-row tool-other hidden" style="border-bottom: 1px solid var(--border-subtle);"><td style="padding: 12px; font-family: 'Cascadia Code', monospace; color: var(--accent-green);">browser_clock_fast_forward</td><td style="padding: 12px; color: var(--text-primary);">Fast-forward browser clock</td></tr>
+              <tr class="tool-row tool-other hidden" style="border-bottom: 1px solid var(--border-subtle);"><td style="padding: 12px; font-family: 'Cascadia Code', monospace; color: var(--accent-green);">browser_clock_pause</td><td style="padding: 12px; color: var(--text-primary);">Pause browser clock</td></tr>
+              <tr class="tool-row tool-other hidden" style="border-bottom: 1px solid var(--border-subtle);"><td style="padding: 12px; font-family: 'Cascadia Code', monospace; color: var(--accent-green);">browser_clock_resume</td><td style="padding: 12px; color: var(--text-primary);">Resume browser clock</td></tr>
+              <tr class="tool-row tool-other hidden" style="border-bottom: 1px solid var(--border-subtle);"><td style="padding: 12px; font-family: 'Cascadia Code', monospace; color: var(--accent-green);">browser_clock_set_fixed_time</td><td style="padding: 12px; color: var(--text-primary);">Set fixed time</td></tr>
+              <tr class="tool-row tool-other hidden" style="border-bottom: 1px solid var(--border-subtle);"><td style="padding: 12px; font-family: 'Cascadia Code', monospace; color: var(--accent-green);">browser_get_cookies</td><td style="padding: 12px; color: var(--text-primary);">Get browser cookies</td></tr>
+              <tr class="tool-row tool-other hidden" style="border-bottom: 1px solid var(--border-subtle);"><td style="padding: 12px; font-family: 'Cascadia Code', monospace; color: var(--accent-green);">browser_clear_cookies</td><td style="padding: 12px; color: var(--text-primary);">Clear cookies</td></tr>
+              <tr class="tool-row tool-other hidden" style="border-bottom: 1px solid var(--border-subtle);"><td style="padding: 12px; font-family: 'Cascadia Code', monospace; color: var(--accent-green);">browser_get_local_storage</td><td style="padding: 12px; color: var(--text-primary);">Get local storage</td></tr>
+              <tr class="tool-row tool-other hidden" style="border-bottom: 1px solid var(--border-subtle);"><td style="padding: 12px; font-family: 'Cascadia Code', monospace; color: var(--accent-green);">browser_set_local_storage</td><td style="padding: 12px; color: var(--text-primary);">Set local storage</td></tr>
+              <tr class="tool-row tool-other hidden" style="border-bottom: 1px solid var(--border-subtle);"><td style="padding: 12px; font-family: 'Cascadia Code', monospace; color: var(--accent-green);">browser_set_cookie</td><td style="padding: 12px; color: var(--text-primary);">Set cookie</td></tr>
+              <tr class="tool-row tool-other hidden" style="border-bottom: 1px solid var(--border-subtle);"><td style="padding: 12px; font-family: 'Cascadia Code', monospace; color: var(--accent-green);">browser_console_filtered</td><td style="padding: 12px; color: var(--text-primary);">Get filtered console messages</td></tr>
+              <tr class="tool-row tool-other hidden" style="border-bottom: 1px solid var(--border-subtle);"><td style="padding: 12px; font-family: 'Cascadia Code', monospace; color: var(--accent-green);">browser_performance_metrics</td><td style="padding: 12px; color: var(--text-primary);">Get performance metrics</td></tr>
+              <tr class="tool-row tool-other hidden" style="border-bottom: 1px solid var(--border-subtle);"><td style="padding: 12px; font-family: 'Cascadia Code', monospace; color: var(--accent-green);">browser_save_storage_state</td><td style="padding: 12px; color: var(--text-primary);">Save storage state</td></tr>
+            </tbody>
+          </table>
         </div>
       </section>
 
@@ -3598,7 +3450,7 @@ Darbot Browser MCP: Show Status</code>
         <!-- Dev Tunnels Guide -->
         <div class="config-guide" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 24px; margin-top: 32px;">
           <h3 style="color: var(--accent-green); margin-bottom: 16px; display: flex; align-items: center; gap: 10px;">
-            <span style="font-size: 20px;">🚇</span> Option 2: VS Code Dev Tunnels Setup
+            Option 2: VS Code Dev Tunnels Setup
           </h3>
           <p style="color: var(--text-muted); margin-bottom: 20px;">Dev Tunnels create a secure public URL for your local MCP server, perfect for development and testing without Azure deployment costs.</p>
 
@@ -3702,7 +3554,7 @@ curl -X POST https://your-tunnel-url.devtunnels.ms/mcp \
         <!-- Copilot Studio Configuration -->
         <div class="config-guide" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 24px; margin-top: 32px;">
           <h3 style="color: var(--accent-orange); margin-bottom: 16px; display: flex; align-items: center; gap: 10px;">
-            <span style="font-size: 20px;">🤖</span> Copilot Studio Agent Configuration
+            Copilot Studio Agent Configuration
           </h3>
           <p style="color: var(--text-muted); margin-bottom: 20px;">Create a Copilot agent that uses Darbot Browser MCP for browser automation tasks.</p>
 
@@ -3808,7 +3660,7 @@ curl -X POST https://your-tunnel-url.devtunnels.ms/mcp \
         <!-- Power Automate Integration -->
         <div class="config-guide" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 24px; margin-top: 32px;">
           <h3 style="color: var(--accent-blue); margin-bottom: 16px; display: flex; align-items: center; gap: 10px;">
-            <span style="font-size: 20px;">⚡</span> Power Automate Flow Integration
+            Power Automate Flow Integration
           </h3>
           <p style="color: var(--text-muted); margin-bottom: 20px;">Create Power Automate flows that incorporate browser automation.</p>
 
@@ -3872,7 +3724,7 @@ Request:
         <!-- Azure Deployment Option -->
         <div class="config-guide" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 24px; margin-top: 32px;">
           <h3 style="color: var(--accent-blue); margin-bottom: 16px; display: flex; align-items: center; gap: 10px;">
-            <span style="font-size: 20px;">☁️</span> Option 1: Azure App Service Deployment
+            Option 1: Azure App Service Deployment
           </h3>
           <p style="color: var(--text-muted); margin-bottom: 20px;">Full production deployment with auto-scaling and enterprise authentication.</p>
 
@@ -4128,6 +3980,25 @@ https://your-app.azurewebsites.net/openapi.json</code>
          ============================================ -->
     <div id="tab-darbot-guide" class="doc-tab-content">
       <h1>Darbot Browser MCP - Complete Guide</h1>
+
+      <h2>Installation Methods</h2>
+
+      <h3>Alternative: Use NPX (No Install Required)</h3>
+      <p>If you prefer not to install globally, you can use NPX which downloads and runs the package on-demand. This is useful for trying it out or when you want automatic updates.</p>
+
+      <h4>How it works</h4>
+      <p>Instead of installing, NPX downloads the latest version each time. Use this config in your MCP client:</p>
+      <pre><code>{
+  "mcpServers": {
+    "darbot-browser-mcp": {
+      "command": "npx",
+      "args": ["@darbotlabs/darbot-browser-mcp@latest"]
+    }
+  }
+}</code></pre>
+
+      <p><strong>Pros:</strong> Always uses latest version, no manual updates needed</p>
+      <p><strong>Cons:</strong> Slightly slower startup (downloads each time), requires internet connection</p>
 
       <h2>Editions &amp; Architecture</h2>
 
@@ -5698,6 +5569,50 @@ function startHeartbeat() {
         sidebar.classList.remove('open');
       }
     });
+
+    // Tools Tab Switching Function
+    function showToolsTab(tabName) {
+      // Hide all tool rows
+      const allRows = document.querySelectorAll('.tool-row');
+      allRows.forEach(row => row.classList.add('hidden'));
+      
+      // Show selected rows
+      const selectedRows = document.querySelectorAll(`.tool-${tabName}`);
+      selectedRows.forEach(row => row.classList.remove('hidden'));
+      
+      // Update tab button styles
+      const allTabs = document.querySelectorAll('.tools-tab-btn');
+      allTabs.forEach(btn => {
+        btn.style.background = 'var(--bg-card)';
+        btn.style.color = 'var(--text-secondary)';
+        btn.classList.remove('active');
+      });
+      
+      const activeTab = document.getElementById(`tab-${tabName}`);
+      if (activeTab) {
+        activeTab.style.background = 'var(--accent-cyan)';
+        activeTab.style.color = 'var(--bg-primary)';
+        activeTab.classList.add('active');
+      }
+    }
+
+    // Show Copilot CLI Installation Guide
+    function showCopilotCLIGuide() {
+      alert('Copilot CLI Installation:\n\n1. Download the PowerShell script: add-darbot-browser-mcp.ps1\n2. Run: .\\add-darbot-browser-mcp.ps1\n3. Restart your terminal\n4. Run: copilot\n\nThe script automatically adds darbot-browser-mcp to your Copilot CLI configuration.');
+    }
+
+    // Toggle collapsible sections
+    function toggleSection(sectionId) {
+      const section = document.getElementById(sectionId);
+      const icon = document.getElementById(sectionId + '-icon');
+      if (section.style.display === 'none') {
+        section.style.display = 'block';
+        icon.textContent = '−';
+      } else {
+        section.style.display = 'none';
+        icon.textContent = '+';
+      }
+    }
   </script>
 </body>
 </html>
