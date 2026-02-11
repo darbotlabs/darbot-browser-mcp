@@ -2379,6 +2379,48 @@
           </div>
         </div>
 
+        <!-- Windows Quick Setup -->
+        <div class="config-guide" style="background: rgba(0, 152, 255, 0.08); border: 2px solid var(--accent-cyan); border-radius: 12px; padding: 24px; margin-bottom: 24px;">
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+            <span style="background: var(--accent-cyan); color: var(--bg-darker); padding: 4px 12px; border-radius: 4px; font-weight: 600; font-size: 12px;">WINDOWS ONLY</span>
+            <h3 style="color: var(--accent-cyan); margin: 0;">🚀 Quick Setup for Windows Edge Users</h3>
+          </div>
+          <p style="color: var(--text-muted); margin-bottom: 16px;">If you're on Windows with Microsoft Edge, use our automated setup script to configure your Edge profile:</p>
+
+          <div class="steps" style="margin-left: 8px;">
+            <div class="step" style="margin-bottom: 20px;">
+              <div style="color: var(--accent-cyan); font-weight: 600; margin-bottom: 8px;">Step 1: Download the setup script</div>
+              <p style="color: var(--text-muted); margin-bottom: 8px;">Download <code>setup-edge-profile.ps1</code> from the repository:</p>
+              <div class="code-block">
+                <code>Invoke-WebRequest -Uri "https://github.com/darbotlabs/darbot-browser-mcp/raw/main/setup-edge-profile.ps1" -OutFile "setup-edge-profile.ps1"</code>
+              </div>
+            </div>
+
+            <div class="step" style="margin-bottom: 20px;">
+              <div style="color: var(--accent-cyan); font-weight: 600; margin-bottom: 8px;">Step 2: Run the script</div>
+              <p style="color: var(--text-muted); margin-bottom: 8px;">Execute the script in PowerShell:</p>
+              <div class="code-block" style="margin-bottom: 12px;">
+                <code><span class="comment"># Interactive setup - select profile and generate config</span>
+.\setup-edge-profile.ps1
+
+<span class="comment"># Or automatically apply to VS Code</span>
+.\setup-edge-profile.ps1 -Apply -ConfigType vscode</code>
+              </div>
+            </div>
+
+            <div class="step">
+              <div style="color: var(--accent-cyan); font-weight: 600; margin-bottom: 8px;">What the script does:</div>
+              <ul style="color: var(--text-muted); font-size: 14px; margin: 8px 0 0 20px;">
+                <li>🔍 Auto-detects all your Edge profiles from <code>%LOCALAPPDATA%\Microsoft\Edge\User Data</code></li>
+                <li>📋 Extracts profile names and associated emails from Preferences JSON</li>
+                <li>⚙️ Generates the correct <code>--user-data-dir</code>, <code>--edge-profile</code>, and <code>--edge-profile-email</code> configuration</li>
+                <li>✅ Optionally applies the configuration to VS Code, Claude Desktop, Cursor, or Windsurf</li>
+                <li>⚠️ Warns about profile lock issues if Edge is already running</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
         <!-- Choose Your Path -->
         <h3 style="color: var(--text-white); margin-bottom: 16px; font-size: 20px;">Choose Your Installation Method</h3>
         <p style="color: var(--text-muted); margin-bottom: 24px;">Pick the method that best fits your setup. Most users should start with <strong>Option A</strong> (NPM Install).</p>

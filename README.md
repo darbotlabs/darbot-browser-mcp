@@ -43,6 +43,26 @@ Humans learn the exact clicks/inputs; agents/LLMs validate UI, content, layout, 
 - **VS Code, Cursor, Windsurf, Claude Desktop** or any other MCP client
 - **Microsoft Edge** (recommended) or Chrome/Firefox/WebKit
 
+## Quick Setup (Windows)
+
+For **Windows users with Microsoft Edge**, use our automated setup script to configure your Edge profile:
+
+```powershell
+# Download and run the setup script
+.\setup-edge-profile.ps1
+
+# Or automatically apply configuration
+.\setup-edge-profile.ps1 -Apply -ConfigType vscode
+```
+
+The script will:
+- 🔍 Auto-detect all your Edge profiles
+- 📋 Show profile names and associated emails
+- ⚙️ Generate the correct MCP configuration
+- ✅ Optionally apply it to your MCP client
+
+See [Edge Profile Setup Guide](#edge-profile-configuration) for more details.
+
 ## Installation Options
 
 Darbot Browser MCP is available in multiple package formats:
@@ -434,6 +454,68 @@ state [here](https://playwright.dev/docs/auth).
   }
 }
 ```
+
+### Edge Profile Configuration
+
+**Automated Setup (Windows)**
+
+Use the `setup-edge-profile.ps1` script to automatically detect and configure your Edge profiles:
+
+```powershell
+# Interactive setup - displays all profiles and generates config
+.\setup-edge-profile.ps1
+
+# Automatically apply to VS Code
+.\setup-edge-profile.ps1 -Apply -ConfigType vscode
+
+# Generate config for other clients
+.\setup-edge-profile.ps1 -ConfigType claude     # Claude Desktop
+.\setup-edge-profile.ps1 -ConfigType cursor     # Cursor
+.\setup-edge-profile.ps1 -ConfigType windsurf   # Windsurf
+```
+
+The script will:
+1. Scan `%LOCALAPPDATA%\Microsoft\Edge\User Data` for profiles
+2. Read profile preferences to extract names and emails
+3. Present an interactive selection menu
+4. Generate the appropriate MCP configuration
+5. Optionally apply the configuration to your MCP client
+
+**Manual Configuration**
+
+If you prefer to configure manually or are not on Windows:
+
+1. Locate your Edge User Data directory:
+   - Windows: `%LOCALAPPDATA%\Microsoft\Edge\User Data`
+   - macOS: `~/Library/Application Support/Microsoft Edge`
+   - Linux: `~/.config/microsoft-edge`
+
+2. Find your profile folder (e.g., `Default`, `Profile 1`, `Profile 2`)
+
+3. Add the configuration to your MCP client:
+
+```json
+{
+  "mcpServers": {
+    "darbot-browser-mcp": {
+      "command": "npx",
+      "args": [
+        "@darbotlabs/darbot-browser-mcp@latest",
+        "--user-data-dir", "C:\\Users\\YourName\\AppData\\Local\\Microsoft\\Edge\\User Data",
+        "--edge-profile", "Default",
+        "--edge-profile-email", "your.email@example.com"
+      ]
+    }
+  }
+}
+```
+
+**Important Notes:**
+
+- ⚠️ **Profile Lock**: If Edge is already running with the selected profile, Playwright may fail with a `ProcessSingleton` error. Close Edge before starting Darbot, or use `--isolated` mode.
+- 🔐 **Session States**: Edge profile information is saved in session states for context restoration
+- 🔄 **Profile Switching**: Use `--profile-switching` to enable automatic profile switching based on visited sites
+- 🏢 **Intranet Sites**: Use `--intranet-switch` to automatically switch to work profiles for intranet sites
 
 ### Configuration file
 
