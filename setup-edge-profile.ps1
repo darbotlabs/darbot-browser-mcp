@@ -158,17 +158,24 @@ $userDataDirEscaped = $edgeUserDataDir -replace '\\', '\\'
 function Get-MCPConfig {
     param($profile, $configType, $userDataDir)
     
-    $args = @(
+    # Build args array
+    $argsArray = @(
         "@darbotlabs/darbot-browser-mcp@latest",
-        "--user-data-dir", "`"$userDataDir`"",
-        "--edge-profile", "`"$($profile.Directory)`""
+        "--user-data-dir", $userDataDir,
+        "--edge-profile", $profile.Directory
     )
     
     if ($profile.Email) {
-        $args += "--edge-profile-email", "`"$($profile.Email)`""
+        $argsArray += "--edge-profile-email", $profile.Email
     }
     
-    $args += "--caps", "tabs pdf history wait files"
+    $argsArray += "--caps", "tabs pdf history wait files"
+    
+    # Format args as JSON array items
+    $jsonArgs = $argsArray | ForEach-Object { 
+        $escaped = $_ -replace '\\', '\\' -replace '"', '\"'
+        "`"$escaped`""
+    }
     
     switch ($configType) {
         "vscode" {
@@ -179,7 +186,7 @@ function Get-MCPConfig {
     "darbot-browser-mcp": {
       "command": "npx",
       "args": [
-        $($args -join ",`n        ")
+        $($jsonArgs -join ",`n        ")
       ]
     }
   }
@@ -192,7 +199,7 @@ function Get-MCPConfig {
 {
   "args": [
     "-y",
-    $($args -join ",`n    ")
+    $($jsonArgs -join ",`n    ")
   ]
 }
 "@
@@ -205,7 +212,7 @@ function Get-MCPConfig {
     "darbot-browser-mcp": {
       "command": "npx",
       "args": [
-        $($args -join ",`n        ")
+        $($jsonArgs -join ",`n        ")
       ]
     }
   }
@@ -220,7 +227,7 @@ function Get-MCPConfig {
     "darbot-browser-mcp": {
       "command": "npx",
       "args": [
-        $($args -join ",`n        ")
+        $($jsonArgs -join ",`n        ")
       ]
     }
   }
@@ -235,7 +242,7 @@ function Get-MCPConfig {
     "darbot-browser-mcp": {
       "command": "npx",
       "args": [
-        $($args -join ",`n        ")
+        $($jsonArgs -join ",`n        ")
       ]
     }
   }
