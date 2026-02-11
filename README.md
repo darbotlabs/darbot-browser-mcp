@@ -510,6 +510,8 @@ If you prefer to configure manually or are not on Windows:
 }
 ```
 
+**Note:** In JSON, backslashes must be escaped (e.g., `C:\\Users`). Alternatively, you can use forward slashes which also work on Windows: `C:/Users/YourName/AppData/Local/Microsoft/Edge/User Data`
+
 **Important Notes:**
 
 - ⚠️ **Profile Lock**: If Edge is already running with the selected profile, Playwright may fail with a `ProcessSingleton` error. Close Edge before starting Darbot, or use `--isolated` mode.

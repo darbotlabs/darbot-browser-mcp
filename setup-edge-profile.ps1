@@ -1,5 +1,6 @@
 # setup-edge-profile.ps1
 # Auto-detect Microsoft Edge profiles and generate MCP configuration
+# Windows-specific script - For macOS/Linux, use manual configuration
 
 param(
     [switch]$Apply,
@@ -38,6 +39,13 @@ DESCRIPTION:
 
 Write-Host "`n=== Edge Profile Auto-Detection ===" -ForegroundColor Cyan
 Write-Host "Scanning for Microsoft Edge profiles...`n" -ForegroundColor White
+
+# Check if running on Windows
+if (-not $IsWindows -and $PSVersionTable.PSVersion.Major -ge 6) {
+    Write-Host "ERROR: This script is designed for Windows only." -ForegroundColor Red
+    Write-Host "For macOS/Linux, please use manual configuration. See README.md for details." -ForegroundColor Yellow
+    exit 1
+}
 
 # Locate Edge User Data directory
 $edgeUserDataDir = "$env:LOCALAPPDATA\Microsoft\Edge\User Data"
@@ -153,8 +161,6 @@ if ($profileInUse) {
 }
 
 # Generate configuration based on client type
-$userDataDirEscaped = $edgeUserDataDir -replace '\\', '\\'
-
 function Get-MCPConfig {
     param($profile, $configType, $userDataDir)
     
@@ -171,7 +177,7 @@ function Get-MCPConfig {
     
     $argsArray += "--caps", "tabs pdf history wait files"
     
-    # Format args as JSON array items
+    # Format args as JSON array items with proper escaping
     $jsonArgs = $argsArray | ForEach-Object { 
         $escaped = $_ -replace '\\', '\\' -replace '"', '\"'
         "`"$escaped`""
@@ -335,7 +341,12 @@ if ($Apply) {
     $existingConfig = @{}
     if (Test-Path $configPath) {
         try {
-            $existingConfig = Get-Content $configPath -Raw | ConvertFrom-Json -AsHashtable
+            $jsonContent = Get-Content $configPath -Raw | ConvertFrom-Json
+            # Convert to hashtable for easier manipulation
+            $existingConfig = @{}
+            $jsonContent.PSObject.Properties | ForEach-Object {
+                $existingConfig[$_.Name] = $_.Value
+            }
         } catch {
             Write-Host "Warning: Could not parse existing config, creating new one" -ForegroundColor Yellow
             $existingConfig = @{}
@@ -365,7 +376,14 @@ if ($Apply) {
     
     # Write updated config
     try {
-        $existingConfig | ConvertTo-Json -Depth 10 | Set-Content $configPath -Encoding UTF8
+        $jsonOutput = $existingConfig | ConvertTo-Json -Depth 10
+        # Use UTF8 without BOM for better compatibility
+        if ($PSVersionTable.PSVersion.Major -ge 6) {
+            $jsonOutput | Set-Content $configPath -Encoding UTF8NoBOM
+        } else {
+            # PowerShell 5.1 - write UTF8 without BOM manually
+            [System.IO.File]::WriteAllText($configPath, $jsonOutput, [System.Text.UTF8Encoding]::new($false))
+        }
         Write-Host "`nConfiguration applied successfully!" -ForegroundColor Green
         Write-Host "You may need to restart your MCP client for changes to take effect." -ForegroundColor Yellow
     } catch {
