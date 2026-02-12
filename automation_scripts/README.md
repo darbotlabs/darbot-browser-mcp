@@ -2,6 +2,28 @@
 
 This folder contains comprehensive automation scripts for managing the darbot-browser-mcp GitHub repository using Markdown-based MCP (Model Context Protocol) commands.
 
+## Setup Automation
+
+### Edge Profile Auto-Detection (Windows)
+
+The **`setup-edge-profile.ps1`** script (located in the repository root) automates Edge profile detection and MCP configuration:
+
+```powershell
+# Interactive setup
+.\setup-edge-profile.ps1
+
+# Auto-apply to VS Code
+.\setup-edge-profile.ps1 -Apply -ConfigType vscode
+```
+
+This script eliminates manual configuration by:
+- 🔍 Auto-detecting all Microsoft Edge profiles
+- 📋 Extracting profile names and associated emails from Preferences JSON
+- ⚙️ Generating correct `--user-data-dir`, `--edge-profile`, and `--edge-profile-email` flags
+- ✅ Optionally applying configuration to VS Code, Claude Desktop, Cursor, or Windsurf
+
+See [Edge Profile Configuration](../README.md#edge-profile-configuration) for more details.
+
 ## Script Collection
 
 ### Core Scripts
