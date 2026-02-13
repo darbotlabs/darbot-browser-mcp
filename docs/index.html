@@ -516,6 +516,7 @@
       font-size: 13px;
       color: var(--accent-cyan);
       line-height: 1.8;
+      white-space: pre-wrap;
     }
 
     .code-block .comment {
@@ -5264,7 +5265,13 @@ function startHeartbeat() {
         const code = block.querySelector('code');
         if (code) {
           try {
-            await navigator.clipboard.writeText(code.textContent);
+            // Clone the code element and remove comment spans
+            const codeClone = code.cloneNode(true);
+            const comments = codeClone.querySelectorAll('.comment');
+            comments.forEach(comment => comment.remove());
+            const textToCopy = codeClone.textContent;
+            
+            await navigator.clipboard.writeText(textToCopy);
             copyBtn.textContent = 'Copied!';
             copyBtn.classList.add('copied');
             setTimeout(() => {
@@ -5558,18 +5565,25 @@ function startHeartbeat() {
 
     function updateActiveNav() {
       let current = '';
+      const scrollPos = window.scrollY + 100; // Add offset for header
       
       sections.forEach(section => {
         const sectionTop = section.offsetTop;
         const sectionHeight = section.clientHeight;
-        if (window.scrollY >= sectionTop - 200) {
-          current = section.getAttribute('id');
+        const sectionBottom = sectionTop + sectionHeight;
+        
+        // Check if current scroll position is within this section
+        if (scrollPos >= sectionTop && scrollPos < sectionBottom) {
+          const id = section.getAttribute('id');
+          if (id) {
+            current = id;
+          }
         }
       });
 
       navLinks.forEach(link => {
         link.classList.remove('active');
-        if (link.getAttribute('href') === '#' + current) {
+        if (current && link.getAttribute('href') === '#' + current) {
           link.classList.add('active');
         }
       });
@@ -5581,9 +5595,22 @@ function startHeartbeat() {
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
       anchor.addEventListener('click', function(e) {
         e.preventDefault();
-        const target = document.querySelector(this.getAttribute('href'));
+        const href = this.getAttribute('href');
+        const target = document.querySelector(href);
         if (target) {
-          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          // Calculate offset for fixed header
+          const headerOffset = 80; // Account for fixed header height
+          const elementPosition = target.getBoundingClientRect().top;
+          const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
+          });
+          
+          // Update hash without jumping
+          history.pushState(null, null, href);
+          
           // Close mobile sidebar
           document.getElementById('sidebar').classList.remove('open');
         }
