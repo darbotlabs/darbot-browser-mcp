@@ -5211,6 +5211,12 @@ function startHeartbeat() {
 
   <script>
     // ============================================
+    // CONSTANTS
+    // ============================================
+    
+    const HEADER_OFFSET = 80; // Fixed header height for scroll calculations
+
+    // ============================================
     // SCROLL PROGRESS INDICATOR
     // ============================================
 
@@ -5565,7 +5571,7 @@ function startHeartbeat() {
 
     function updateActiveNav() {
       let current = '';
-      const scrollPos = window.scrollY + 100; // Add offset for header
+      const scrollPos = window.scrollY + HEADER_OFFSET;
       
       sections.forEach(section => {
         const sectionTop = section.offsetTop;
@@ -5599,9 +5605,8 @@ function startHeartbeat() {
         const target = document.querySelector(href);
         if (target) {
           // Calculate offset for fixed header
-          const headerOffset = 80; // Account for fixed header height
           const elementPosition = target.getBoundingClientRect().top;
-          const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+          const offsetPosition = elementPosition + window.pageYOffset - HEADER_OFFSET;
 
           window.scrollTo({
             top: offsetPosition,
