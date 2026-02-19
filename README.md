@@ -359,7 +359,8 @@ Browser MCP server supports following arguments. They can be provided in the JSO
   --browser-agent <endpoint>    Use browser agent (experimental).
   --caps <caps>                 comma-separated list of capabilities to enable,
                                 possible values: tabs, pdf, history, wait,
-                                files, install. Default is all.
+                                files, install, testing. Omit this flag to
+                                enable all capabilities (default).
   --cdp-endpoint <endpoint>     CDP endpoint to connect to.
   --config <path>               path to the configuration file.
   --device <device>             device to emulate, for example: "iPhone 15"
