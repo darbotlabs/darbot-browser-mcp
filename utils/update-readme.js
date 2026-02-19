@@ -36,6 +36,13 @@ import screenshotTools from '../lib/tools/screenshot.js';
 import testTools from '../lib/tools/testing.js';
 import visionTools from '../lib/tools/vision.js';
 import waitTools from '../lib/tools/wait.js';
+import aiNativeTools from '../lib/tools/ai-native.js';
+import autonomousTools from '../lib/tools/autonomous.js';
+import scrollTools from '../lib/tools/scroll.js';
+import clockTools from '../lib/tools/clock.js';
+import emulationTools from '../lib/tools/emulation.js';
+import diagnosticsTools from '../lib/tools/diagnostics.js';
+import storageTools from '../lib/tools/storage.js';
 import { execSync } from 'node:child_process';
 
 let zodToJsonSchema;
@@ -77,6 +84,27 @@ const categories = {
   ],
   'Testing': [
     ...testTools,
+  ],
+  'AI-Native': [
+    ...aiNativeTools,
+  ],
+  'Autonomous': [
+    ...autonomousTools,
+  ],
+  'Scroll': [
+    ...scrollTools(true),
+  ],
+  'Time Control': [
+    ...clockTools(true),
+  ],
+  'Emulation': [
+    ...emulationTools(true),
+  ],
+  'Diagnostics': [
+    ...diagnosticsTools,
+  ],
+  'Storage': [
+    ...storageTools,
   ],
   'Vision mode': [
     ...visionTools,

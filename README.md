@@ -399,6 +399,8 @@ Browser MCP server supports following arguments. They can be provided in the JSO
                                 states.
   --edge-profile-email <email>  Email associated with the Edge profile. This is
                                 recorded in saved session states for context.
+  --workspace <name>            Workspace name to record in saved session
+                                states.
   --auto-sign-in                Auto sign in with work/school account (Edge
                                 profile preference)
   --profile-switching           Enable automatic profile switching based on site
@@ -1011,6 +1013,286 @@ X Y coordinate space, based on the provided screenshot.
     - `description` (string): The description of the test
     - `steps` (array): The steps of the test
   - Read-only: **true**
+
+</details>
+
+<details>
+<summary><b>AI-Native</b></summary>
+
+<!-- NOTE: This has been generated via update-readme.js -->
+
+- **browser_execute_intent**
+  - Title: AI-Native Intent Execution
+  - Description: Execute browser automation using natural language descriptions with intelligent fallback strategies
+  - Parameters:
+    - `description` (string): Natural language description of what you want to accomplish
+    - `context` (string, optional): Additional context about the current task or goal
+    - `fallback_strategy` (string, optional): Strategy to use if primary action fails
+    - `auto_recover` (boolean, optional): Whether to automatically recover from errors
+  - Read-only: **false**
+
+<!-- NOTE: This has been generated via update-readme.js -->
+
+- **browser_execute_workflow**
+  - Title: AI-Native Workflow Execution
+  - Description: Execute predefined workflows for common automation patterns like GitHub issue management
+  - Parameters:
+    - `intent` (string): The workflow type (e.g., "github_issue_management", "code_review_workflow")
+    - `parameters` (object): Parameters for the workflow execution
+    - `auto_recover` (boolean, optional): Whether to automatically recover from step failures
+    - `validate_completion` (boolean, optional): Whether to validate successful completion
+  - Read-only: **false**
+
+<!-- NOTE: This has been generated via update-readme.js -->
+
+- **browser_analyze_context**
+  - Title: AI-Native Context Analysis
+  - Description: Analyze current page context and suggest intelligent next actions based on user patterns
+  - Parameters:
+    - `include_suggestions` (boolean, optional): Whether to include action suggestions
+    - `analyze_patterns` (boolean, optional): Whether to analyze user behavior patterns
+  - Read-only: **true**
+
+</details>
+
+<details>
+<summary><b>Autonomous</b></summary>
+
+<!-- NOTE: This has been generated via update-readme.js -->
+
+- **browser_start_autonomous_crawl**
+  - Title: Start Autonomous Crawling
+  - Description: Start autonomous crawling session with BFS strategy, memory, and reporting
+  - Parameters:
+    - `startUrl` (string): Starting URL for autonomous crawling
+    - `goal` (string, optional): Goal description for the crawling session
+    - `maxDepth` (integer, optional): Maximum crawl depth
+    - `maxPages` (integer, optional): Maximum pages to visit
+    - `timeoutMs` (integer, optional): Session timeout in milliseconds
+    - `allowedDomains` (array, optional): List of allowed domains (restricts crawling)
+    - `generateReport` (boolean, optional): Generate HTML report at the end
+    - `takeScreenshots` (boolean, optional): Take screenshots during crawling
+    - `memoryEnabled` (boolean, optional): Enable memory system for state tracking
+    - `verbose` (boolean, optional): Enable verbose logging
+  - Read-only: **false**
+
+<!-- NOTE: This has been generated via update-readme.js -->
+
+- **browser_configure_memory**
+  - Title: Configure Memory System
+  - Description: Configure memory system for autonomous crawling (local or darbot-memory-mcp)
+  - Parameters:
+    - `enabled` (boolean, optional): Enable or disable memory system
+    - `connector` (string, optional): Memory connector type
+    - `storagePath` (string, optional): Local storage path (for local connector)
+    - `maxStates` (integer, optional): Maximum states to store
+    - `endpoint` (string, optional): Darbot Memory MCP endpoint URL
+  - Read-only: **false**
+
+</details>
+
+<details>
+<summary><b>Scroll</b></summary>
+
+<!-- NOTE: This has been generated via update-readme.js -->
+
+- **browser_scroll**
+  - Title: Autonomous page scrolling
+  - Description: Autonomously scroll the page using mouse wheel. Positive deltaY scrolls down, negative scrolls up. Positive deltaX scrolls right, negative scrolls left.
+  - Parameters:
+    - `deltaX` (number, optional): Horizontal scroll amount in pixels. Positive scrolls right, negative scrolls left.
+    - `deltaY` (number, optional): Vertical scroll amount in pixels. Positive scrolls down, negative scrolls up.
+  - Read-only: **true**
+
+<!-- NOTE: This has been generated via update-readme.js -->
+
+- **browser_scroll_to_element**
+  - Title: Autonomous scroll to element
+  - Description: Autonomously scroll an element into view. Useful for revealing elements before interacting with them.
+  - Parameters:
+    - `element` (string): Human-readable element description for permission
+    - `ref` (string): Exact target element reference from the page snapshot
+  - Read-only: **true**
+
+</details>
+
+<details>
+<summary><b>Time Control</b></summary>
+
+<!-- NOTE: This has been generated via update-readme.js -->
+
+- **browser_clock_install**
+  - Title: Autonomous clock installation
+  - Description: Autonomously install fake clock to control time in the browser. Useful for testing time-dependent behavior like animations, timeouts, and scheduled tasks.
+  - Parameters:
+    - `time` (string, optional): Initial time to set in ISO 8601 format (e.g., "2024-02-02T08:00:00"). Defaults to current time if not specified.
+  - Read-only: **false**
+
+<!-- NOTE: This has been generated via update-readme.js -->
+
+- **browser_clock_fast_forward**
+  - Title: Autonomous time fast-forward
+  - Description: Autonomously advance the fake clock time by a specified duration. Timers and animations will fire as if that time had passed.
+  - Parameters:
+    - `milliseconds` (number): Number of milliseconds to fast forward
+  - Read-only: **false**
+
+<!-- NOTE: This has been generated via update-readme.js -->
+
+- **browser_clock_pause**
+  - Title: Autonomous clock pause
+  - Description: Autonomously pause the clock at a specific time. Time will stop until resumed.
+  - Parameters:
+    - `time` (string, optional): Time to pause at in ISO 8601 format. If not specified, pauses at current fake time.
+  - Read-only: **false**
+
+<!-- NOTE: This has been generated via update-readme.js -->
+
+- **browser_clock_resume**
+  - Title: Autonomous clock resume
+  - Description: Autonomously resume the paused clock. Time will continue flowing from where it was paused.
+  - Parameters: None
+  - Read-only: **false**
+
+<!-- NOTE: This has been generated via update-readme.js -->
+
+- **browser_clock_set_fixed_time**
+  - Title: Autonomous fixed time setting
+  - Description: Autonomously set a fixed time that will be returned by Date.now() and new Date(). Time will not advance automatically.
+  - Parameters:
+    - `time` (string): Fixed time to set in ISO 8601 format (e.g., "2024-12-25T00:00:00")
+  - Read-only: **false**
+
+</details>
+
+<details>
+<summary><b>Emulation</b></summary>
+
+<!-- NOTE: This has been generated via update-readme.js -->
+
+- **browser_emulate_media**
+  - Title: Autonomous media emulation
+  - Description: Autonomously emulate media features like color scheme, reduced motion, contrast preference, and media type for accessibility and responsive testing.
+  - Parameters:
+    - `colorScheme` (string, optional): Emulate color scheme preference: light, dark, no-preference, or null to reset
+    - `reducedMotion` (string, optional): Emulate prefers-reduced-motion: reduce, no-preference, or null to reset
+    - `contrast` (string, optional): Emulate prefers-contrast: more, less, no-preference, or null to reset
+    - `media` (string, optional): Emulate media type: screen, print, or null to reset
+    - `forcedColors` (string, optional): Emulate forced-colors: active, none, or null to reset
+  - Read-only: **true**
+
+<!-- NOTE: This has been generated via update-readme.js -->
+
+- **browser_emulate_geolocation**
+  - Title: Autonomous geolocation emulation
+  - Description: Autonomously emulate a geographic location for location-based testing.
+  - Parameters:
+    - `latitude` (number): Latitude between -90 and 90
+    - `longitude` (number): Longitude between -180 and 180
+    - `accuracy` (number, optional): Accuracy in meters. Defaults to 0.
+  - Read-only: **false**
+
+<!-- NOTE: This has been generated via update-readme.js -->
+
+- **browser_emulate_timezone**
+  - Title: Autonomous timezone emulation
+  - Description: Autonomously change the browser timezone for testing time-sensitive features.
+  - Parameters:
+    - `timezoneId` (string): Timezone ID (e.g., "America/New_York", "Europe/London", "Asia/Tokyo")
+  - Read-only: **false**
+
+</details>
+
+<details>
+<summary><b>Diagnostics</b></summary>
+
+<!-- NOTE: This has been generated via update-readme.js -->
+
+- **browser_console_filtered**
+  - Title: Autonomous filtered console
+  - Description: Autonomously retrieve console messages filtered by type (log, error, warning, info, debug). Useful for focused debugging.
+  - Parameters:
+    - `type` (string, optional): Type of console messages to retrieve
+    - `limit` (number, optional): Maximum number of messages to return
+  - Read-only: **true**
+
+<!-- NOTE: This has been generated via update-readme.js -->
+
+- **browser_performance_metrics**
+  - Title: Autonomous performance analysis
+  - Description: Autonomously retrieve performance metrics including page load times, DOM content loaded, and other timing data.
+  - Parameters: None
+  - Read-only: **true**
+
+</details>
+
+<details>
+<summary><b>Storage</b></summary>
+
+<!-- NOTE: This has been generated via update-readme.js -->
+
+- **browser_save_storage_state**
+  - Title: Autonomous storage state saving
+  - Description: Autonomously save browser storage state (cookies, localStorage, and optionally IndexedDB) to a file. Useful for persisting authentication and session state.
+  - Parameters:
+    - `filename` (string, optional): File name to save storage state to. Defaults to storage-state-{timestamp}.json
+    - `includeIndexedDB` (boolean, optional): Whether to include IndexedDB contents (useful for Firebase Auth and similar apps)
+  - Read-only: **true**
+
+<!-- NOTE: This has been generated via update-readme.js -->
+
+- **browser_get_cookies**
+  - Title: Autonomous cookie retrieval
+  - Description: Autonomously retrieve browser cookies, optionally filtered by URL or domain.
+  - Parameters:
+    - `urls` (array, optional): URLs to get cookies for. If not specified, returns all cookies.
+  - Read-only: **true**
+
+<!-- NOTE: This has been generated via update-readme.js -->
+
+- **browser_set_cookie**
+  - Title: Autonomous cookie setting
+  - Description: Autonomously set a browser cookie.
+  - Parameters:
+    - `name` (string): Cookie name
+    - `value` (string): Cookie value
+    - `url` (string, optional): URL to associate the cookie with (either url or domain+path required)
+    - `domain` (string, optional): Cookie domain
+    - `path` (string, optional): Cookie path
+    - `expires` (number, optional): Unix timestamp when the cookie expires
+    - `httpOnly` (boolean, optional): Whether the cookie is HTTP-only
+    - `secure` (boolean, optional): Whether the cookie requires HTTPS
+    - `sameSite` (string, optional): SameSite attribute
+  - Read-only: **false**
+
+<!-- NOTE: This has been generated via update-readme.js -->
+
+- **browser_clear_cookies**
+  - Title: Autonomous cookie clearing
+  - Description: Autonomously clear browser cookies, optionally filtered by name, domain, or path.
+  - Parameters:
+    - `name` (string, optional): Only clear cookies with this name
+    - `domain` (string, optional): Only clear cookies for this domain
+    - `path` (string, optional): Only clear cookies with this path
+  - Read-only: **false**
+
+<!-- NOTE: This has been generated via update-readme.js -->
+
+- **browser_get_local_storage**
+  - Title: Autonomous localStorage retrieval
+  - Description: Autonomously retrieve all localStorage items for the current page.
+  - Parameters: None
+  - Read-only: **true**
+
+<!-- NOTE: This has been generated via update-readme.js -->
+
+- **browser_set_local_storage**
+  - Title: Autonomous localStorage setting
+  - Description: Autonomously set a localStorage item for the current page.
+  - Parameters:
+    - `key` (string): Storage key
+    - `value` (string): Storage value
+  - Read-only: **false**
 
 </details>
 

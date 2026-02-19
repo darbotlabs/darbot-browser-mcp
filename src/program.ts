@@ -32,7 +32,7 @@ program
     .option('--block-service-workers', 'block service workers')
     .option('--browser <browser>', 'browser or chrome channel to use, possible values: msedge, chrome, firefox, webkit.')
     .option('--browser-agent <endpoint>', 'Use browser agent (experimental).')
-    .option('--caps <caps>', 'comma-separated list of capabilities to enable, possible values: tabs, pdf, history, wait, files, install. Default is all.')
+    .option('--caps <caps>', 'comma-separated list of capabilities to enable, possible values: tabs, pdf, history, wait, files, install, testing. Default is all. Omit this flag to enable all capabilities.')
     .option('--cdp-endpoint <endpoint>', 'CDP endpoint to connect to.')
     .option('--config <path>', 'path to the configuration file.')
     .option('--device <device>', 'device to emulate, for example: "iPhone 15"')
