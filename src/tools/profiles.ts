@@ -209,8 +209,8 @@ export const browserSaveProfile = defineTool({
   capability: 'core' as const,
   schema: {
     name: 'browser_save_profile',
-    title: 'Save session state',
-    description: 'Save the current browser session state (cookies, localStorage, URL) for later restoration. Includes Edge profile and VS Code workspace context.',
+    title: 'Save session state snapshot',
+    description: 'Save a snapshot of the current browser session state (cookies, localStorage, current URL) to disk for later restoration. This saves a session snapshot — not an actual Edge browser profile. Use browser_discover_profiles to list real Edge browser profiles on this machine.',
     inputSchema: saveProfileSchema,
     type: 'destructive',
   },
@@ -249,8 +249,8 @@ export const browserSwitchProfile = defineTool({
   capability: 'core' as const,
   schema: {
     name: 'browser_switch_profile',
-    title: 'Restore session state',
-    description: 'Restore a previously saved session state, including cookies, localStorage, and navigate to the saved URL',
+    title: 'Restore session state snapshot',
+    description: 'Restore a previously saved session state snapshot, including cookies, localStorage, and navigate to the saved URL. This restores a session snapshot — not an actual Edge browser profile. Use browser_discover_profiles to list real Edge browser profiles on this machine.',
     inputSchema: switchProfileSchema,
     type: 'destructive',
   },
@@ -292,8 +292,8 @@ export const browserListProfiles = defineTool({
   capability: 'core' as const,
   schema: {
     name: 'browser_list_profiles',
-    title: 'List session states',
-    description: 'List all saved Darbot session states with their Edge profile context and workspace information',
+    title: 'List session state snapshots',
+    description: 'List all saved Darbot session state snapshots with their Edge profile context and workspace information. These are session snapshots (cookies, localStorage, URL), not actual Edge browser profiles. Use browser_discover_profiles to list real Edge browser profiles.',
     inputSchema: listProfilesSchema,
     type: 'readOnly',
   },
@@ -340,8 +340,8 @@ export const browserDeleteProfile = defineTool({
   capability: 'core' as const,
   schema: {
     name: 'browser_delete_profile',
-    title: 'Delete session state',
-    description: 'Permanently delete a saved session state from storage',
+    title: 'Delete session state snapshot',
+    description: 'Permanently delete a saved session state snapshot from storage',
     inputSchema: deleteProfileSchema,
     type: 'destructive',
   },
@@ -357,6 +357,120 @@ export const browserDeleteProfile = defineTool({
         content: [{
           type: 'text',
           text: `Session state "${name}" deleted successfully.`,
+        }],
+      },
+    };
+  },
+});
+
+/**
+ * Discover real Edge browser profiles from the user data directory.
+ */
+async function discoverEdgeProfiles(userDataDir?: string): Promise<Array<{ folder: string; name: string; email?: string }>> {
+  const candidates: string[] = [];
+
+  if (userDataDir) {
+    candidates.push(userDataDir);
+  } else {
+    // Default Edge user data directories per platform
+    if (process.platform === 'win32') {
+      const localAppData = process.env.LOCALAPPDATA || path.join(os.homedir(), 'AppData', 'Local');
+      candidates.push(path.join(localAppData, 'Microsoft', 'Edge', 'User Data'));
+    } else if (process.platform === 'darwin') {
+      candidates.push(path.join(os.homedir(), 'Library', 'Application Support', 'Microsoft Edge'));
+    } else {
+      candidates.push(path.join(os.homedir(), '.config', 'microsoft-edge'));
+    }
+  }
+
+  const profiles: Array<{ folder: string; name: string; email?: string }> = [];
+
+  for (const dataDir of candidates) {
+    try {
+      await fs.promises.access(dataDir);
+    } catch {
+      continue;
+    }
+
+    const entries = await fs.promises.readdir(dataDir);
+    for (const entry of entries) {
+      // Edge profile folders are named 'Default' or 'Profile N'
+      if (entry !== 'Default' && !/^Profile \d+$/.test(entry))
+        continue;
+
+      const prefsPath = path.join(dataDir, entry, 'Preferences');
+      try {
+        const prefsRaw = await fs.promises.readFile(prefsPath, 'utf8');
+        const prefs = JSON.parse(prefsRaw);
+        const accountInfo = prefs?.account_info?.[0];
+        const profileName: string = prefs?.profile?.name || entry;
+        const email: string | undefined = accountInfo?.email || prefs?.signin?.allowed_domain_profile_info?.email || undefined;
+
+        profiles.push({
+          folder: path.join(dataDir, entry),
+          name: profileName,
+          email,
+        });
+      } catch {
+        // Preferences file unreadable or missing — still include the folder with limited info
+        profiles.push({
+          folder: path.join(dataDir, entry),
+          name: entry,
+        });
+      }
+    }
+  }
+
+  return profiles;
+}
+
+export const browserDiscoverProfiles = defineTool({
+  capability: 'core' as const,
+  schema: {
+    name: 'browser_discover_profiles',
+    title: 'Discover Edge browser profiles',
+    description: 'List real Microsoft Edge browser profiles installed on this machine, showing each profile\'s folder path, display name, and associated email address. Use the folder name with --edge-profile and the data directory with --user-data-dir when starting the MCP server. These are actual Edge browser profiles, not session state snapshots.',
+    inputSchema: z.object({
+      userDataDir: z.string().optional().describe('Path to Edge user data directory. Defaults to the standard platform location.'),
+    }),
+    type: 'readOnly',
+  },
+  handle: async (_context: Context, { userDataDir }: { userDataDir?: string }) => {
+    const profiles = await discoverEdgeProfiles(userDataDir);
+
+    let text = '### Discovered Microsoft Edge Browser Profiles\n\n';
+
+    if (profiles.length === 0) {
+      text += 'No Edge browser profiles found.\n\n';
+      text += 'Checked the default Edge user data directory for this platform.\n';
+      text += 'You can specify a custom path with the `userDataDir` parameter.';
+    } else {
+      for (const profile of profiles) {
+        const folderName = path.basename(profile.folder);
+        text += `**${profile.name}**\n`;
+        text += `- Folder: \`${folderName}\`\n`;
+        text += `- Full path: \`${profile.folder}\`\n`;
+        if (profile.email)
+          text += `- Email: ${profile.email}\n`;
+        text += '\n';
+      }
+
+      text += '---\n';
+      text += 'To use a profile, start the MCP server with:\n';
+      text += '```\n';
+      text += `--user-data-dir "<parent of folder above>" --edge-profile "<Folder>"\n`;
+      text += '```\n';
+    }
+
+    return {
+      code: ['await browser_discover_profiles()'],
+      action: async () => ({ content: [] }),
+      captureSnapshot: false,
+      waitForNetwork: false,
+      resultOverride: {
+        content: [{
+          type: 'text',
+          text,
         }],
       },
     };
