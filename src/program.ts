@@ -33,7 +33,7 @@ program
     .option('--browser <browser>', 'browser or chrome channel to use, possible values: msedge, chrome, firefox, webkit.')
     .option('--browser-agent <endpoint>', 'Use browser agent (experimental).')
     .option('--caps <caps>', 'comma-separated list of capabilities to enable, possible values: tabs, pdf, history, wait, files, install, testing. Omit this flag to enable all capabilities (default).')
-    .option('--cdp-endpoint <endpoint>', 'CDP endpoint to connect to.')
+    .option('--cdp-endpoint <endpoint>', 'CDP endpoint to connect to. Note: connecting via CDP opens an isolated context and cannot see existing tabs or cookies in a running browser.')
     .option('--config <path>', 'path to the configuration file.')
     .option('--device <device>', 'device to emulate, for example: "iPhone 15"')
     .option('--executable-path <path>', 'path to the browser executable.')
