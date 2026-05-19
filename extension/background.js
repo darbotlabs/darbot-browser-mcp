@@ -16,16 +16,17 @@
 
 /**
  * Darbot Browser MCP Bridge Extension - Service Worker
- * Version: 1.3.0
- * 
- * Chrome/Edge Extension that bridges CDP messages between chrome.debugger and 
- * Darbot Browser MCP server through WebSocket connection.
+ * Version: 2.0.0
+ *
+ * Chrome/Edge Manifest V3 extension that bridges Chrome DevTools Protocol
+ * (CDP) messages between the chrome.debugger API and the Darbot Browser MCP
+ * server over a WebSocket connection.
  */
 
 // @ts-check
 
 /** @constant {string} */
-const EXTENSION_VERSION = '1.3.0';
+const EXTENSION_VERSION = '2.0.0';
 
 /** @constant {number} Connection timeout in milliseconds */
 const CONNECTION_TIMEOUT_MS = 10000;
@@ -218,7 +219,7 @@ class TabShareExtension {
       // Update UI
       chrome.action.setBadgeText({ tabId, text: '●' });
       chrome.action.setBadgeBackgroundColor({ tabId, color: '#4CAF50' });
-      chrome.action.setTitle({ tabId, title: 'Disconnect from Browser MCP' });
+      chrome.action.setTitle({ tabId, title: 'Disconnect from Darbot Browser MCP' });
 
       debugLog(`Tab ${tabId} connected successfully`);
 
@@ -373,7 +374,7 @@ class TabShareExtension {
 
     // Update UI
     chrome.action.setBadgeText({ tabId, text: '' });
-    chrome.action.setTitle({ tabId, title: 'Share tab with Browser MCP' });
+    chrome.action.setTitle({ tabId, title: 'Share tab with Darbot Browser MCP' });
 
     debugLog(`Tab ${tabId} disconnected`);
   }
