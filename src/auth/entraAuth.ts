@@ -133,9 +133,9 @@ export class EntraIDAuthenticator {
  */
 export function createEntraIDAuthenticator(): EntraIDAuthenticator {
   const config: EntraIDConfig = {
-    tenantId: process.env.AZURE_TENANT_ID,
-    clientId: process.env.AZURE_CLIENT_ID,
-    clientSecret: process.env.AZURE_CLIENT_SECRET,
+    ...(process.env.AZURE_TENANT_ID !== undefined && { tenantId: process.env.AZURE_TENANT_ID }),
+    ...(process.env.AZURE_CLIENT_ID !== undefined && { clientId: process.env.AZURE_CLIENT_ID }),
+    ...(process.env.AZURE_CLIENT_SECRET !== undefined && { clientSecret: process.env.AZURE_CLIENT_SECRET }),
     enabled: process.env.ENTRA_AUTH_ENABLED === 'true'
   };
 

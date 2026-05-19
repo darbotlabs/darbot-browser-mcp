@@ -92,7 +92,7 @@ export function extractTunnelInfo(req: IncomingMessage): TunnelAuthResult {
     return {
       authenticated: true,
       githubUser,
-      tunnelId: tunnelSession,
+      ...(tunnelSession !== undefined && { tunnelId: tunnelSession }),
     };
   }
 
@@ -100,7 +100,7 @@ export function extractTunnelInfo(req: IncomingMessage): TunnelAuthResult {
   // This is acceptable for public tunnels
   return {
     authenticated: true,
-    tunnelId: tunnelSession,
+    ...(tunnelSession !== undefined && { tunnelId: tunnelSession }),
   };
 }
 

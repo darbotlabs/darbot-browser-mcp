@@ -90,10 +90,8 @@ function getEntraEndpoints(tenantId: string): ProxyEndpoints {
   return {
     authorizationUrl: `${authority}/oauth2/v2.0/authorize`,
     tokenUrl: `${authority}/oauth2/v2.0/token`,
-    // We handle dynamic client registration ourselves
-    registrationUrl: undefined,
-    // Entra doesn't have a standard revocation endpoint
-    revocationUrl: undefined,
+    // We handle dynamic client registration ourselves; Entra has no standard
+    // revocation endpoint either. Omit both rather than set them to undefined.
   };
 }
 
@@ -110,18 +108,19 @@ async function verifyEntraToken(
     clientSecret: config.clientSecret,
   });
 
+  const extra: { sub?: string; oid?: string; tid?: string; roles?: string[] } = {};
+  if (payload.sub !== undefined) extra.sub = payload.sub;
+  if (payload.oid !== undefined) extra.oid = payload.oid;
+  if (payload.tid !== undefined) extra.tid = payload.tid;
+  if (payload.roles !== undefined) extra.roles = payload.roles;
+
   return {
     token,
     clientId: config.clientId,
     scopes: payload.scp?.split(' ') || [],
-    expiresAt: payload.exp ? payload.exp * 1000 : undefined,
+    ...(payload.exp !== undefined && { expiresAt: payload.exp * 1000 }),
     // Additional user info from token
-    extra: {
-      sub: payload.sub,
-      oid: payload.oid,
-      tid: payload.tid,
-      roles: payload.roles,
-    },
+    extra,
   };
 }
 

@@ -83,6 +83,7 @@ export class UnifiedAuthenticator {
 
   constructor(config?: Partial<UnifiedAuthConfig>) {
     // Build configuration from environment and overrides
+    const requiredRoles = process.env.REQUIRED_ROLES?.split(',').map(r => r.trim());
     this.config = {
       allowAnonymous: process.env.ALLOW_ANONYMOUS_ACCESS === 'true',
       enableApiKey: process.env.API_KEY_AUTH_ENABLED === 'true',
@@ -93,7 +94,7 @@ export class UnifiedAuthenticator {
       enableManagedIdentity: process.env.MANAGED_IDENTITY_ENABLED === 'true' ||
                             process.env.AZURE_USE_MANAGED_IDENTITY === 'true' ||
                             !!process.env.IDENTITY_ENDPOINT,
-      requiredRoles: process.env.REQUIRED_ROLES?.split(',').map(r => r.trim()),
+      ...(requiredRoles !== undefined && { requiredRoles }),
       ...config,
     };
 

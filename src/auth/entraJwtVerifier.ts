@@ -79,7 +79,7 @@ function decodeJwtPayload(token: string): JWTPayload {
   if (parts.length !== 3)
     throw new Error('Invalid JWT format');
 
-  const payloadBase64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+  const payloadBase64 = parts[1]!.replace(/-/g, '+').replace(/_/g, '/');
   const payloadJson = Buffer.from(payloadBase64, 'base64').toString('utf8');
   return JSON.parse(payloadJson);
 }

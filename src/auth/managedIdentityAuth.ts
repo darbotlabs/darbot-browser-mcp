@@ -93,7 +93,7 @@ export async function verifyManagedIdentity(config: ManagedIdentityConfig): Prom
       return {
         authenticated: true,
         identityType: config.userAssignedClientId ? 'user-assigned' : 'system',
-        clientId: config.userAssignedClientId,
+        ...(config.userAssignedClientId !== undefined && { clientId: config.userAssignedClientId }),
       };
     }
 
@@ -168,13 +168,15 @@ export async function loadSecretsFromKeyVault(config: ManagedIdentityConfig): Pr
  * Create Managed Identity configuration from environment
  */
 export function createManagedIdentityConfig(): ManagedIdentityConfig {
+  const userAssignedClientId = process.env.AZURE_CLIENT_ID_MANAGED_IDENTITY;
+  const keyVaultUrl = process.env.AZURE_KEY_VAULT_URL || process.env.KEY_VAULT_URL;
   return {
     enabled: process.env.MANAGED_IDENTITY_ENABLED === 'true' ||
              process.env.AZURE_USE_MANAGED_IDENTITY === 'true' ||
              // Auto-detect Azure environment
              !!process.env.IDENTITY_ENDPOINT,
-    userAssignedClientId: process.env.AZURE_CLIENT_ID_MANAGED_IDENTITY,
-    keyVaultUrl: process.env.AZURE_KEY_VAULT_URL || process.env.KEY_VAULT_URL,
+    ...(userAssignedClientId !== undefined && { userAssignedClientId }),
+    ...(keyVaultUrl !== undefined && keyVaultUrl !== '' && { keyVaultUrl }),
   };
 }
 
