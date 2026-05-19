@@ -22,7 +22,7 @@ import { z } from 'zod';
 import { defineTool } from './tool.js';
 import { intentParser } from '../ai/intent.js';
 import { aiContextManager } from '../ai/context.js';
-import { workflowEngine } from '../ai/workflow.js';
+import { workflowEngine, type WorkflowParameters } from '../ai/workflow.js';
 
 // AI-native intent execution tool
 const browserExecuteIntent = defineTool({
@@ -153,7 +153,7 @@ const browserExecuteWorkflow = defineTool({
     description: 'Execute predefined workflows for common automation patterns like GitHub issue management',
     inputSchema: z.object({
       intent: z.string().describe('The workflow type (e.g., "github_issue_management", "code_review_workflow")'),
-      parameters: z.record(z.any()).describe('Parameters for the workflow execution'),
+      parameters: z.record(z.string(), z.any()).describe('Parameters for the workflow execution'),
       auto_recover: z.boolean().optional().default(true).describe('Whether to automatically recover from step failures'),
       validate_completion: z.boolean().optional().default(true).describe('Whether to validate successful completion'),
     }),
@@ -163,7 +163,7 @@ const browserExecuteWorkflow = defineTool({
   handle: async (context, params) => {
     try {
       // Execute the workflow
-      const execution = await workflowEngine.executeWorkflow(context, params.intent, params.parameters);
+      const execution = await workflowEngine.executeWorkflow(context, params.intent, params.parameters as WorkflowParameters);
 
       const code: string[] = [];
       code.push(`// Workflow Execution: ${params.intent}`);

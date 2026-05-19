@@ -44,11 +44,11 @@ export const browserStartAutonomousCrawl = defineTool({
   handle: async (context, params) => {
     const config: OrchestratorConfig = {
       startUrl: params.startUrl,
-      goal: params.goal,
+      ...(params.goal !== undefined && { goal: params.goal }),
       maxDepth: params.maxDepth,
       maxPages: params.maxPages,
       timeoutMs: params.timeoutMs,
-      allowedDomains: params.allowedDomains,
+      ...(params.allowedDomains !== undefined && { allowedDomains: params.allowedDomains }),
       generateReport: params.generateReport,
       takeScreenshots: params.takeScreenshots,
       verbose: params.verbose,

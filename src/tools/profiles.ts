@@ -125,12 +125,9 @@ async function saveCurrentProfile(context: Context, profileName: string, descrip
     type: 'darbot-session-state',
     edgeProfile: {
       name: edgeProfile,
-      email: edgeProfileEmail,
+      ...(edgeProfileEmail !== undefined && { email: edgeProfileEmail }),
     },
-    workspace: workspacePath && workspaceName ? {
-      path: workspacePath,
-      name: workspaceName,
-    } : undefined,
+    ...(workspacePath && workspaceName && { workspace: { path: workspacePath, name: workspaceName } }),
     name: profileName,
     description: description || '',
     created: new Date().toISOString(),
@@ -485,7 +482,7 @@ async function discoverEdgeProfiles(userDataDir?: string): Promise<DiscoveredEdg
         profiles.push({
           folder: path.join(dataDir, entry),
           name: profileName,
-          email,
+          ...(email !== undefined && { email }),
         });
       } catch {
         // Preferences file unreadable or missing — still include the folder with limited info.

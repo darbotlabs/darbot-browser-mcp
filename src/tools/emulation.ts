@@ -107,7 +107,7 @@ const emulateGeolocation: ToolFactory = captureSnapshot => defineTool({
       await browserContext.setGeolocation({
         latitude: params.latitude,
         longitude: params.longitude,
-        accuracy: params.accuracy,
+        ...(params.accuracy !== undefined && { accuracy: params.accuracy }),
       });
     };
 

@@ -356,7 +356,7 @@ const getLocalStorage = defineTool({
       }
 
       const output = keys.map(key => {
-        const value = storage[key];
+        const value = storage[key] ?? '';
         const displayValue = value.length > 100 ? value.substring(0, 100) + '...' : value;
         return `${key}\n   ${displayValue}`;
       }).join('\n\n');
@@ -406,9 +406,10 @@ const setLocalStorage = defineTool({
     ];
 
     const action = async () => {
+      const args: [string, string] = [params.key, params.value];
       await tab.page.evaluate(([key, value]) => {
         localStorage.setItem(key, value);
-      }, [params.key, params.value]);
+      }, args);
       return {
         content: [{ type: 'text' as const, text: `localStorage['${params.key}'] has been set.` }]
       };

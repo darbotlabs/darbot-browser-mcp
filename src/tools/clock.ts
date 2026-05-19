@@ -54,7 +54,7 @@ const installClock: ToolFactory = captureSnapshot => defineTool({
         ];
 
     const action = async () => {
-      await tab.page.clock.install({ time });
+      await tab.page.clock.install(time !== undefined ? { time } : {});
     };
 
     return {

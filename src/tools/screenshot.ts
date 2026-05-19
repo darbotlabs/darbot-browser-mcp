@@ -50,7 +50,9 @@ const screenshot = defineTool({
     const snapshot = tab.snapshotOrDie();
     const fileType = params.raw ? 'png' : 'jpeg';
     const fileName = await outputFile(context.config, params.filename ?? `page-${new Date().toISOString()}.${fileType}`);
-    const options: playwright.PageScreenshotOptions = { type: fileType, quality: fileType === 'png' ? undefined : 50, scale: 'css', path: fileName };
+    const options: playwright.PageScreenshotOptions = fileType === 'jpeg'
+      ? { type: 'jpeg', quality: 50, scale: 'css', path: fileName }
+      : { type: 'png', scale: 'css', path: fileName };
     const isElementScreenshot = params.element && params.ref;
 
     const code = [
