@@ -1,0 +1,47 @@
+ARG NODE_VERSION=23-bookworm-slim
+ARG PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+
+FROM node:${NODE_VERSION} AS dependencies
+WORKDIR /app
+ENV PLAYWRIGHT_BROWSERS_PATH=${PLAYWRIGHT_BROWSERS_PATH}
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates curl dumb-init \
+    && rm -rf /var/lib/apt/lists/*
+COPY package.json package-lock.json ./
+RUN npm ci
+
+FROM dependencies AS builder
+COPY tsconfig*.json .
+COPY *.js *.ts ./
+COPY src ./src
+RUN npm run build \
+    && npm prune --omit=dev
+
+FROM node:${NODE_VERSION} AS runtime
+ARG PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+ENV NODE_ENV=production \
+    PLAYWRIGHT_BROWSERS_PATH=${PLAYWRIGHT_BROWSERS_PATH} \
+    PORT=8080 \
+    WEBSITES_PORT=8080 \
+    SERVER_BASE_URL= \
+    AZURE_TENANT_ID= \
+    AZURE_CLIENT_ID=
+WORKDIR /app
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates curl dumb-init \
+    && npx -y playwright-core install-deps chromium \
+    && rm -rf /var/lib/apt/lists/* \
+    && groupadd --gid 10001 app \
+    && useradd --uid 10001 --gid app --shell /usr/sbin/nologin --create-home app \
+    && mkdir -p /app/data /app/logs ${PLAYWRIGHT_BROWSERS_PATH}
+COPY --from=builder --chown=app:app /app/package.json /app/package-lock.json ./
+COPY --from=builder --chown=app:app /app/node_modules ./node_modules
+COPY --from=builder --chown=app:app /app/lib ./lib
+COPY --from=builder --chown=app:app /app/cli.js ./cli.js
+RUN npx -y playwright-core install --no-shell chromium \
+    && chown -R app:app /app ${PLAYWRIGHT_BROWSERS_PATH}
+USER app
+EXPOSE 8080
+HEALTHCHECK --interval=30s --timeout=10s --start-period=20s --retries=3 CMD curl -fsS "http://127.0.0.1:${PORT}/healthz" || exit 1
+ENTRYPOINT ["dumb-init", "--"]
+CMD ["sh", "-c", "node cli.js --headless --browser chromium --no-sandbox --host 0.0.0.0 --port ${PORT:-8080} --output-dir /app/data"]
