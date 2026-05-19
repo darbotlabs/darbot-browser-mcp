@@ -14,24 +14,42 @@
  * limitations under the License.
  */
 
-import { defineConfig } from '@playwright/test';
+import { defineConfig, devices } from '@playwright/test';
 
 import type { TestOptions } from './tests/fixtures.js';
 
-// Test configuration for Darbot Browser MCP
-// Uses Playwright test framework to test the darbot-browser-mcp autonomous browser
+const isCI = !!process.env.CI;
+
+// Playwright test runner config for darbot-browser-mcp.
+// Reports: GitHub annotations + console list locally, list + HTML + JUnit + blob on CI.
 export default defineConfig<TestOptions>({
   testDir: './tests',
   fullyParallel: true,
-  forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
-  reporter: 'list',
-  timeout: 60000, // 60 seconds per test (MCP server + browser launch takes time)
-  expect: {
-    timeout: 10000, // 10 seconds for expect assertions
+  forbidOnly: isCI,
+  retries: isCI ? 2 : 0,
+  workers: isCI ? 2 : undefined,
+  reporter: isCI
+    ? [
+      ['list'],
+      ['html', { open: 'never', outputFolder: 'playwright-report' }],
+      ['junit', { outputFile: 'test-results/junit.xml' }],
+      ['github'],
+    ]
+    : [['list'], ['html', { open: 'never', outputFolder: 'playwright-report' }]],
+  outputDir: 'test-results',
+  timeout: 60_000,
+  expect: { timeout: 10_000 },
+  use: {
+    trace: isCI ? 'on-first-retry' : 'retain-on-failure',
+    video: isCI ? 'on-first-retry' : 'retain-on-failure',
+    screenshot: 'only-on-failure',
   },
   projects: [
-    { name: 'msedge', use: { mcpBrowser: 'msedge' } },
+    { name: 'msedge', use: { ...devices['Desktop Edge'], mcpBrowser: 'msedge' } },
+    { name: 'chromium', use: { ...devices['Desktop Chrome'], mcpBrowser: 'chromium' } },
+    {
+      name: 'chromium-docker',
+      use: { ...devices['Desktop Chrome'], mcpBrowser: 'chromium' },
+    },
   ],
 });

@@ -1,7 +1,16 @@
-lib/
-node_modules/
-test-results/
-playwright-report/
+# Node / TypeScript build artifacts
+**/node_modules/
+**/lib/
+**/out/
+**/dist/
+**/build/
+*.tsbuildinfo
+
+# Test outputs
+**/playwright-report/
+**/test-results/
+**/coverage/
+.nyc_output/
 
 # VS Code local MCP config
 .vscode/mcp.json
@@ -13,9 +22,17 @@ playwright-report/
 # Visual Studio temp files
 .vs/
 
+# IDE
+.idea/
+.DS_Store
+Thumbs.db
+
 # Secrets / local config
 .env
 .env.*
+!.env.example
+secrets/
+config/local.json
 
 # Certificates / private keys
 *.pem
@@ -24,34 +41,28 @@ playwright-report/
 *.p12
 *.pfx
 
-# Local-only config folders
-secrets/
-config/local.json
-
-.idea
-.DS_Store
-
-# VS Code extension build artifacts
-vscode-extension/out/
-vscode-extension/node_modules/
-vscode-extension/*.vsix
-darbot-browser-cloud/vscode-extension-cloud/out/
-darbot-browser-cloud/vscode-extension-cloud/node_modules/
-darbot-browser-cloud/vscode-extension-cloud/*.vsix
-darbot-browser-hosted/vscode-extension-hosted/out/
-darbot-browser-hosted/vscode-extension-hosted/node_modules/
-darbot-browser-hosted/vscode-extension-hosted/*.vsix
-
-# .NET build artifacts
-dotnet/*/bin/
-dotnet/*/obj/
-dotnet/*/.vs/
-*.nupkg
-
-# Build artifacts and logs
+# Package artifacts (never commit; built/published from CI)
 *.tgz
 *.zip
+*.vsix
+*.nupkg
+*.dll
+*.pdb
+
+# .NET intermediate output
+**/bin/
+**/obj/
+
+# Logs
+*.log
 stderr.log
 stdout.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
 
+# Misc
 .fake
+*.swp
+*.swo

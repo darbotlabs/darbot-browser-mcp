@@ -1,51 +1,63 @@
-# Git
+# Source control
 .git
 .gitignore
+.gitattributes
 
-# Test artifacts
+# CI / GitHub metadata
+.github
+
+# Test artifacts and reports
 test-results
 playwright-report
+coverage
+.nyc_output
 
 # Node modules (will be installed in container)
-node_modules
+**/node_modules
 
-# IDE
+# Build outputs (will rebuild in container)
+**/lib
+**/out
+**/dist
+*.tsbuildinfo
+
+# IDE / OS
 .vscode
 .vs
+.idea
 *.swp
 *.swo
-
-# OS
 .DS_Store
 Thumbs.db
 
-# Build outputs (will rebuild in container)
-lib
-*.tsbuildinfo
-
-# VS Code extension build artifacts
-*.vsix
-vscode-extension
-darbot-browser-cloud/vscode-extension-cloud
-darbot-browser-hosted/vscode-extension-hosted
-
-# Documentation and assets not needed in container
-docs
-assets
-automation_scripts
-examples
-*.md
-!README.md
-
-# Extensions and cloud packages (separate builds - keep hosted for docker builds)
+# Extension / sub-package source not needed in the root Docker image
 vscode-extension
 darbot-browser-cloud
+darbot-browser-hosted
 extension
 dotnet
 power-platform
+automation_scripts
+azure
+infra
+examples
+docs
+assets
 
-# Development files
+# Markdown except top-level README
+*.md
+!README.md
+
+# Local secrets
+.env
+.env.*
+secrets
+
+# Logs and packages
 *.log
 *.vsix
-coverage
-.nyc_output
+*.tgz
+*.zip
+*.nupkg
+*.dll
+*.pdb
