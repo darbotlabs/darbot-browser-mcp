@@ -112,7 +112,7 @@ export const test = baseTest.extend<TestFixtures & TestOptions, WorkerFixtures>(
     await client?.close();
   },
 
-  wsEndpoint: async (_, use) => {
+  wsEndpoint: async ({}, use) => {
     const browserServer = await chromium.launchServer();
     await use(browserServer.wsEndpoint());
     await browserServer.close();
@@ -179,7 +179,7 @@ export const test = baseTest.extend<TestFixtures & TestOptions, WorkerFixtures>(
     await context?.close();
   },
 
-  _workerServers: [async (_, use, workerInfo) => {
+  _workerServers: [async ({}, use, workerInfo) => {
     const port = 8907 + workerInfo.workerIndex * 4;
     const server = await TestServer.create(port);
 

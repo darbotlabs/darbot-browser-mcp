@@ -198,4 +198,14 @@ export default [
     languageOptions,
     rules: baseRules,
   },
+  {
+    // Playwright fixtures use empty object destructuring `async ({}, use)`
+    // when the fixture function does not consume any other fixtures. This is
+    // a syntactic requirement of @playwright/test, not dead code, so we
+    // disable `no-empty-pattern` for test files only.
+    files: ['tests/**/*.ts'],
+    rules: {
+      'no-empty-pattern': 'off',
+    },
+  },
 ];
