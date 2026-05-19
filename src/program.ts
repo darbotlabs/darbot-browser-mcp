@@ -14,15 +14,19 @@
  * limitations under the License.
  */
 
+import debug from 'debug';
 import { Option, program } from 'commander';
-// @ts-ignore
+// @ts-expect-error - playwright-core internal entrypoint, no shipped types.
 import { startTraceViewerServer } from 'playwright-core/lib/server';
 
-import { startHttpServer, startHttpTransport, startStdioTransport } from './transport.js';
 import { resolveCLIConfig } from './config.js';
-import { Server } from './server.js';
+import { startCDPRelayServer, type CDPRelayServer } from './cdpRelay.js';
+import { createHealthCheckService } from './health.js';
 import { packageJSON } from './package.js';
-import { startCDPRelayServer } from './cdpRelay.js';
+import { Server } from './server.js';
+import { startHttpServer, startHttpTransport, startStdioTransport } from './transport.js';
+
+const programDebug = debug('pw:mcp:program');
 
 program
     .version('Version ' + packageJSON.version)
@@ -67,19 +71,21 @@ program
       const httpResult = config.server.port !== undefined ? await startHttpServer(config.server) : undefined;
       const httpServer = httpResult?.httpServer;
       const expressApp = httpResult?.app;
-      let cdpRelayServer: Awaited<ReturnType<typeof startCDPRelayServer>>['relayServer'] | undefined;
-      
+
+      let cdpRelayServer: CDPRelayServer | undefined;
       if (config.extension) {
         if (!httpServer)
           throw new Error('--port parameter is required for extension mode');
-        // Point CDP endpoint to the relay server.
+
         const relayResult = await startCDPRelayServer(httpServer);
         config.browser.cdpEndpoint = relayResult.cdpEndpoint;
         cdpRelayServer = relayResult.relayServer;
-        
-        // Add bridge status endpoint
+
+        // /bridge: status payload consumed by IDE clients and the auto-detect
+        // probe in `resolveCLIConfig`. Version is pulled from package.json so
+        // there is no second source of truth to keep in sync at release.
         if (expressApp) {
-          expressApp.get('/bridge', (req, res) => {
+          expressApp.get('/bridge', (_req, res) => {
             const status = cdpRelayServer?.getStatus() ?? {
               extensionConnected: false,
               mcpConnected: false,
@@ -89,35 +95,62 @@ program
             };
             res.json({
               bridge: 'cdp-relay',
-              version: '1.3.0',
+              version: packageJSON.version,
               ...status,
             });
           });
         }
       }
 
+      // Build a single health service before transport startup so /health and
+      // /ready can surface bridge state and Azure config validation status
+      // (when configured via environment).
+      const relayForProbe = cdpRelayServer;
+      const healthService = createHealthCheckService({
+        bridgeStatusProbe: relayForProbe ? () => relayForProbe.getStatus() : undefined,
+        validateAzureConfig: shouldValidateAzureConfig(),
+      });
+
       const server = new Server(config);
-      // Use http mode when port is specified to prevent exit on stdin close
+      // Use http mode when port is specified to prevent exit on stdin close.
       server.setupExitWatchdog(httpServer ? 'http' : 'stdio');
 
-      if (httpServer && expressApp)
-        await startHttpTransport(httpServer, server, expressApp);
-      else if (httpServer)
+      if (httpServer && expressApp) {
+        startHttpTransport(httpServer, server, expressApp, { healthService });
+      } else if (httpServer) {
         throw new Error('Express app not initialized');
-      else
+      } else {
         await startStdioTransport(server);
+      }
 
       if (config.saveTrace) {
-        const server = await startTraceViewerServer();
-        const urlPrefix = server.urlPrefix('human-readable');
+        const traceServer = await startTraceViewerServer();
+        const urlPrefix = traceServer.urlPrefix('human-readable');
         const url = urlPrefix + '/trace/index.html?trace=' + config.browser.launchOptions.tracesDir + '/trace.json';
-        // eslint-disable-next-line no-console
-        console.error('\nTrace viewer listening on ' + url);
+        programDebug('Trace viewer listening on %s', url);
       }
     });
 
 function semicolonSeparatedList(value: string): string[] {
   return value.split(';').map(v => v.trim());
+}
+
+/**
+ * Decide whether to register the Azure config validator. We opt-in when
+ * either an explicit Azure mode env hint is set OR Entra ID / API key auth is
+ * enabled in the environment. This avoids spurious failures on local stdio
+ * runs while still surfacing missing config in cloud deployments.
+ */
+function shouldValidateAzureConfig(): boolean {
+  if (process.env.WEBSITE_SITE_NAME) // Azure App Service
+    return true;
+  if (process.env.CONTAINER_APP_NAME) // Azure Container Apps
+    return true;
+  if (process.env.AZURE_DEPLOYMENT === 'true')
+    return true;
+  if (process.env.ENTRA_AUTH_ENABLED === 'true')
+    return true;
+  return false;
 }
 
 void program.parseAsync(process.argv);

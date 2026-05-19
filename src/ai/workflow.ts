@@ -15,17 +15,38 @@
  */
 
 /**
- * AI-native workflow execution engine for common automation patterns
+ * AI-native workflow execution engine for common automation patterns.
+ *
+ * A workflow is an ordered list of declarative steps that map onto browser
+ * MCP tools (`browser_navigate`, `browser_click`, ...). The engine wraps
+ * step execution with parameter interpolation, conditional execution, retry
+ * and error policies, and surfaces the structured results back to callers.
  */
 
 import type { Context } from '../context.js';
 
+/** A value that can appear in workflow step parameters. */
+export type WorkflowParamValue =
+  | string
+  | number
+  | boolean
+  | null
+  | undefined
+  | WorkflowParamValue[]
+  | { [key: string]: WorkflowParamValue }
+  | ((params: WorkflowParameters) => boolean);
+
+export type WorkflowParameters = Record<string, WorkflowParamValue>;
+
+/** Validation callback applied to a step's structured result. */
+export type StepValidator = (result: WorkflowStepResult) => boolean;
+
 export interface WorkflowStep {
   action: string;
-  parameters: Record<string, any>;
+  parameters: WorkflowParameters;
   retryCount?: number;
   timeout?: number;
-  validation?: (result: any) => boolean;
+  validation?: StepValidator;
   onError?: 'continue' | 'retry' | 'abort';
 }
 
@@ -34,8 +55,22 @@ export interface WorkflowTemplate {
   description: string;
   steps: WorkflowStep[];
   requiredParameters: string[];
-  expectedDuration: number; // in seconds
+  /** Expected wall-clock duration in seconds — informational only. */
+  expectedDuration: number;
   successCriteria: string[];
+}
+
+export interface WorkflowStepResult {
+  action: string;
+  toolName: string;
+  parameters?: Record<string, unknown>;
+  success: boolean;
+  skipped?: boolean;
+  reason?: string;
+  error?: string;
+  result?: unknown;
+  timestamp: number;
+  duration: number;
 }
 
 export interface WorkflowExecution {
@@ -43,26 +78,43 @@ export interface WorkflowExecution {
   status: 'running' | 'completed' | 'failed' | 'paused';
   currentStep: number;
   startTime: number;
-  parameters: Record<string, any>;
-  results: any[];
+  parameters: WorkflowParameters;
+  results: WorkflowStepResult[];
   errors: string[];
 }
 
 /**
- * Workflow execution engine for automated task sequences
+ * Workflow execution engine for automated task sequences.
  */
 export class WorkflowEngine {
-  private templates = new Map<string, WorkflowTemplate>();
-  private executions = new Map<string, WorkflowExecution>();
+  private readonly _templates = new Map<string, WorkflowTemplate>();
+  private readonly _executions = new Map<string, WorkflowExecution>();
 
   constructor() {
-    this.registerDefaultTemplates();
+    this._registerDefaultTemplates();
   }
 
   /**
-   * Register default workflow templates
+   * Map declarative workflow action names onto the concrete MCP tools.
+   * Actions not in the map fall back to `browser_<action>`.
    */
-  private registerDefaultTemplates(): void {
+  private readonly _actionToToolMap: Record<string, string> = {
+    'navigate': 'browser_navigate',
+    'click': 'browser_click',
+    'conditional_click': 'browser_click',
+    'type': 'browser_type',
+    'wait_for': 'browser_wait_for',
+    'screenshot': 'browser_screenshot',
+    'snapshot': 'browser_snapshot',
+    'detect_login_form': 'browser_snapshot',
+    'analyze_readme': 'browser_snapshot',
+    'analyze_issues': 'browser_snapshot',
+    'analyze_pull_requests': 'browser_snapshot',
+    'analyze_changes': 'browser_snapshot',
+    'generate_report': 'browser_snapshot',
+  };
+
+  private _registerDefaultTemplates(): void {
     // GitHub Issue Management
     this.registerTemplate({
       name: 'github_issue_management',
@@ -81,23 +133,11 @@ export class WorkflowEngine {
           action: 'conditional_click',
           parameters: {
             element: 'New issue button',
-            condition: (params: any) => params.action === 'create',
+            condition: (params: WorkflowParameters) => params.action === 'create',
           },
         },
-        {
-          action: 'type',
-          parameters: {
-            element: 'issue title input',
-            text: '{title}',
-          },
-        },
-        {
-          action: 'type',
-          parameters: {
-            element: 'issue description textarea',
-            text: '{description}',
-          },
-        },
+        { action: 'type', parameters: { element: 'issue title input', text: '{title}' } },
+        { action: 'type', parameters: { element: 'issue description textarea', text: '{description}' } },
         {
           action: 'click',
           parameters: { element: 'Submit new issue' },
@@ -114,26 +154,11 @@ export class WorkflowEngine {
       expectedDuration: 120,
       successCriteria: ['PR reviewed and commented'],
       steps: [
-        {
-          action: 'navigate',
-          parameters: { url: 'https://github.com/{repository}/pulls' },
-        },
-        {
-          action: 'click',
-          parameters: { element: 'first pull request in list' },
-        },
-        {
-          action: 'wait_for',
-          parameters: { target: 'Files changed tab' },
-        },
-        {
-          action: 'click',
-          parameters: { element: 'Files changed tab' },
-        },
-        {
-          action: 'analyze_changes',
-          parameters: { focus: 'security and performance' },
-        },
+        { action: 'navigate', parameters: { url: 'https://github.com/{repository}/pulls' } },
+        { action: 'click', parameters: { element: 'first pull request in list' } },
+        { action: 'wait_for', parameters: { target: 'Files changed tab' } },
+        { action: 'click', parameters: { element: 'Files changed tab' } },
+        { action: 'analyze_changes', parameters: { focus: 'security and performance' } },
       ],
     });
 
@@ -145,33 +170,11 @@ export class WorkflowEngine {
       expectedDuration: 30,
       successCriteria: ['Successfully logged in'],
       steps: [
-        {
-          action: 'detect_login_form',
-          parameters: {},
-        },
-        {
-          action: 'type',
-          parameters: {
-            element: 'username input',
-            text: '{username}',
-          },
-        },
-        {
-          action: 'type',
-          parameters: {
-            element: 'password input',
-            text: '{password}',
-          },
-        },
-        {
-          action: 'click',
-          parameters: { element: 'login button' },
-        },
-        {
-          action: 'wait_for',
-          parameters: { target: 'dashboard or home page' },
-          timeout: 15000,
-        },
+        { action: 'detect_login_form', parameters: {} },
+        { action: 'type', parameters: { element: 'username input', text: '{username}' } },
+        { action: 'type', parameters: { element: 'password input', text: '{password}' } },
+        { action: 'click', parameters: { element: 'login button' } },
+        { action: 'wait_for', parameters: { target: 'dashboard or home page' }, timeout: 15000 },
       ],
     });
 
@@ -183,70 +186,43 @@ export class WorkflowEngine {
       expectedDuration: 90,
       successCriteria: ['Analysis report generated'],
       steps: [
-        {
-          action: 'navigate',
-          parameters: { url: 'https://github.com/{repository}' },
-        },
-        {
-          action: 'analyze_readme',
-          parameters: {},
-        },
-        {
-          action: 'click',
-          parameters: { element: 'Issues tab' },
-        },
-        {
-          action: 'analyze_issues',
-          parameters: {},
-        },
-        {
-          action: 'click',
-          parameters: { element: 'Pull requests tab' },
-        },
-        {
-          action: 'analyze_pull_requests',
-          parameters: {},
-        },
-        {
-          action: 'generate_report',
-          parameters: { format: 'summary' },
-        },
+        { action: 'navigate', parameters: { url: 'https://github.com/{repository}' } },
+        { action: 'analyze_readme', parameters: {} },
+        { action: 'click', parameters: { element: 'Issues tab' } },
+        { action: 'analyze_issues', parameters: {} },
+        { action: 'click', parameters: { element: 'Pull requests tab' } },
+        { action: 'analyze_pull_requests', parameters: {} },
+        { action: 'generate_report', parameters: { format: 'summary' } },
       ],
     });
   }
 
-  /**
-   * Register a new workflow template
-   */
+  /** Register a new workflow template, replacing one with the same name. */
   registerTemplate(template: WorkflowTemplate): void {
-    this.templates.set(template.name, template);
+    this._templates.set(template.name, template);
   }
 
-  /**
-   * Get available workflow templates
-   */
+  /** All registered workflow templates. */
   getTemplates(): WorkflowTemplate[] {
-    return Array.from(this.templates.values());
+    return Array.from(this._templates.values());
   }
 
   /**
-   * Execute a workflow by name
+   * Execute a workflow by name. Required parameters are validated up-front
+   * and missing values throw before any tool is invoked.
    */
   async executeWorkflow(
     context: Context,
     templateName: string,
-    parameters: Record<string, any>
+    parameters: WorkflowParameters,
   ): Promise<WorkflowExecution> {
-    const template = this.templates.get(templateName);
+    const template = this._templates.get(templateName);
     if (!template)
       throw new Error(`Workflow template '${templateName}' not found`);
 
-
-    // Validate required parameters
     for (const required of template.requiredParameters) {
       if (!(required in parameters))
         throw new Error(`Missing required parameter: ${required}`);
-
     }
 
     const executionId = `${templateName}_${Date.now()}`;
@@ -259,52 +235,44 @@ export class WorkflowEngine {
       results: [],
       errors: [],
     };
-
-    this.executions.set(executionId, execution);
+    this._executions.set(executionId, execution);
 
     try {
       for (let i = 0; i < template.steps.length; i++) {
         execution.currentStep = i;
         const step = template.steps[i];
-
-        // Replace parameter placeholders
-        const resolvedStep = this.resolveStepParameters(step, parameters);
+        const resolvedStep = this._resolveStepParameters(step, parameters);
 
         try {
-          const result = await this.executeStep(context, resolvedStep);
+          const result = await this._executeStep(context, resolvedStep);
           execution.results.push(result);
 
-          // Validate step result if validation function provided
           if (step.validation && !step.validation(result))
             throw new Error(`Step validation failed for step ${i}`);
-
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : 'Unknown error';
           execution.errors.push(`Step ${i}: ${errorMessage}`);
 
-          // Handle error based on step configuration
-          const onError = step.onError || 'abort';
+          const onError = step.onError ?? 'abort';
           if (onError === 'abort') {
             execution.status = 'failed';
             return execution;
-          } else if (onError === 'retry' && (step.retryCount || 0) > 0) {
-            // Implement retry logic
-            for (let retry = 0; retry < (step.retryCount || 0); retry++) {
+          }
+          if (onError === 'retry' && (step.retryCount ?? 0) > 0) {
+            const retries = step.retryCount ?? 0;
+            for (let retry = 0; retry < retries; retry++) {
               try {
-                const retryResult = await this.executeStep(context, resolvedStep);
-                execution.results.push(retryResult);
+                execution.results.push(await this._executeStep(context, resolvedStep));
                 break;
               } catch (retryError) {
-                if (retry === (step.retryCount || 0) - 1)
+                if (retry === retries - 1)
                   throw retryError;
-
               }
             }
           }
-          // Continue to next step if onError is 'continue'
+          // 'continue' falls through to the next step
         }
       }
-
       execution.status = 'completed';
     } catch (error) {
       execution.status = 'failed';
@@ -315,53 +283,34 @@ export class WorkflowEngine {
   }
 
   /**
-   * Resolve parameter placeholders in step
+   * Interpolate `{name}` placeholders in string parameters against the
+   * supplied parameter map. Non-string values pass through unchanged.
    */
-  private resolveStepParameters(step: WorkflowStep, parameters: Record<string, any>): WorkflowStep {
-    const resolved = { ...step };
-    resolved.parameters = { ...step.parameters };
-
-    // Replace {parameter} placeholders
+  private _resolveStepParameters(step: WorkflowStep, parameters: WorkflowParameters): WorkflowStep {
+    const resolved: WorkflowStep = { ...step, parameters: { ...step.parameters } };
     for (const [key, value] of Object.entries(resolved.parameters)) {
       if (typeof value === 'string') {
-        resolved.parameters[key] = value.replace(/\{(\w+)\}/g, (match, paramName) => {
-          return parameters[paramName] || match;
+        resolved.parameters[key] = value.replace(/\{(\w+)\}/g, (match, paramName: string) => {
+          const replacement = parameters[paramName];
+          return typeof replacement === 'string' || typeof replacement === 'number' || typeof replacement === 'boolean'
+            ? String(replacement)
+            : match;
         });
       }
     }
-
     return resolved;
   }
 
   /**
-   * Map workflow action names to browser tool names
+   * Translate a single workflow step into a tool invocation.
+   *
+   * Returns a structured `WorkflowStepResult` for both success and failure
+   * paths; callers should branch on `success`.
    */
-  private readonly actionToToolMap: Record<string, string> = {
-    'navigate': 'browser_navigate',
-    'click': 'browser_click',
-    'conditional_click': 'browser_click',
-    'type': 'browser_type',
-    'wait_for': 'browser_wait_for',
-    'screenshot': 'browser_screenshot',
-    'snapshot': 'browser_snapshot',
-    'detect_login_form': 'browser_snapshot',
-    'analyze_readme': 'browser_snapshot',
-    'analyze_issues': 'browser_snapshot',
-    'analyze_pull_requests': 'browser_snapshot',
-    'analyze_changes': 'browser_snapshot',
-    'generate_report': 'browser_snapshot',
-  };
-
-  /**
-   * Execute a single workflow step using the browser tool system
-   */
-  private async executeStep(context: Context, step: WorkflowStep): Promise<any> {
+  private async _executeStep(context: Context, step: WorkflowStep): Promise<WorkflowStepResult> {
     const startTime = Date.now();
+    const toolName = this._actionToToolMap[step.action] ?? `browser_${step.action}`;
 
-    // Map action to tool name
-    const toolName = this.actionToToolMap[step.action] || `browser_${step.action}`;
-
-    // Find the tool in context
     const tool = context.tools.find(t => t.schema.name === toolName);
     if (!tool) {
       return {
@@ -374,26 +323,19 @@ export class WorkflowEngine {
       };
     }
 
-    // Build tool parameters from step parameters
     const toolParams: Record<string, unknown> = {};
-
-    // Map common workflow parameters to tool parameters
-    if (step.parameters.url)
+    if (typeof step.parameters.url === 'string')
       toolParams.url = step.parameters.url;
-
-    if (step.parameters.element)
+    if (typeof step.parameters.element === 'string')
       toolParams.element = step.parameters.element;
-
-    if (step.parameters.text)
+    if (typeof step.parameters.text === 'string')
       toolParams.text = step.parameters.text;
+    if (typeof step.parameters.target === 'string')
+      toolParams.text = step.parameters.target; // wait_for takes its target via the 'text' param
 
-    if (step.parameters.target)
-      toolParams.text = step.parameters.target; // wait_for uses 'text' param
-
-    // Handle conditional actions
-    if (step.action === 'conditional_click' && step.parameters.condition) {
+    if (step.action === 'conditional_click' && typeof step.parameters.condition === 'function') {
       const conditionFn = step.parameters.condition;
-      if (typeof conditionFn === 'function' && !conditionFn(step.parameters)) {
+      if (!conditionFn(step.parameters)) {
         return {
           action: step.action,
           toolName,
@@ -407,9 +349,7 @@ export class WorkflowEngine {
     }
 
     try {
-      // Execute the tool through context.run()
       const result = await context.run(tool, toolParams);
-
       return {
         action: step.action,
         toolName,
@@ -432,27 +372,20 @@ export class WorkflowEngine {
     }
   }
 
-  /**
-   * Get workflow execution status
-   */
   getExecution(executionId: string): WorkflowExecution | undefined {
-    return this.executions.get(executionId);
+    return this._executions.get(executionId);
   }
 
-  /**
-   * List all active executions
-   */
+  /** All executions in `running` or `paused` state. */
   getActiveExecutions(): WorkflowExecution[] {
-    return Array.from(this.executions.values()).filter(
+    return Array.from(this._executions.values()).filter(
         execution => execution.status === 'running' || execution.status === 'paused'
     );
   }
 
-  /**
-   * Cancel a running workflow
-   */
+  /** Cancel a running workflow; returns true if it was cancelled. */
   cancelExecution(executionId: string): boolean {
-    const execution = this.executions.get(executionId);
+    const execution = this._executions.get(executionId);
     if (execution && execution.status === 'running') {
       execution.status = 'failed';
       execution.errors.push('Workflow cancelled by user');
@@ -462,30 +395,31 @@ export class WorkflowEngine {
   }
 
   /**
-   * Suggest workflows based on current context
+   * Suggest workflows based on the current URL and (lowercased) page content.
    */
   suggestWorkflows(currentUrl: string, pageContent: string): WorkflowTemplate[] {
     const suggestions: WorkflowTemplate[] = [];
 
-    // GitHub-specific suggestions
     if (currentUrl.includes('github.com')) {
       if (currentUrl.includes('/issues'))
-        suggestions.push(this.templates.get('github_issue_management')!);
-
+        push(suggestions, this._templates.get('github_issue_management'));
       if (currentUrl.includes('/pulls'))
-        suggestions.push(this.templates.get('code_review_workflow')!);
+        push(suggestions, this._templates.get('code_review_workflow'));
 
-      suggestions.push(this.templates.get('repository_analysis')!);
+      push(suggestions, this._templates.get('repository_analysis'));
     }
 
-    // Login form detection
     if (pageContent.includes('password') && pageContent.includes('login'))
-      suggestions.push(this.templates.get('login_workflow')!);
+      push(suggestions, this._templates.get('login_workflow'));
 
-
-    return suggestions.filter(Boolean);
+    return suggestions;
   }
 }
 
-// Global workflow engine instance
+function push<T>(arr: T[], value: T | undefined): void {
+  if (value !== undefined)
+    arr.push(value);
+}
+
+/** Process-wide workflow engine instance. */
 export const workflowEngine = new WorkflowEngine();
