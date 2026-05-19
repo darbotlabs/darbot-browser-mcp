@@ -28,4 +28,19 @@ declare module 'playwright-core/lib/coreBundle' {
      */
     asLocator(language: 'javascript' | 'python' | 'java' | 'csharp', selector: string): string;
   };
+
+  /**
+   * Server-side helpers re-exported from Playwright's internal bundle.
+   * Only the members we actively consume are declared here. Extend as needed.
+   */
+  export const server: {
+    /**
+     * Starts a local HTTP server that serves the Playwright Trace Viewer UI.
+     * Returns a handle that exposes a `urlPrefix(format)` helper for building
+     * deep links into the trace viewer.
+     */
+    startTraceViewerServer(): Promise<{
+      urlPrefix(format: 'human-readable' | 'precise'): string;
+    }>;
+  };
 }

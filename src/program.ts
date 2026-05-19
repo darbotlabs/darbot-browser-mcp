@@ -16,8 +16,7 @@
 
 import debug from 'debug';
 import { Option, program } from 'commander';
-// @ts-expect-error - playwright-core internal entrypoint, no shipped types.
-import { startTraceViewerServer } from 'playwright-core/lib/server';
+import { server as playwrightServer } from 'playwright-core/lib/coreBundle';
 
 import { resolveCLIConfig } from './config.js';
 import { startCDPRelayServer, type CDPRelayServer } from './cdpRelay.js';
@@ -124,7 +123,7 @@ program
 
 
       if (config.saveTrace) {
-        const traceServer = await startTraceViewerServer();
+        const traceServer = await playwrightServer.startTraceViewerServer();
         const urlPrefix = traceServer.urlPrefix('human-readable');
         const url = urlPrefix + '/trace/index.html?trace=' + config.browser.launchOptions.tracesDir + '/trace.json';
         programDebug('Trace viewer listening on %s', url);
