@@ -1,0 +1,42 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "2.0.0.0",
+  "parameters": {
+    "prefix": { "value": "darbot" },
+    "environment": { "value": "dev" },
+    "location": { "value": "eastus" },
+    "regionCode": { "value": "eus" },
+    "appServiceSku": { "value": "B1" },
+    "containerRegistrySku": { "value": "Basic" },
+    "containerImage": {
+      "value": {
+        "repository": "darbot-browser-mcp",
+        "tag": "2.0.0"
+      }
+    },
+    "runtime": {
+      "value": {
+        "port": 8080,
+        "maxConcurrentSessions": 20,
+        "sessionTimeoutMs": 1800000,
+        "auditLoggingEnabled": true,
+        "copilotStudioEnabled": true
+      }
+    },
+    "entraClientId": { "value": "" },
+    "authClientSecretName": { "value": "" },
+    "serverBaseUrl": { "value": "" },
+    "healthCheckPath": { "value": "/healthz" },
+    "allowedOrigins": { "value": [] },
+    "network": {
+      "value": {
+        "publicNetworkAccess": "Enabled"
+      }
+    },
+    "extraTags": {
+      "value": {
+        "owner": "platform-engineering"
+      }
+    }
+  }
+}
