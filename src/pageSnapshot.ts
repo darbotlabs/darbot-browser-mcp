@@ -19,21 +19,12 @@ import * as playwright from 'playwright';
 import { callOnPageNoTrace } from './tools/utils.js';
 
 /**
- * Playwright's internal `_snapshotForAI` returns either a raw YAML string
- * (pre-1.50) or a structured object whose payload lives under `full`, `text`
- * or `snapshot` depending on the build. We normalise across both.
- */
-type AISnapshotPayload =
-  | string
-  | { full?: string; text?: string; snapshot?: string };
-
-type PageEx = playwright.Page & {
-  _snapshotForAI: () => Promise<AISnapshotPayload>;
-};
-
-/**
  * Captures the latest AI-oriented snapshot of a page and exposes it as text
  * plus a locator factory for `aria-ref` references found inside the snapshot.
+ *
+ * As of playwright-core 1.60 the internal `_snapshotForAI()` helper has been
+ * removed in favor of the public `page.ariaSnapshot({ mode: 'ai' })` API,
+ * which returns the YAML string directly (no payload-shape variance).
  */
 export class PageSnapshot {
   private readonly _page: playwright.Page;
@@ -54,11 +45,10 @@ export class PageSnapshot {
   }
 
   private async _build(): Promise<void> {
-    const payload = await callOnPageNoTrace<AISnapshotPayload>(
+    const snapshot = await callOnPageNoTrace(
         this._page,
-        page => (page as PageEx)._snapshotForAI(),
+        page => page.ariaSnapshot({ mode: 'ai' }),
     );
-    const snapshot = normaliseSnapshotPayload(payload);
     this._text = [
       `- Page Snapshot`,
       '```yaml',
@@ -70,19 +60,4 @@ export class PageSnapshot {
   refLocator(params: { element: string, ref: string }): playwright.Locator {
     return this._page.locator(`aria-ref=${params.ref}`).describe(params.element);
   }
-}
-
-/**
- * Coerce the heterogeneous return value of `_snapshotForAI` into the YAML
- * string we render. Falls back to `JSON.stringify` so unknown shapes still
- * produce something useful (with logged diagnostics elsewhere).
- */
-function normaliseSnapshotPayload(payload: AISnapshotPayload | undefined | null): string {
-  if (payload === null || payload === undefined)
-    return '';
-  if (typeof payload === 'string')
-    return payload;
-  if (typeof payload === 'object')
-    return payload.full ?? payload.text ?? payload.snapshot ?? JSON.stringify(payload, null, 2);
-  return String(payload);
 }

@@ -84,7 +84,13 @@ export function sanitizeForFilePath(s: string) {
 
 export async function generateLocator(locator: playwright.Locator): Promise<string> {
   try {
-    const { resolvedSelector } = await (locator as any)._resolveSelector();
+    // playwright-core 1.60 removed the internal `_resolveSelector` helper in
+    // favour of the public `Locator.normalize()`, which performs the same
+    // server-side selector resolution and returns a new Locator. The resolved
+    // selector string still lives on the Locator's `_selector` field, which
+    // is the public-but-unexported wire format we need to feed asLocator().
+    const normalized = await locator.normalize();
+    const resolvedSelector = (normalized as unknown as { _selector: string })._selector;
     return asLocator('javascript', resolvedSelector);
   } catch (e) {
     throw new Error('Ref not found, likely because element was removed. Use browser_snapshot to see what elements are currently on the page.');
