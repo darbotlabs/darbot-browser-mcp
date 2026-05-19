@@ -16,7 +16,7 @@
 
 import { Server as McpServer } from '@modelcontextprotocol/sdk/server/index.js';
 import { CallToolRequestSchema, ListToolsRequestSchema, Tool as McpTool } from '@modelcontextprotocol/sdk/types.js';
-import { zodToJsonSchema } from 'zod-to-json-schema';
+import { z } from 'zod';
 
 import { Context } from './context.js';
 import { snapshotTools, visionTools } from './tools.js';
@@ -42,7 +42,9 @@ export function createConnection(config: FullConfig, browserContextFactory: Brow
       tools: tools.map(tool => ({
         name: tool.schema.name,
         description: tool.schema.description,
-        inputSchema: zodToJsonSchema(tool.schema.inputSchema),
+        inputSchema: z.toJSONSchema(tool.schema.inputSchema, {
+          target: 'draft-7',
+        }),
         annotations: {
           title: tool.schema.title,
           readOnlyHint: tool.schema.type === 'readOnly',
