@@ -1,84 +1,122 @@
 name: CI
 
+# Continuous integration: lint, typecheck, build, test, and verify
+# the Docker image builds. Runs on every push to main and on every PR.
+
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
 
 jobs:
   lint:
+    name: Lint + typecheck
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - name: Use Node.js 23
-      uses: actions/setup-node@v4
-      with:
-        node-version: '23'
-        cache: 'npm'
-    - name: Install dependencies
-      run: npm ci
-    - run: npm run build
-    - name: Run ESLint
-      run: npm run lint
-    - name: Ensure no changes
-      run: git diff --exit-code
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Use Node.js (from .nvmrc)
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Verify no generated changes were left uncommitted
+        run: git diff --exit-code
 
   test:
+    name: Test (Node ${{ matrix.node }} / ${{ matrix.os }})
+    needs: lint
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
+        node: ['20', '22']
     runs-on: ${{ matrix.os }}
     steps:
-    - uses: actions/checkout@v4
-    - name: Use Node.js 23
-      uses: actions/setup-node@v4
-      with:
-        node-version: '23'
-        cache: 'npm'
-    - name: Install dependencies
-      run: npm ci
-    - name: Playwright install
-      run: npx playwright install --with-deps
-    - name: Install MS Edge
-      # MS Edge is not preinstalled on macOS runners.
-      if: ${{ matrix.os == 'macos-latest' }}
-      run: npx playwright install msedge
-    - name: Build
-      run: npm run build
-    - name: Run tests
-      run: npm test
+      - uses: actions/checkout@v4
 
-  test_docker:
+      - name: Use Node.js ${{ matrix.node }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      - name: Install MS Edge (macOS only)
+        if: runner.os == 'macOS'
+        run: npx playwright install msedge
+
+      - name: Build
+        run: npm run build
+
+      - name: Run tests
+        run: npm test
+
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ matrix.os }}-node${{ matrix.node }}
+          path: |
+            playwright-report
+            test-results
+          retention-days: 7
+
+  docker:
+    name: Docker build
+    needs: lint
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - name: Use Node.js 23
-      uses: actions/setup-node@v4
-      with:
-        node-version: '23'
-        cache: 'npm'
-    - name: Install dependencies
-      run: npm ci
-    - name: Playwright install
-      run: npx playwright install --with-deps chromium
-    - name: Build
-      run: npm run build
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
-    - name: Build and push
-      uses: docker/build-push-action@v6
-      with:
-        tags: playwright-mcp-dev:latest
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
-        load: true
-    - name: Run tests
-      shell: bash
-      run: |
-        # Used for the Docker tests to share the test-results folder with the container.
-        umask 0000
-        npm run test -- --project=chromium-docker
-      env:
-        MCP_IN_DOCKER: 1
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js (from .nvmrc)
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build (no push)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: false
+          load: true
+          tags: darbot-browser-mcp:ci-${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

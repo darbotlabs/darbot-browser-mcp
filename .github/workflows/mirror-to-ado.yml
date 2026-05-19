@@ -1,0 +1,59 @@
+name: Mirror to Azure DevOps
+
+# Mirrors this GitHub repository to the internal ADO repo on every push
+# to main and on every tag, using `git push --mirror`.
+#
+# Required secrets (configure in repo Settings → Secrets and variables → Actions):
+#   ADO_MIRROR_PAT — Azure DevOps Personal Access Token scoped to:
+#                    Code (Read & Write) on the
+#                    https://dev.azure.com/darbotlabs/Darbot-Browser-MCP project.
+#
+# To create the PAT:
+#   1. Go to https://dev.azure.com/darbotlabs/_usersSettings/tokens
+#   2. New Token → Organization: darbotlabs, Scopes: Code (Read & Write)
+#   3. Copy the token and add it as ADO_MIRROR_PAT in repo secrets.
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - '**'
+  workflow_dispatch:
+
+concurrency:
+  group: mirror-to-ado-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  mirror:
+    name: Push mirror to ADO
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout full history (mirror clone)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Mirror to ADO
+        env:
+          ADO_MIRROR_PAT: ${{ secrets.ADO_MIRROR_PAT }}
+        run: |
+          set -euo pipefail
+          if [ -z "${ADO_MIRROR_PAT:-}" ]; then
+            echo "::error::ADO_MIRROR_PAT secret is not set; cannot mirror."
+            exit 1
+          fi
+          # The leading colon-username is required for ADO HTTPS PAT auth.
+          REMOTE_URL="https://:${ADO_MIRROR_PAT}@dev.azure.com/darbotlabs/Darbot-Browser-MCP/_git/Darbot-Browser-MCP"
+          git remote add ado "$REMOTE_URL"
+          # Fetch all refs locally so push --mirror has the full picture
+          git fetch --tags --prune origin
+          # Push everything (branches + tags) to ADO. Note: --mirror also deletes
+          # ADO refs that no longer exist on GitHub. If you want to keep
+          # ADO-only branches alive, switch to: git push ado --all && git push ado --tags
+          git push --mirror ado

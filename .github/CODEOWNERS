@@ -1,0 +1,50 @@
+# Code owners for darbot-browser-mcp
+#
+# Lines listed later take precedence. See:
+# https://docs.github.com/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default: maintainers team reviews everything not otherwise claimed
+*                                       @darbotlabs/maintainers
+
+# Build / CI / dependency foundation
+/.github/                               @darbotlabs/maintainers
+/.gitignore                             @darbotlabs/maintainers
+/.dockerignore                          @darbotlabs/maintainers
+/.npmignore                             @darbotlabs/maintainers
+/Dockerfile                             @darbotlabs/maintainers
+/eslint.config.mjs                      @darbotlabs/maintainers
+/tsconfig*.json                         @darbotlabs/maintainers
+/package.json                           @darbotlabs/maintainers
+/package-lock.json                      @darbotlabs/maintainers
+/.nvmrc                                 @darbotlabs/maintainers
+/playwright.config.ts                   @darbotlabs/maintainers
+/.vscode/                               @darbotlabs/maintainers
+
+# Server / tools / auth
+/src/                                   @darbotlabs/maintainers
+/tests/                                 @darbotlabs/maintainers
+
+# Extensions
+/extension/                             @darbotlabs/maintainers
+/vscode-extension/                      @darbotlabs/maintainers
+/darbot-browser-cloud/                  @darbotlabs/maintainers
+/darbot-browser-hosted/                 @darbotlabs/maintainers
+
+# .NET / NuGet
+/dotnet/                                @darbotlabs/maintainers
+
+# Infra
+/azure/                                 @darbotlabs/maintainers
+/infra/                                 @darbotlabs/maintainers
+
+# Power Platform / scripts / utils / examples
+/power-platform/                        @darbotlabs/maintainers
+/utils/                                 @darbotlabs/maintainers
+/scripts/                               @darbotlabs/maintainers
+/automation_scripts/                    @darbotlabs/maintainers
+/examples/                              @darbotlabs/maintainers
+
+# Documentation
+/docs/                                  @darbotlabs/maintainers
+/README.md                              @darbotlabs/maintainers
+/RELEASE_TRACKER.md                     @darbotlabs/maintainers

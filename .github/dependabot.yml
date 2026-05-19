@@ -1,0 +1,139 @@
+version: 2
+
+# Dependabot configuration for darbot-browser-mcp.
+# - Root npm package, three VS Code extension packages, the dotnet project
+#   nuget feed, GitHub Actions, and the Dockerfile are all watched weekly.
+# - Minor + patch bumps are grouped per ecosystem to reduce PR noise.
+# - Major bumps land as individual PRs so they can be reviewed carefully.
+
+updates:
+  # ------------------ npm: root ------------------
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: "America/Los_Angeles"
+    open-pull-requests-limit: 10
+    versioning-strategy: increase-if-necessary
+    labels:
+      - dependencies
+      - npm
+    groups:
+      npm-minor-patch:
+        applies-to: version-updates
+        update-types:
+          - minor
+          - patch
+      npm-azure:
+        applies-to: version-updates
+        patterns:
+          - "@azure/*"
+      npm-eslint:
+        applies-to: version-updates
+        patterns:
+          - "eslint"
+          - "eslint-*"
+          - "@eslint/*"
+          - "@typescript-eslint/*"
+          - "@stylistic/*"
+      npm-types:
+        applies-to: version-updates
+        patterns:
+          - "@types/*"
+      npm-playwright:
+        applies-to: version-updates
+        patterns:
+          - "playwright"
+          - "playwright-core"
+          - "@playwright/test"
+
+  # ------------------ npm: vscode-extension ------------------
+  - package-ecosystem: npm
+    directory: /vscode-extension
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - npm
+      - vscode-extension
+    groups:
+      ext-minor-patch:
+        applies-to: version-updates
+        update-types: [minor, patch]
+
+  # ------------------ npm: vscode-extension-cloud ------------------
+  - package-ecosystem: npm
+    directory: /darbot-browser-cloud/vscode-extension-cloud
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - npm
+      - vscode-extension-cloud
+    groups:
+      ext-cloud-minor-patch:
+        applies-to: version-updates
+        update-types: [minor, patch]
+
+  # ------------------ npm: vscode-extension-hosted ------------------
+  - package-ecosystem: npm
+    directory: /darbot-browser-hosted/vscode-extension-hosted
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - npm
+      - vscode-extension-hosted
+    groups:
+      ext-hosted-minor-patch:
+        applies-to: version-updates
+        update-types: [minor, patch]
+
+  # ------------------ nuget: dotnet project ------------------
+  - package-ecosystem: nuget
+    directory: /dotnet/DarbotLabs.Browser.MCP
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - nuget
+    groups:
+      nuget-minor-patch:
+        applies-to: version-updates
+        update-types: [minor, patch]
+
+  # ------------------ github-actions ------------------
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - ci
+    groups:
+      actions-minor-patch:
+        applies-to: version-updates
+        update-types: [minor, patch]
+
+  # ------------------ docker ------------------
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 3
+    labels:
+      - dependencies
+      - docker

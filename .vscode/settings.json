@@ -1,9 +1,37 @@
 {
-    "chat.mcp.servers": {
-        "darbot-browser-bridge": {
-            "type": "http",
-            "url": "http://localhost:9223/mcp"
-        }
-    },
-    "chat.mcp.access": "all"
+  "chat.mcp.servers": {
+    "darbot-browser-bridge": {
+      "type": "http",
+      "url": "http://localhost:9223/mcp"
+    }
+  },
+  "chat.mcp.access": "all",
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit",
+    "source.organizeImports": "never"
+  },
+  "eslint.useFlatConfig": true,
+  "eslint.format.enable": false,
+  "eslint.validate": ["typescript", "javascript"],
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+  "files.eol": "\n",
+  "files.insertFinalNewline": true,
+  "files.trimTrailingWhitespace": true,
+  "files.exclude": {
+    "**/.git": true,
+    "**/node_modules": true,
+    "**/lib": true,
+    "**/out": true,
+    "**/playwright-report": true,
+    "**/test-results": true
+  },
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/lib": true,
+    "**/out": true,
+    "**/dist": true,
+    "**/package-lock.json": true
+  }
 }

@@ -1,0 +1,78 @@
+name: Bug report
+description: Report a defect in darbot-browser-mcp
+title: "bug: <short summary>"
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug! Please include enough
+        detail that a maintainer can reproduce the issue without a back-and-forth.
+  - type: input
+    id: version
+    attributes:
+      label: darbot-browser-mcp version
+      placeholder: "e.g. 2.0.0 (run `darbot-browser-mcp --version`)"
+    validations:
+      required: true
+  - type: input
+    id: node
+    attributes:
+      label: Node.js version
+      placeholder: "e.g. 20.18.0"
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - Windows
+        - macOS
+        - Linux
+        - Docker
+        - Other
+    validations:
+      required: true
+  - type: dropdown
+    id: browser
+    attributes:
+      label: Browser used
+      options:
+        - msedge
+        - chrome
+        - chromium
+        - firefox
+        - webkit
+        - other
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Start the server with `darbot-browser-mcp --port 9223`
+        2. Send the following MCP request: ...
+        3. Observe the response: ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs
+      render: shell
+    validations:
+      required: false
