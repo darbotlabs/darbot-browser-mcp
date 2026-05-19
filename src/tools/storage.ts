@@ -211,13 +211,20 @@ const setCookie = defineTool({
       value: params.value,
     };
 
-    if (params.url !== undefined) cookie.url = params.url;
-    if (params.domain !== undefined) cookie.domain = params.domain;
-    if (params.path !== undefined) cookie.path = params.path;
-    if (params.expires !== undefined) cookie.expires = params.expires;
-    if (params.httpOnly !== undefined) cookie.httpOnly = params.httpOnly;
-    if (params.secure !== undefined) cookie.secure = params.secure;
-    if (params.sameSite !== undefined) cookie.sameSite = params.sameSite;
+    if (params.url !== undefined)
+      cookie.url = params.url;
+    if (params.domain !== undefined)
+      cookie.domain = params.domain;
+    if (params.path !== undefined)
+      cookie.path = params.path;
+    if (params.expires !== undefined)
+      cookie.expires = params.expires;
+    if (params.httpOnly !== undefined)
+      cookie.httpOnly = params.httpOnly;
+    if (params.secure !== undefined)
+      cookie.secure = params.secure;
+    if (params.sameSite !== undefined)
+      cookie.sameSite = params.sameSite;
 
     const code = [
       `// Set cookie: ${params.name}`,
@@ -269,9 +276,12 @@ const clearCookies = defineTool({
     const browserContext = tab.page.context();
 
     const filter: ClearCookieFilter = {};
-    if (params.name !== undefined) filter.name = params.name;
-    if (params.domain !== undefined) filter.domain = params.domain;
-    if (params.path !== undefined) filter.path = params.path;
+    if (params.name !== undefined)
+      filter.name = params.name;
+    if (params.domain !== undefined)
+      filter.domain = params.domain;
+    if (params.path !== undefined)
+      filter.path = params.path;
 
     const hasFilter = Object.keys(filter).length > 0;
     const filterDesc = hasFilter

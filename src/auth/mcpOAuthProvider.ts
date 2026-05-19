@@ -181,7 +181,7 @@ class DynamicClientsStore implements OAuthRegisteredClientsStore {
     // Generate a unique client ID for this dynamically registered client
     const clientId = `vscode-mcp-${crypto.randomUUID()}`;
     const clientIdIssuedAt = Math.floor(Date.now() / 1000);
-    
+
     // For dynamically registered clients, we use our Entra app's credentials
     // This is safe because the OAuth flow still goes through Entra ID validation
     const registeredClient: OAuthClientInformationFull = {
@@ -202,10 +202,10 @@ class DynamicClientsStore implements OAuthRegisteredClientsStore {
     };
 
     this.clients.set(clientId, registeredClient);
-    
+
     // eslint-disable-next-line no-console
     console.error(`[OAuth] Dynamic client registered: ${clientId} (${clientMetadata.client_name || 'unnamed'})`);
-    
+
     return registeredClient;
   }
 }
@@ -271,8 +271,8 @@ export function validateOAuthConfig(): OAuthConfigValidation {
   // don't pass an invalid URL into the rest of the OAuth pipeline.
   if (!missing.includes('SERVER_BASE_URL')) {
     try {
-      // eslint-disable-next-line no-new
-      new URL(process.env.SERVER_BASE_URL!);
+      // Constructed solely to validate parseability; result is discarded.
+      void new URL(process.env.SERVER_BASE_URL!);
     } catch {
       missing.push('SERVER_BASE_URL (invalid URL)');
     }
