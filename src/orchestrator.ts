@@ -1,3 +1,4 @@
+/// <reference lib="dom" />
 /**
  * Copyright (c) DarbotLabs.
  *
@@ -15,6 +16,7 @@
  */
 
 import debug from 'debug';
+import type { Page } from 'playwright-core';
 import { MemoryManager, type MemoryConfig } from './memory.js';
 import { BFSPlanner, type PlannerConfig, type CrawlAction, type PlannerObservation } from './planner.js';
 import { CrawlReporter, type ReporterConfig } from './reporter.js';
@@ -90,9 +92,9 @@ export class CrawlOrchestrator {
       maxDepth: this.config.maxDepth!,
       maxPages: this.config.maxPages!,
       timeout: this.config.timeoutMs!,
-      allowedDomains: this.config.allowedDomains,
+      ...(this.config.allowedDomains !== undefined && { allowedDomains: this.config.allowedDomains }),
       strategy: 'bfs',
-      goalDescription: this.config.goal,
+      ...(this.config.goal !== undefined && { goalDescription: this.config.goal }),
       ...this.config.planner
     };
     this.planner = new BFSPlanner(plannerConfig, this.memory);
@@ -105,9 +107,9 @@ export class CrawlOrchestrator {
     );
 
     this.guardrails = new GuardrailSystem({
-      maxDepth: this.config.maxDepth,
-      timeoutMs: this.config.timeoutMs,
-      allowedDomains: this.config.allowedDomains,
+      ...(this.config.maxDepth !== undefined && { maxDepth: this.config.maxDepth }),
+      ...(this.config.timeoutMs !== undefined && { timeoutMs: this.config.timeoutMs }),
+      ...(this.config.allowedDomains !== undefined && { allowedDomains: this.config.allowedDomains }),
       ...this.config.guardrails
     });
 
@@ -269,13 +271,13 @@ export class CrawlOrchestrator {
   /**
    * Extract links from current page
    */
-  private async extractLinks(page: any): Promise<Array<{ text: string; href: string; selector: string }>> {
+  private async extractLinks(page: Page): Promise<Array<{ text: string; href: string; selector: string }>> {
     try {
       return await page.evaluate(() => {
         const links: Array<{ text: string; href: string; selector: string }> = [];
         const anchorElements = document.querySelectorAll('a[href]');
 
-        anchorElements.forEach((element, index) => {
+        anchorElements.forEach((element: Element, index: number) => {
           const href = element.getAttribute('href');
           const text = element.textContent?.trim() || '';
 
@@ -299,18 +301,18 @@ export class CrawlOrchestrator {
   /**
    * Extract clickable elements from current page
    */
-  private async extractClickableElements(page: any): Promise<Array<{ text: string; selector: string; tag: string }>> {
+  private async extractClickableElements(page: Page): Promise<Array<{ text: string; selector: string; tag: string }>> {
     try {
       return await page.evaluate(() => {
         const elements: Array<{ text: string; selector: string; tag: string }> = [];
         const clickableSelectors = 'button, input[type="button"], input[type="submit"], [role="button"], .btn, .button';
         const clickableElements = document.querySelectorAll(clickableSelectors);
 
-        clickableElements.forEach((element, index) => {
+        clickableElements.forEach((element: Element, index: number) => {
           const text = element.textContent?.trim() || element.getAttribute('value') || element.getAttribute('aria-label') || '';
           const tagName = element.tagName.toLowerCase();
 
-          if (text && (element as any).offsetParent !== null) { // Only visible elements
+          if (text && (element as unknown as { offsetParent: Element | null }).offsetParent !== null) { // Only visible elements
             elements.push({
               text: text.substring(0, 50), // Limit text length
               selector: `${tagName}:nth-of-type(${index + 1})`,
