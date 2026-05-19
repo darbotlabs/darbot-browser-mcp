@@ -93,12 +93,9 @@ const defaultConfig: FullConfig = {
       viewport: null,
     },
   },
-  network: {
-    allowedOrigins: undefined,
-    blockedOrigins: undefined,
-  },
+  network: {},
   server: {
-    baseUrl: process.env.SERVER_BASE_URL,
+    ...(process.env.SERVER_BASE_URL !== undefined && { baseUrl: process.env.SERVER_BASE_URL }),
     https: {
       enabled: false
     },
@@ -110,7 +107,7 @@ const defaultConfig: FullConfig = {
   },
   copilotStudio: {
     enabled: process.env.COPILOT_STUDIO_ENABLED === 'true',
-    callbackUrl: process.env.COPILOT_STUDIO_CALLBACK_URL,
+    ...(process.env.COPILOT_STUDIO_CALLBACK_URL !== undefined && { callbackUrl: process.env.COPILOT_STUDIO_CALLBACK_URL }),
     maxConcurrentSessions: parseInt(process.env.MAX_CONCURRENT_SESSIONS || '10', 10),
     sessionTimeoutMs: parseInt(process.env.SESSION_TIMEOUT_MS || '1800000', 10), // 30 minutes
     auditLogging: process.env.AUDIT_LOGGING_ENABLED === 'true'
@@ -118,9 +115,9 @@ const defaultConfig: FullConfig = {
   auth: {
     entraId: {
       enabled: process.env.ENTRA_AUTH_ENABLED === 'true',
-      tenantId: process.env.AZURE_TENANT_ID,
-      clientId: process.env.AZURE_CLIENT_ID,
-      clientSecret: process.env.AZURE_CLIENT_SECRET
+      ...(process.env.AZURE_TENANT_ID !== undefined && { tenantId: process.env.AZURE_TENANT_ID }),
+      ...(process.env.AZURE_CLIENT_ID !== undefined && { clientId: process.env.AZURE_CLIENT_ID }),
+      ...(process.env.AZURE_CLIENT_SECRET !== undefined && { clientSecret: process.env.AZURE_CLIENT_SECRET })
     },
     apiKey: {
       enabled: process.env.API_KEY_AUTH_ENABLED === 'true',
@@ -338,9 +335,9 @@ export async function configFromCLIOptions(cliOptions: CLIOptions): Promise<Conf
 
   // Launch options
   const launchOptions: LaunchOptions = {
-    channel,
-    executablePath: cliOptions.executablePath,
-    headless: cliOptions.headless,
+    ...(channel !== undefined && { channel }),
+    ...(cliOptions.executablePath !== undefined && { executablePath: cliOptions.executablePath }),
+    ...(cliOptions.headless !== undefined && { headless: cliOptions.headless }),
   };
 
   // --no-sandbox was passed, disable the sandbox
@@ -361,7 +358,13 @@ export async function configFromCLIOptions(cliOptions: CLIOptions): Promise<Conf
     throw new Error('Device emulation is not supported with extension mode.');
 
   // Context options
-  const contextOptions: BrowserContextOptions = cliOptions.device ? devices[cliOptions.device] : {};
+  let contextOptions: BrowserContextOptions = {};
+  if (cliOptions.device) {
+    const device = devices[cliOptions.device];
+    if (!device)
+      throw new Error(`Unknown device: ${cliOptions.device}`);
+    contextOptions = { ...device };
+  }
   if (cliOptions.storageState)
     contextOptions.storageState = cliOptions.storageState;
 
@@ -371,7 +374,7 @@ export async function configFromCLIOptions(cliOptions: CLIOptions): Promise<Conf
   if (cliOptions.viewportSize) {
     try {
       const [width, height] = cliOptions.viewportSize.split(',').map(n => +n);
-      if (isNaN(width) || isNaN(height))
+      if (width === undefined || height === undefined || isNaN(width) || isNaN(height))
         throw new Error('bad values');
       contextOptions.viewport = { width, height };
     } catch (e) {
@@ -393,31 +396,34 @@ export async function configFromCLIOptions(cliOptions: CLIOptions): Promise<Conf
   if (cliOptions.workspace)
     process.env.DARBOT_WORKSPACE = cliOptions.workspace;
 
+  const browserAgent = cliOptions.browserAgent ?? process.env.PW_BROWSER_AGENT;
+  const port = cliOptions.port ?? (process.env.PORT ? parseInt(process.env.PORT, 10) : undefined);
+  const capabilities = cliOptions.caps?.split(',').map((c: string) => c.trim() as ToolCapability);
   const result: Config = {
     browser: {
-      browserAgent: cliOptions.browserAgent ?? process.env.PW_BROWSER_AGENT,
-      browserName,
-      isolated: cliOptions.isolated,
-      userDataDir: cliOptions.userDataDir,
+      ...(browserAgent !== undefined && { browserAgent }),
+      ...(browserName !== undefined && { browserName }),
+      ...(cliOptions.isolated !== undefined && { isolated: cliOptions.isolated }),
+      ...(cliOptions.userDataDir !== undefined && { userDataDir: cliOptions.userDataDir }),
       launchOptions,
       contextOptions,
-      cdpEndpoint: cliOptions.cdpEndpoint,
+      ...(cliOptions.cdpEndpoint !== undefined && { cdpEndpoint: cliOptions.cdpEndpoint }),
     },
     server: {
       // Support PORT environment variable (common in cloud deployments like Azure)
-      port: cliOptions.port ?? (process.env.PORT ? parseInt(process.env.PORT, 10) : undefined),
-      host: cliOptions.host,
+      ...(port !== undefined && { port }),
+      ...(cliOptions.host !== undefined && { host: cliOptions.host }),
     },
-    capabilities: cliOptions.caps?.split(',').map((c: string) => c.trim() as ToolCapability),
+    ...(capabilities !== undefined && { capabilities }),
     vision: !!cliOptions.vision,
     extension: !!cliOptions.extension,
     network: {
-      allowedOrigins: cliOptions.allowedOrigins,
-      blockedOrigins: cliOptions.blockedOrigins,
+      ...(cliOptions.allowedOrigins !== undefined && { allowedOrigins: cliOptions.allowedOrigins }),
+      ...(cliOptions.blockedOrigins !== undefined && { blockedOrigins: cliOptions.blockedOrigins }),
     },
-    saveTrace: cliOptions.saveTrace,
-    outputDir: cliOptions.outputDir,
-    imageResponses: cliOptions.imageResponses,
+    ...(cliOptions.saveTrace !== undefined && { saveTrace: cliOptions.saveTrace }),
+    ...(cliOptions.outputDir !== undefined && { outputDir: cliOptions.outputDir }),
+    ...(cliOptions.imageResponses !== undefined && { imageResponses: cliOptions.imageResponses }),
   };
 
   return result;
