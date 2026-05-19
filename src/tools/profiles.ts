@@ -14,6 +14,21 @@
  * limitations under the License.
  */
 
+/**
+ * Session-state snapshot tools and Edge profile discovery.
+ *
+ * ## Reconciliation note
+ *
+ * GitHub and ADO both shipped this module with the same `browserSaveProfile`
+ * / `browserSwitchProfile` / `browserListProfiles` / `browserDeleteProfile`
+ * exports, but GitHub additionally introduced `browserDiscoverProfiles`
+ * (real Edge profile enumeration) and updated every description to clarify
+ * "session state snapshot" vs. real Edge browser profile. We adopt the
+ * GitHub surface as canonical; the only ADO-side carry-over was the
+ * `DARBOT_WORKSPACE` env precedence for workspace detection, which is
+ * preserved here.
+ */
+
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
@@ -24,19 +39,49 @@ import { sanitizeForFilePath } from './utils.js';
 
 import type { Context } from '../context.js';
 
+/** Persisted shape of a saved Darbot session state. */
+interface SavedProfileData {
+  version: '2.0';
+  type: 'darbot-session-state';
+  edgeProfile: {
+    name: string;
+    email?: string;
+  };
+  workspace?: {
+    path: string;
+    name: string;
+  };
+  name: string;
+  description: string;
+  created: string;
+  url: string;
+  title: string;
+}
+
+/** Discovered real Edge browser profile (from `User Data/Preferences`). */
+interface DiscoveredEdgeProfile {
+  folder: string;
+  name: string;
+  email?: string;
+}
+
 const saveProfileSchema = z.object({
-  name: z.string().describe('Name for the session state'),
-  description: z.string().optional().describe('Optional description for the session state'),
+  name: z.string().min(1).describe('Name for the session state snapshot. Used as both the display name and the on-disk folder name (sanitized).'),
+  description: z.string().optional().describe('Optional human-readable description of what this snapshot captures.'),
 });
 
 const switchProfileSchema = z.object({
-  name: z.string().describe('Name of the session state to restore'),
+  name: z.string().min(1).describe('Name of the previously saved session state snapshot to restore.'),
 });
 
-const listProfilesSchema = z.object({});
+const listProfilesSchema = z.object({}).describe('No input parameters.');
 
 const deleteProfileSchema = z.object({
-  name: z.string().describe('Name of the session state to delete'),
+  name: z.string().min(1).describe('Name of the session state snapshot to permanently delete.'),
+});
+
+const discoverProfilesSchema = z.object({
+  userDataDir: z.string().optional().describe('Optional path to a Microsoft Edge `User Data` directory. Defaults to the standard platform location (LOCALAPPDATA on Windows, ~/Library/Application Support on macOS, ~/.config on Linux).'),
 });
 
 async function getProfilesDir(): Promise<string> {
@@ -55,7 +100,7 @@ async function getProfilesDir(): Promise<string> {
   return result;
 }
 
-async function saveCurrentProfile(context: Context, profileName: string, description?: string) {
+async function saveCurrentProfile(context: Context, profileName: string, description?: string): Promise<SavedProfileData> {
   const profilesDir = await getProfilesDir();
   const sanitizedName = sanitizeForFilePath(profileName);
   const profileDir = path.join(profilesDir, sanitizedName);
@@ -70,26 +115,22 @@ async function saveCurrentProfile(context: Context, profileName: string, descrip
   // Detect Edge profile info from environment/config
   const edgeProfile = process.env.DARBOT_EDGE_PROFILE || 'default';
   const edgeProfileEmail = process.env.DARBOT_EDGE_PROFILE_EMAIL || undefined;
-  // DARBOT_WORKSPACE takes precedence over auto-detected workspace paths
+  // DARBOT_WORKSPACE wins over VS Code / shell auto-detection. This is the
+  // ADO-side improvement carried into the canonical surface.
   const workspacePath = process.env.DARBOT_WORKSPACE || process.env.VSCODE_WORKSPACE_FOLDER || process.env.PWD || undefined;
   const workspaceName = workspacePath ? path.basename(workspacePath) : undefined;
 
-  // Save session state metadata with unified header
-  const profileData = {
-    // Unified header
+  const profileData: SavedProfileData = {
     version: '2.0',
     type: 'darbot-session-state',
-    // Edge profile context
     edgeProfile: {
       name: edgeProfile,
       email: edgeProfileEmail,
     },
-    // VS Code workspace context (if launched from VS Code)
-    workspace: workspacePath ? {
+    workspace: workspacePath && workspaceName ? {
       path: workspacePath,
       name: workspaceName,
     } : undefined,
-    // Session state details
     name: profileName,
     description: description || '',
     created: new Date().toISOString(),
@@ -102,7 +143,9 @@ async function saveCurrentProfile(context: Context, profileName: string, descrip
       JSON.stringify(profileData, null, 2)
   );
 
-  // Save storage state (cookies, localStorage, etc.)
+  // Save storage state (cookies, localStorage, etc.). We don't fail the whole
+  // operation if storage capture is unavailable — the URL/title metadata is
+  // still useful on its own.
   try {
     const storageState = await tab.page.context().storageState();
     await fs.promises.writeFile(
@@ -110,15 +153,14 @@ async function saveCurrentProfile(context: Context, profileName: string, descrip
         JSON.stringify(storageState, null, 2)
     );
   } catch (error) {
-    // Storage state save failed, but we can still save the profile
     // eslint-disable-next-line no-console
-    console.warn('Failed to save storage state:', error);
+    console.warn(`[profiles] Failed to save storage state for "${profileName}":`, error);
   }
 
   return profileData;
 }
 
-async function loadProfile(context: Context, profileName: string) {
+async function loadProfile(context: Context, profileName: string): Promise<{ profileData: SavedProfileData; restored: boolean }> {
   const profilesDir = await getProfilesDir();
   const sanitizedName = sanitizeForFilePath(profileName);
   const profileDir = path.join(profilesDir, sanitizedName);
@@ -128,23 +170,26 @@ async function loadProfile(context: Context, profileName: string) {
     throw new Error(`Session state "${profileName}" not found`);
   }
 
-  // Load profile metadata
   const profileDataPath = path.join(profileDir, 'profile.json');
-  const profileData = JSON.parse(await fs.promises.readFile(profileDataPath, 'utf8'));
+  const profileData: SavedProfileData = JSON.parse(await fs.promises.readFile(profileDataPath, 'utf8'));
 
-  // Load storage state if available
+  // Try to restore full storage state when available.
   const storageStatePath = path.join(profileDir, 'storage-state.json');
   try {
     await fs.promises.access(storageStatePath);
     const storageState = JSON.parse(await fs.promises.readFile(storageStatePath, 'utf8'));
 
-    // Create new context with the stored state
     const tab = await context.ensureTab();
     const currentContext = tab.page.context();
+    // Capture the browser handle BEFORE closing the context — otherwise the
+    // subsequent `.context().browser()` call would target a closed context
+    // and lose its browser reference. (Reconciled bug fix vs. both sides.)
+    const browser = currentContext.browser();
+
     if (currentContext)
       await currentContext.close();
 
-    const newContext = await tab.page.context().browser()?.newContext({
+    const newContext = await browser?.newContext({
       storageState,
       viewport: null,
     });
@@ -154,45 +199,47 @@ async function loadProfile(context: Context, profileName: string) {
       await newPage.goto(profileData.url);
       return { profileData, restored: true };
     }
-  } catch {
-    // Storage state not available or failed to load, fall through to fallback
+  } catch (error) {
+    // Storage state unavailable or restore failed — fall back to URL-only restore.
+    // eslint-disable-next-line no-console
+    console.warn(`[profiles] Falling back to URL-only restore for "${profileName}":`, error instanceof Error ? error.message : error);
   }
 
-  // Fallback: just navigate to the URL
   const tab = await context.ensureTab();
   await tab.page.goto(profileData.url);
   return { profileData, restored: false };
 }
 
-async function listProfiles() {
+async function listProfiles(): Promise<SavedProfileData[]> {
   const profilesDir = await getProfilesDir();
-  const profiles = [];
+  const profiles: SavedProfileData[] = [];
 
   try {
     const entries = await fs.promises.readdir(profilesDir);
     for (const entry of entries) {
       const profileDir = path.join(profilesDir, entry);
       const stat = await fs.promises.stat(profileDir);
-      if (stat.isDirectory()) {
-        const profileDataPath = path.join(profileDir, 'profile.json');
-        try {
-          await fs.promises.access(profileDataPath);
-          const profileData = JSON.parse(await fs.promises.readFile(profileDataPath, 'utf8'));
-          profiles.push(profileData);
-        } catch {
-          // File does not exist, skip this entry
-        }
+      if (!stat.isDirectory())
+        continue;
+
+      const profileDataPath = path.join(profileDir, 'profile.json');
+      try {
+        await fs.promises.access(profileDataPath);
+        const profileData: SavedProfileData = JSON.parse(await fs.promises.readFile(profileDataPath, 'utf8'));
+        profiles.push(profileData);
+      } catch {
+        // Entry isn't a valid saved profile — skip it without failing the whole listing.
       }
     }
-  } catch (error) {
-    // Profiles directory doesn't exist yet
+  } catch {
+    // Profiles directory doesn't exist yet — that just means no profiles saved.
     return [];
   }
 
   return profiles;
 }
 
-async function deleteProfile(profileName: string) {
+async function deleteProfile(profileName: string): Promise<void> {
   const profilesDir = await getProfilesDir();
   const sanitizedName = sanitizeForFilePath(profileName);
   const profileDir = path.join(profilesDir, sanitizedName);
@@ -205,6 +252,14 @@ async function deleteProfile(profileName: string) {
   await fs.promises.rm(profileDir, { recursive: true, force: true });
 }
 
+/**
+ * Save the current browser session state (cookies, localStorage, URL) as a
+ * named on-disk snapshot. This is *not* a real Edge browser profile; use
+ * `browser_discover_profiles` to enumerate those.
+ *
+ * @example
+ * await browser_save_profile({ name: 'github-logged-in', description: 'Signed in to github.com' });
+ */
 export const browserSaveProfile = defineTool({
   capability: 'core' as const,
   schema: {
@@ -245,6 +300,13 @@ export const browserSaveProfile = defineTool({
   },
 });
 
+/**
+ * Restore a previously saved session state snapshot, including cookies,
+ * localStorage, and navigating to the saved URL.
+ *
+ * @example
+ * await browser_switch_profile({ name: 'github-logged-in' });
+ */
 export const browserSwitchProfile = defineTool({
   capability: 'core' as const,
   schema: {
@@ -288,6 +350,12 @@ export const browserSwitchProfile = defineTool({
   },
 });
 
+/**
+ * List all saved Darbot session state snapshots.
+ *
+ * @example
+ * await browser_list_profiles({});
+ */
 export const browserListProfiles = defineTool({
   capability: 'core' as const,
   schema: {
@@ -297,7 +365,7 @@ export const browserListProfiles = defineTool({
     inputSchema: listProfilesSchema,
     type: 'readOnly',
   },
-  handle: async (context: Context, {}: z.infer<typeof listProfilesSchema>) => {
+  handle: async (_context: Context, _params: z.infer<typeof listProfilesSchema>) => {
     const profiles = await listProfiles();
 
     let text = '### Saved Darbot Session States\n\n';
@@ -312,7 +380,6 @@ export const browserListProfiles = defineTool({
         text += `- URL: ${profile.url}\n`;
         text += `- Title: ${profile.title}\n`;
         text += `- Created: ${new Date(profile.created).toLocaleString()}\n`;
-        // Show Edge profile context if available (v2.0+ session states)
         if (profile.edgeProfile)
           text += `- Edge Profile: ${profile.edgeProfile.name}${profile.edgeProfile.email ? ` (${profile.edgeProfile.email})` : ''}\n`;
         if (profile.workspace)
@@ -336,16 +403,22 @@ export const browserListProfiles = defineTool({
   },
 });
 
+/**
+ * Permanently delete a saved session state snapshot from disk.
+ *
+ * @example
+ * await browser_delete_profile({ name: 'stale-snapshot' });
+ */
 export const browserDeleteProfile = defineTool({
   capability: 'core' as const,
   schema: {
     name: 'browser_delete_profile',
     title: 'Delete session state snapshot',
-    description: 'Permanently delete a saved session state snapshot from storage',
+    description: 'Permanently delete a saved session state snapshot from storage.',
     inputSchema: deleteProfileSchema,
     type: 'destructive',
   },
-  handle: async (context: Context, { name }: z.infer<typeof deleteProfileSchema>) => {
+  handle: async (_context: Context, { name }: z.infer<typeof deleteProfileSchema>) => {
     await deleteProfile(name);
 
     return {
@@ -364,15 +437,16 @@ export const browserDeleteProfile = defineTool({
 });
 
 /**
- * Discover real Edge browser profiles from the user data directory.
+ * Discover real Microsoft Edge browser profiles by reading the per-platform
+ * `User Data` directory. Falls back to enumerating folder names when the
+ * Preferences file is unreadable.
  */
-async function discoverEdgeProfiles(userDataDir?: string): Promise<Array<{ folder: string; name: string; email?: string }>> {
+async function discoverEdgeProfiles(userDataDir?: string): Promise<DiscoveredEdgeProfile[]> {
   const candidates: string[] = [];
 
   if (userDataDir) {
     candidates.push(userDataDir);
   } else {
-    // Default Edge user data directories per platform
     if (process.platform === 'win32') {
       const localAppData = process.env.LOCALAPPDATA || path.join(os.homedir(), 'AppData', 'Local');
       candidates.push(path.join(localAppData, 'Microsoft', 'Edge', 'User Data'));
@@ -383,7 +457,7 @@ async function discoverEdgeProfiles(userDataDir?: string): Promise<Array<{ folde
     }
   }
 
-  const profiles: Array<{ folder: string; name: string; email?: string }> = [];
+  const profiles: DiscoveredEdgeProfile[] = [];
 
   for (const dataDir of candidates) {
     try {
@@ -394,7 +468,7 @@ async function discoverEdgeProfiles(userDataDir?: string): Promise<Array<{ folde
 
     const entries = await fs.promises.readdir(dataDir);
     for (const entry of entries) {
-      // Edge profile folders are named 'Default' or 'Profile N'
+      // Edge profile folders are named 'Default' or 'Profile N'.
       if (entry !== 'Default' && !/^Profile \d+$/.test(entry))
         continue;
 
@@ -404,7 +478,9 @@ async function discoverEdgeProfiles(userDataDir?: string): Promise<Array<{ folde
         const prefs = JSON.parse(prefsRaw);
         const accountInfo = prefs?.account_info?.[0];
         const profileName: string = prefs?.profile?.name || entry;
-        const email: string | undefined = accountInfo?.email || prefs?.signin?.allowed_domain_profile_info?.email || undefined;
+        const email: string | undefined = accountInfo?.email
+          || prefs?.signin?.allowed_domain_profile_info?.email
+          || undefined;
 
         profiles.push({
           folder: path.join(dataDir, entry),
@@ -412,7 +488,7 @@ async function discoverEdgeProfiles(userDataDir?: string): Promise<Array<{ folde
           email,
         });
       } catch {
-        // Preferences file unreadable or missing — still include the folder with limited info
+        // Preferences file unreadable or missing — still include the folder with limited info.
         profiles.push({
           folder: path.join(dataDir, entry),
           name: entry,
@@ -424,18 +500,27 @@ async function discoverEdgeProfiles(userDataDir?: string): Promise<Array<{ folde
   return profiles;
 }
 
+/**
+ * Enumerate real Microsoft Edge browser profiles installed on this machine.
+ *
+ * Returns each profile's folder name, full path, display name, and (when
+ * available) the associated email address. Use the parent directory as
+ * `--user-data-dir` and the folder name as `--edge-profile` when starting
+ * the MCP server.
+ *
+ * @example
+ * await browser_discover_profiles({});
+ */
 export const browserDiscoverProfiles = defineTool({
   capability: 'core' as const,
   schema: {
     name: 'browser_discover_profiles',
     title: 'Discover Edge browser profiles',
     description: 'List real Microsoft Edge browser profiles installed on this machine, showing each profile\'s folder path, display name, and associated email address. Use the folder name with --edge-profile and the data directory with --user-data-dir when starting the MCP server. These are actual Edge browser profiles, not session state snapshots.',
-    inputSchema: z.object({
-      userDataDir: z.string().optional().describe('Path to Edge user data directory. Defaults to the standard platform location.'),
-    }),
+    inputSchema: discoverProfilesSchema,
     type: 'readOnly',
   },
-  handle: async (_context: Context, { userDataDir }: { userDataDir?: string }) => {
+  handle: async (_context: Context, { userDataDir }: z.infer<typeof discoverProfilesSchema>) => {
     const profiles = await discoverEdgeProfiles(userDataDir);
 
     let text = '### Discovered Microsoft Edge Browser Profiles\n\n';
