@@ -1,11 +1,12 @@
 {
   "name": "darbot-browser-mcp-cloud",
   "displayName": "Darbot Browser MCP Cloud",
-  "description": "Cloud-connected autonomous browser for VS Code. 52 AI-driven browser tools via Azure deployment with enterprise-grade security, automatic Microsoft authentication, and Microsoft Copilot Studio integration.",
-  "version": "1.3.0",
+  "description": "Cloud-connected autonomous browser for VS Code. 52 AI-driven browser tools delivered from an Azure-hosted deployment with Microsoft Entra ID single sign-on via VS Code's built-in authentication.",
+  "version": "2.0.0",
   "publisher": "darbotlabs",
   "engines": {
-    "vscode": "^1.96.0"
+    "vscode": "^1.96.0",
+    "node": ">=20"
   },
   "icon": "icon.png",
   "categories": [
@@ -25,14 +26,14 @@
     "screenshot",
     "copilot",
     "ai",
-    "edge",
-    "chrome",
+    "azure",
+    "cloud",
+    "entra",
+    "msal",
     "web-automation",
     "playwright",
-    "selenium-alternative",
     "browser-testing",
     "accessibility",
-    "work-profiles",
     "session-management",
     "github-copilot",
     "model-context-protocol"
@@ -74,6 +75,11 @@
         "command": "darbot-browser-mcp-cloud.testConnection",
         "title": "Test Cloud Connection",
         "category": "Darbot Browser Cloud"
+      },
+      {
+        "command": "darbot-browser-mcp-cloud.signIn",
+        "title": "Sign in with Microsoft",
+        "category": "Darbot Browser Cloud"
       }
     ],
     "configuration": {
@@ -82,32 +88,38 @@
         "darbot-browser-mcp-cloud.serverUrl": {
           "type": "string",
           "default": "",
-          "description": "Cloud server URL (Azure App Service endpoint) - configure with your deployment URL"
+          "description": "Cloud server base URL (e.g. https://<your-app>.azurewebsites.net). Overridden at runtime by the SERVER_BASE_URL environment variable when set."
         },
         "darbot-browser-mcp-cloud.sseEndpoint": {
           "type": "string",
           "default": "",
-          "description": "MCP endpoint for Streamable HTTP transport - configure with your deployment URL/mcp"
+          "description": "MCP Streamable-HTTP endpoint (typically <serverUrl>/mcp). Auto-derived from serverUrl when left blank. (Field name kept for v1.x backwards compatibility.)"
         },
         "darbot-browser-mcp-cloud.autoConnect": {
           "type": "boolean",
           "default": true,
-          "description": "Automatically connect to cloud server when VS Code starts"
+          "description": "Automatically perform a health check against the cloud server when VS Code starts."
         },
         "darbot-browser-mcp-cloud.connectionTimeout": {
           "type": "number",
           "default": 30000,
-          "description": "Connection timeout in milliseconds"
+          "description": "Health-check request timeout in milliseconds."
         },
         "darbot-browser-mcp-cloud.enableHealthChecks": {
           "type": "boolean",
           "default": true,
-          "description": "Enable periodic health checks to cloud server"
+          "description": "Run periodic health checks against the cloud server while connected."
         },
         "darbot-browser-mcp-cloud.healthCheckInterval": {
           "type": "number",
           "default": 60000,
-          "description": "Health check interval in milliseconds"
+          "description": "Interval between periodic health checks, in milliseconds."
+        },
+        "darbot-browser-mcp-cloud.scopes": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": ["openid", "profile", "email", "User.Read"],
+          "description": "OIDC / Microsoft Graph scopes requested when fetching the Entra ID access token."
         }
       }
     }
@@ -115,11 +127,13 @@
   "scripts": {
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./"
+    "watch": "tsc -watch -p ./",
+    "package": "npx --yes @vscode/vsce package --no-dependencies"
   },
   "devDependencies": {
     "@types/vscode": "^1.96.0",
-    "@types/node": "^22.13.10",
-    "typescript": "^5.8.2"
+    "@types/node": "^22.18.0",
+    "typescript": "^5.9.3"
   }
 }
+

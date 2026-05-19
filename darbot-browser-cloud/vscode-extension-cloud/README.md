@@ -1,138 +1,107 @@
-# Darbot Browser MCP Cloud - VS Code Extension
+# Darbot Browser MCP — Cloud (VS Code Extension)
 
-![Darbot Banner](https://raw.githubusercontent.com/darbotlabs/darbot-browser-mcp/main/assets/darbot_logo_icon_pack/darbot-horizontal-banner-1500x500.png)
+[![Visual Studio Marketplace](https://img.shields.io/visual-studio-marketplace/v/darbotlabs.darbot-browser-mcp-cloud.svg)](https://marketplace.visualstudio.com/items?itemName=darbotlabs.darbot-browser-mcp-cloud)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
-**Enterprise Cloud-Connected Browser Automation for VS Code**
+Companion VS Code extension that connects your editor to a hosted
+**Darbot Browser MCP** server running on Azure App Service — no local
+Node.js install, no local Chromium, no port juggling.
 
-Transform your coding workflow with intelligent autonomous browser capabilities powered by Azure cloud infrastructure. This extension connects VS Code to an enterprise-grade deployment of Darbot Browser MCP, providing seamless access to 52 autonomous browser tools through GitHub Copilot Chat and Microsoft Copilot Studio without any local server requirements.
-
-[![Azure Deployment](https://img.shields.io/badge/Azure-Ready-0089D6?style=flat-square&logo=microsoft-azure)](https://azure.microsoft.com)
-[![Cloud Ready](https://img.shields.io/badge/Cloud-Enterprise-0098FF?style=flat-square)](https://azure.microsoft.com/services/app-service/)
-[![MCP Protocol](https://img.shields.io/badge/MCP-Streamable%20HTTP-green?style=flat-square)](https://modelcontextprotocol.io)
-
----
+> Looking for the **local** version that spawns a browser on your
+> machine? Install
+> [`darbotlabs.darbot-browser-mcp`](https://marketplace.visualstudio.com/items?itemName=darbotlabs.darbot-browser-mcp)
+> instead. Cloud and local can be installed side-by-side.
 
 ## Features
 
-- **Zero Infrastructure** - No local server, connects to Azure cloud deployment
-- **Enterprise Security** - Azure Managed Identity, Key Vault, RBAC, full MSAL JWT validation
-- **Full Observability** - Application Insights, health monitoring, audit logging
-- **Autonomous Actions** - Intent-based automation, workflow execution, smart recovery
-- **Cloud Work Profiles** - Session persistence in Azure Blob storage
-- **VS Code Native** - Seamless MCP integration with GitHub Copilot Chat
-- **Copilot Studio Ready** - Direct integration with Microsoft Copilot Studio
-- **Real-time Cloud Control** - SSE/HTTP transport to Azure App Service
-- **Production Grade** - Scalable cloud infrastructure with high availability
+- **MCP server discovery** — registers the cloud endpoint as an MCP
+  Streamable HTTP server. VS Code's agent mode picks up the 52 Darbot
+  browser tools automatically.
+- **Microsoft sign-in** — uses VS Code's built-in `microsoft`
+  authentication provider; no custom OAuth dance, no embedded webview.
+- **Lazy auth** — silent token fetch on first request; interactive sign-in
+  only when the user explicitly chooses *Sign in with Microsoft* or the
+  silent attempt fails.
+- **Health monitoring** — periodic probes against `/health` while
+  connected, with status-bar indicator and output channel logs.
+- **`SERVER_BASE_URL` env override** — flip a window between staging and
+  production without touching settings.
 
-## Installation
+## Quick start
 
-### **Cloud Setup (Recommended)**
+1. Install: *Extensions* → search **Darbot Browser MCP Cloud**.
+2. Set `darbot-browser-mcp-cloud.serverUrl` to your deployment URL
+   (e.g. `https://<your-app>.azurewebsites.net`).
+3. Ensure `chat.mcp.gallery.enabled` is `true` — the extension will
+   offer to enable it on first activation.
+4. `Ctrl+Shift+P` → **Darbot Browser Cloud: Test Cloud Connection**.
 
-1. **Install the extension** from the VS Code marketplace
-2. **Auto-configuration**: The extension automatically:
-   - Prompts to enable MCP in VS Code settings (`"chat.mcp.enabled": true`)
-   - Configures cloud connection to Azure deployment
-   - Sets up MCP endpoint: `https://<your-app>.azurewebsites.net/mcp`
-3. **Connect**: Use Command Palette -> "Darbot Browser Cloud: Connect to Cloud Server"
-4. **Test**: Ask GitHub Copilot to "take a screenshot of example.com" or check cloud status
+Detailed setup (auth, scopes, troubleshooting): see
+[`CLOUD_EXTENSION_SETUP.md`](../CLOUD_EXTENSION_SETUP.md).
 
-### **Enterprise Configuration**
+## Settings
 
-For secured deployments with authentication:
-
-1. Obtain an authentication token from your Azure administrator
-2. Open VS Code settings -> Extensions -> Darbot Browser MCP Cloud
-3. Enter your token in `darbot-browser-mcp-cloud.authToken`
-4. Configure custom server URL if using private deployment
-
-### **What Happens After Installation**
-
-When you first activate the extension:
-
-- **Auto-detects MCP availability** and prompts to enable if needed
-- **Auto-configures cloud MCP server** in your VS Code settings
-- **Adds status bar indicator** showing cloud connection state
-- **Ready to use** with GitHub Copilot Chat immediately
-- **Periodic health checks** verify cloud server availability
-
-## Usage Examples
-
-**With GitHub Copilot Chat:**
-
-```
-User: "Take a screenshot of example.com"
-I'll autonomously navigate to example.com and capture a screenshot for you.
-
-User: "Navigate to example.com and click the More information link"  
-I'll autonomously navigate to example.com and locate the "More information..." link to click.
-
-User: "Save this browser session as 'research-profile'"
-I'll autonomously save the current browser state as a work profile named 'research-profile'.
-
-User: "Fill out the contact form with test data"
-I'll autonomously fill the contact form with appropriate test data.
-
-User: "Generate an automated test for the login flow"
-I'll autonomously create an automated test based on the current page interactions.
-```
-
-**Direct Commands:**
-
-- `Ctrl+Shift+P` -> "Darbot Browser Cloud: Connect to Cloud Server"
-- Use status bar indicator to monitor cloud connection
-- Configure cloud settings in VS Code settings
-
-## Configuration
-
-- `darbot-browser-mcp-cloud.serverUrl`: Cloud server URL (default: `https://<your-app>.azurewebsites.net`)
-- `darbot-browser-mcp-cloud.sseEndpoint`: MCP endpoint for Streamable HTTP transport (default: `https://<your-app>.azurewebsites.net/mcp`)
-- `darbot-browser-mcp-cloud.autoConnect`: Automatically connect to cloud server when VS Code starts (default: `true`)
-- `darbot-browser-mcp-cloud.connectionTimeout`: Connection timeout in milliseconds (default: `30000`)
-- `darbot-browser-mcp-cloud.enableHealthChecks`: Enable periodic health monitoring (default: `true`)
-- `darbot-browser-mcp-cloud.healthCheckInterval`: Health check frequency in milliseconds (default: `60000`)
+| Setting                                             | Type      | Default                                        | Description                                                                       |
+| --------------------------------------------------- | --------- | ---------------------------------------------- | --------------------------------------------------------------------------------- |
+| `darbot-browser-mcp-cloud.serverUrl`                | `string`  | `https://<your-app>.azurewebsites.net`         | Base URL of the cloud server. Overridden by `SERVER_BASE_URL` env var.            |
+| `darbot-browser-mcp-cloud.sseEndpoint`              | `string`  | *blank → derived from `serverUrl + /mcp`*      | Override for the MCP Streamable HTTP endpoint. Name kept for backwards compat.    |
+| `darbot-browser-mcp-cloud.autoConnect`              | `boolean` | `true`                                         | Connect to the server on VS Code start-up.                                        |
+| `darbot-browser-mcp-cloud.enableHealthChecks`       | `boolean` | `true`                                         | Run periodic health probes while connected.                                       |
+| `darbot-browser-mcp-cloud.healthCheckInterval`      | `number`  | `60000` (ms)                                   | Health-check period.                                                              |
+| `darbot-browser-mcp-cloud.connectionTimeout`        | `number`  | `30000` (ms)                                   | Hard timeout on any single HTTP request.                                          |
+| `darbot-browser-mcp-cloud.scopes`                   | `array`   | `["openid","profile","email","User.Read"]`     | Scopes requested from the Microsoft auth provider.                                |
 
 ## Commands
 
-- `Darbot Browser Cloud: Connect to Cloud Server` - Connect to Azure cloud server
-- `Darbot Browser Cloud: Disconnect from Cloud Server` - Disconnect from cloud
-- `Darbot Browser Cloud: Show Cloud Server Status` - Show connection status and info
-- `Darbot Browser Cloud: Test Cloud Connection` - Test Azure health endpoint
+| Command id                                                  | Title                                                |
+| ----------------------------------------------------------- | ---------------------------------------------------- |
+| `darbot-browser-mcp-cloud.signIn`                           | Darbot Browser Cloud: Sign in with Microsoft         |
+| `darbot-browser-mcp-cloud.connectServer`                    | Darbot Browser Cloud: Connect to Cloud Server        |
+| `darbot-browser-mcp-cloud.disconnectServer`                 | Darbot Browser Cloud: Disconnect from Cloud Server   |
+| `darbot-browser-mcp-cloud.showStatus`                       | Darbot Browser Cloud: Show Cloud Server Status       |
+| `darbot-browser-mcp-cloud.testConnection`                   | Darbot Browser Cloud: Test Cloud Connection          |
 
-## Requirements
+## Architecture
 
-- **VS Code**: Version 1.96.0 or higher
-- **Network**: Internet access to Azure cloud endpoint
-- **MCP Support**: Enable `"chat.mcp.enabled": true` in VS Code settings
+```
+┌──────────────────────────┐        ┌──────────────────────────────┐
+│ VS Code (this extension) │  HTTPS │ Azure App Service            │
+│                          │ ─────► │   Darbot Browser MCP server  │
+│  vscode.authentication   │        │   /health   /mcp             │
+│   ('microsoft')          │        │                              │
+│  vscode.lm.registerMcp…  │        │   Chromium (Playwright)      │
+└──────────────────────────┘        └──────────────────────────────┘
+```
 
-## Troubleshooting
+Authentication: VS Code's Microsoft provider issues an Entra ID access
+token. The extension attaches it as `Authorization: Bearer <token>` on
+every MCP request — the server validates with MSAL JWT validation.
 
-**Extension not loading?**
+## Build from source
 
-- Check VS Code Developer Console (`Ctrl+Shift+I`)
-- Ensure MCP is enabled in settings
-- Restart VS Code after installation
+```bash
+cd darbot-browser-cloud/vscode-extension-cloud
+npm install
+npm run compile          # tsc -p ./
+npm test                 # vscode-test runner
+npx vsce package         # produce .vsix
+```
 
-**Cloud connection failing?**
+The compiled output (`out/`) is **not** tracked in git; install the
+published `.vsix` from the Marketplace for normal use.
 
-- Test health endpoint: `https://<your-app>.azurewebsites.net/health`
-- Check network/firewall allows outbound HTTPS
-- Verify server URL in extension settings
+## Engineering notes
 
-**MCP server not discovered?**
-
-- Restart VS Code after installation
-- Use Command Palette: "MCP: Show Installed Servers"
-- Check extension status in "Extensions" panel
-- Verify `chat.mcp.enabled` is set to `true`
+- TypeScript strict mode is on. `any` is used only in one location — to
+  reference the upcoming `vscode.McpHttpServerDefinition` symbol that is
+  not yet typed in `@types/vscode@1.96.0`. The shim is narrow and the
+  exact field set we rely on is documented inline.
+- No telemetry is collected by the extension itself. The cloud server
+  emits standard Azure App Insights traces; consult the deployment
+  documentation for opt-out.
+- No third-party HTTP clients — uses the Node `https` module directly
+  to keep the supply chain minimal.
 
 ## License
 
-Apache License 2.0 - see [LICENSE](https://github.com/darbotlabs/darbot-browser-mcp/blob/main/LICENSE) for details.
-
-## Links
-
-- **[GitHub Repository](https://github.com/darbotlabs/darbot-browser-mcp)** - Source code and documentation
-- **[Issues & Support](https://github.com/darbotlabs/darbot-browser-mcp/issues)** - Bug reports and feature requests
-- **[Darbot Labs](https://github.com/darbotlabs)** - More AI automation tools
-
-**Made with <3 by Darbot Labs**
+Apache-2.0 © Darbot Labs / @dayour. See [LICENSE](../../LICENSE).
