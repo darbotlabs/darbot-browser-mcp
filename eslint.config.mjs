@@ -37,6 +37,10 @@ const plugins = {
 export const baseRules = {
   'import/extensions': ['error', 'ignorePackages', { ts: 'always' }],
   '@typescript-eslint/no-floating-promises': 'error',
+  // Disable the core rule; it is superseded by the TypeScript-aware variant
+  // below, per https://typescript-eslint.io/rules/no-unused-vars/#how-to-use.
+  // Keeping both produces false positives on TS function-type-annotation params.
+  'no-unused-vars': 'off',
   '@typescript-eslint/no-unused-vars': [
     2,
     { args: 'none', caughtErrors: 'none' },
