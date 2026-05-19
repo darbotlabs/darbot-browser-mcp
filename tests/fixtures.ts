@@ -312,18 +312,27 @@ export const expect = baseExpect.extend({
   toContainTextContent(response: Response, content: string | string[]) {
     const isNot = this.isNot;
     try {
-      content = Array.isArray(content) ? content : [content];
-      const texts = (response.content as any).map(c => c.text);
-      for (let i = 0; i < texts.length; i++) {
+      const expectations = Array.isArray(content) ? content : [content];
+      // Tools that return their own `content` array (e.g. browser_evaluate)
+      // produce multi-block responses: action output PLUS the orchestrator's
+      // playwright-code-and-snapshot summary. The previous index-aligned
+      // matcher only checked `texts[i]` against `expectations[i]`, which is
+      // both fragile and yielded `toContain(undefined)` whenever the response
+      // had more blocks than expectations. Match against the concatenated
+      // payload so every expectation must appear somewhere in the response.
+      const haystack = (response.content as Array<{ text?: string }>)
+          .map(c => c.text ?? '')
+          .join('\n');
+      for (const needle of expectations) {
         if (isNot)
-          expect(texts[i]).not.toContain(content[i]);
+          baseExpect(haystack).not.toContain(needle);
         else
-          expect(texts[i]).toContain(content[i]);
+          baseExpect(haystack).toContain(needle);
       }
     } catch (e) {
       return {
         pass: isNot,
-        message: () => e.message,
+        message: () => (e as Error).message,
       };
     }
     return {
