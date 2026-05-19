@@ -105,8 +105,9 @@ program
       // Build a single health service before transport startup so /health and
       // /ready can surface bridge state and Azure config validation status
       // (when configured via environment).
+      const relayForProbe = cdpRelayServer;
       const healthService = createHealthCheckService({
-        bridgeStatusProbe: cdpRelayServer ? (() => cdpRelayServer!.getStatus()) : undefined,
+        bridgeStatusProbe: relayForProbe ? () => relayForProbe.getStatus() : undefined,
         validateAzureConfig: shouldValidateAzureConfig(),
       });
 
