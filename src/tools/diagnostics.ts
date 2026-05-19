@@ -1,3 +1,4 @@
+/// <reference lib="dom" />
 /**
  * Copyright (c) DarbotLabs.
  *
@@ -13,6 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+/* global PerformanceNavigationTiming */
 
 /**
  * Diagnostics tools: filtered console messages and Navigation Timing metrics.

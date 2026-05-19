@@ -61,7 +61,7 @@ export const baseRules = {
   '@stylistic/semi': [2],
   'comma-style': [2, 'last'],
   'wrap-iife': [2, 'inside'],
-  'spaced-comment': [2, 'always', { markers: ['*'] }],
+  'spaced-comment': [2, 'always', { markers: ['*', '/'] }],
   eqeqeq: [2],
   'accessor-pairs': [2, { getWithoutSet: false, setWithoutGet: false }],
   'brace-style': [2, '1tbs', { allowSingleLine: true }],

@@ -1,4 +1,5 @@
-// / <reference lib="dom" />
+/// <reference lib="dom" />
+/* global document, Element */
 /**
  * Copyright (c) DarbotLabs.
  *
