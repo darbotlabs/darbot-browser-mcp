@@ -11,8 +11,8 @@ You'll learn:
 # Darbot Browser MCP - Release Tracker
 
 ## Release Overview
-**Release Date:** January 25, 2026  
-**Release Theme:** Browser Extension Bridge & Enterprise Integration  
+**Release Date:** January 25, 2026
+**Release Theme:** Browser Extension Bridge & Enterprise Integration
 **Major Version:** 1.3.0 across all platforms
 
 ---
@@ -286,9 +286,9 @@ Fixed MCP SDK compliance for Streamable HTTP transport:
 
 **Darbot Browser MCP 1.3.0** delivers Browser Extension Bridge mode, enabling MCP tools to control existing browser tabs through the Chrome/Edge extension. This release includes 52 autonomous browser tools, Streamable HTTP transport fixes, and comprehensive documentation consolidation.
 
-**Release Status:** Complete and Deployed  
-**Total Platforms:** 4 (NPM, VS Code, Chrome Extension, NuGet)  
-**Total Tools:** 52 Autonomous Browser Tools  
+**Release Status:** Complete and Deployed
+**Total Platforms:** 4 (NPM, VS Code, Chrome Extension, NuGet)
+**Total Tools:** 52 Autonomous Browser Tools
 **Bridge Mode:** Fully operational with 30 tools validated
 
 ---
