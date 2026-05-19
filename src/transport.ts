@@ -30,7 +30,7 @@ import type { AddressInfo } from 'node:net';
 import type { Server } from './server.js';
 import type { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
 
-import { createUnifiedAuthenticator, type UnifiedAuthenticator } from './auth/index.js';
+import { createUnifiedAuthenticator } from './auth/index.js';
 import { createMcpOAuthProvider, getOAuthConfig, isOAuthConfigured } from './auth/mcpOAuthProvider.js';
 import { createHealthCheckService, type HealthCheckService } from './health.js';
 

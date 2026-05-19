@@ -78,7 +78,7 @@ export class PageSnapshot {
  * produce something useful (with logged diagnostics elsewhere).
  */
 function normaliseSnapshotPayload(payload: AISnapshotPayload | undefined | null): string {
-  if (payload == null)
+  if (payload === null || payload === undefined)
     return '';
   if (typeof payload === 'string')
     return payload;

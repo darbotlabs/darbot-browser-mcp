@@ -513,10 +513,11 @@ function needsQuoting(value: string): boolean {
   if (/^[-+]?\d/.test(value))
     return true;
   // Anything containing YAML-significant punctuation, whitespace edges, or non-printables
-  if (/[:#&*!|>'"%@`{}\[\],?\\]/.test(value))
+  if (/[:#&*!|>'"%@`{}[\],?\\]/.test(value))
     return true;
   if (/^\s|\s$/.test(value))
     return true;
+  // eslint-disable-next-line no-control-regex -- intentionally matches C0 control characters to flag non-printable YAML values
   if (/[\x00-\x1f]/.test(value))
     return true;
   return false;

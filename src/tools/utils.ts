@@ -74,6 +74,7 @@ export async function waitForCompletion<R>(context: Context, tab: Tab, callback:
 }
 
 export function sanitizeForFilePath(s: string) {
+  // eslint-disable-next-line no-control-regex -- intentionally strips C0 control characters and other unsafe ASCII from file names
   const sanitize = (s: string) => s.replace(/[\x00-\x2C\x2E-\x2F\x3A-\x40\x5B-\x60\x7B-\x7F]+/g, '-');
   const separator = s.lastIndexOf('.');
   if (separator === -1)
