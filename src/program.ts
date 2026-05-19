@@ -115,13 +115,13 @@ program
       // Use http mode when port is specified to prevent exit on stdin close.
       server.setupExitWatchdog(httpServer ? 'http' : 'stdio');
 
-      if (httpServer && expressApp) {
+      if (httpServer && expressApp)
         startHttpTransport(httpServer, server, expressApp, { healthService });
-      } else if (httpServer) {
+      else if (httpServer)
         throw new Error('Express app not initialized');
-      } else {
+      else
         await startStdioTransport(server);
-      }
+
 
       if (config.saveTrace) {
         const traceServer = await startTraceViewerServer();

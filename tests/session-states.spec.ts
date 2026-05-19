@@ -81,9 +81,9 @@ test.describe('Session State Management', () => {
     // Verify file was saved with v2.0 format
     const sessionDir = path.join(getSessionStatesDir(), testProfileName.replace(/[^a-zA-Z0-9-_]/g, '_'));
     const profileJsonPath = path.join(sessionDir, 'profile.json');
-    
+
     const profileData = JSON.parse(await fs.promises.readFile(profileJsonPath, 'utf8'));
-    
+
     // Verify v2.0 format fields
     expect(profileData.version).toBe('2.0');
     expect(profileData.type).toBe('darbot-session-state');
@@ -104,7 +104,7 @@ test.describe('Session State Management', () => {
 
     // Check response format
     expect(result).toContainTextContent('### Saved Darbot Session States');
-    
+
     // Should show the test profile we created (if it exists)
     if (result.content?.[0]?.text?.includes(testProfileName)) {
       expect(result).toContainTextContent(`**${testProfileName}**`);
@@ -113,14 +113,14 @@ test.describe('Session State Management', () => {
   });
 
   test('browser_switch_profile restores session state', async ({ client, server }) => {
-    // Create a unique profile for this test  
+    // Create a unique profile for this test
     const switchTestProfile = `switch-test-${Date.now()}`;
-    
+
     server.setContent('/save-page', `
       <title>Original Page</title>
       <body>Original content</body>
     `, 'text/html');
-    
+
     server.setContent('/different', `
       <title>Different Page</title>
       <body>This is a different page</body>
@@ -132,18 +132,18 @@ test.describe('Session State Management', () => {
       arguments: { url: server.PREFIX + 'save-page' },
     });
     expect(navResult).toContainTextContent('Original content');
-    
+
     // Take a snapshot to ensure the page is fully loaded
     await client.callTool({
       name: 'browser_snapshot',
       arguments: {},
     });
-    
+
     const saveResult = await client.callTool({
       name: 'browser_save_profile',
       arguments: { name: switchTestProfile, description: 'Profile for switch test' },
     });
-    
+
     // Verify save was successful before proceeding
     expect(saveResult).toContainTextContent(`Session state "${switchTestProfile}" saved successfully`);
 
@@ -163,7 +163,7 @@ test.describe('Session State Management', () => {
     expect(result).toContainTextContent(`Session state "${switchTestProfile}" restored`);
     expect(result).toContainTextContent('### Session State Details');
     expect(result).toContainTextContent('**Storage:**');
-    
+
     // Cleanup
     await client.callTool({
       name: 'browser_delete_profile',
@@ -173,13 +173,13 @@ test.describe('Session State Management', () => {
 
   test('browser_delete_profile removes session state', async ({ client }) => {
     const deleteProfileName = `delete-test-${Date.now()}`;
-    
+
     // First save a profile to delete
     await client.callTool({
       name: 'browser_navigate',
       arguments: { url: 'data:text/html,<title>Delete Test</title>' },
     });
-    
+
     await client.callTool({
       name: 'browser_save_profile',
       arguments: { name: deleteProfileName, description: 'To be deleted' },

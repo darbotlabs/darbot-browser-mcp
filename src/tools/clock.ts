@@ -21,7 +21,7 @@ import { defineTool, type ToolFactory } from './tool.js';
  * Clock API tools - uses Playwright 1.45+ Clock API
  * Allows manipulation of time for testing time-sensitive features:
  * - Testing timeouts
- * - Testing animations  
+ * - Testing animations
  * - Testing scheduled tasks
  * - Simulating time passage
  */
@@ -43,15 +43,15 @@ const installClock: ToolFactory = captureSnapshot => defineTool({
     const tab = context.currentTabOrDie();
     const time = params.time ? new Date(params.time) : undefined;
 
-    const code = time 
+    const code = time
       ? [
-          `// Install fake clock with initial time ${params.time}`,
-          `await page.clock.install({ time: new Date('${params.time}') });`,
-        ]
+        `// Install fake clock with initial time ${params.time}`,
+        `await page.clock.install({ time: new Date('${params.time}') });`,
+      ]
       : [
-          `// Install fake clock with current time`,
-          `await page.clock.install();`,
-        ];
+        `// Install fake clock with current time`,
+        `await page.clock.install();`,
+      ];
 
     const action = async () => {
       await tab.page.clock.install(time !== undefined ? { time } : {});
@@ -119,13 +119,13 @@ const pauseClock: ToolFactory = captureSnapshot => defineTool({
 
     const code = time
       ? [
-          `// Pause clock at ${params.time}`,
-          `await page.clock.pauseAt(new Date('${params.time}'));`,
-        ]
+        `// Pause clock at ${params.time}`,
+        `await page.clock.pauseAt(new Date('${params.time}'));`,
+      ]
       : [
-          `// Pause clock at current time`,
-          `await page.clock.pauseAt(Date.now());`,
-        ];
+        `// Pause clock at current time`,
+        `await page.clock.pauseAt(Date.now());`,
+      ];
 
     const action = async () => {
       await tab.page.clock.pauseAt(time ?? Date.now());

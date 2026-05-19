@@ -123,11 +123,7 @@ export class CDPRelayServer extends EventEmitter {
     const url = new URL(`http://localhost${request.url ?? '/'}`);
     debugLogger(`New connection to ${url.pathname}`);
 
-    if (url.pathname === CDP_PATH)
-      this._handlePlaywrightConnection(ws);
-    else if (url.pathname === EXTENSION_PATH)
-      this._handleExtensionConnection(ws);
-    else {
+    if (url.pathname === CDP_PATH) {this._handlePlaywrightConnection(ws);} else if (url.pathname === EXTENSION_PATH) {this._handleExtensionConnection(ws);} else {
       debugLogger(`Invalid path: ${url.pathname}`);
       ws.close(4004, 'Invalid path');
     }

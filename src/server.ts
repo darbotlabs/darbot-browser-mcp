@@ -55,7 +55,7 @@ export class Server {
     // Only watch stdin for stdio mode - HTTP server should not exit on stdin close
     if (mode === 'stdio')
       process.stdin.on('close', handleExit);
-    
+
     process.on('SIGINT', handleExit);
     process.on('SIGTERM', handleExit);
   }

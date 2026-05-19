@@ -45,7 +45,7 @@ test('browser_network_requests', async ({ client, server }) => {
       name: 'browser_network_requests',
     });
     const text = (result.content as any)[0]?.text || '';
-    return text.includes(`[GET] ${server.PREFIX} => [200] OK`) && 
+    return text.includes(`[GET] ${server.PREFIX} => [200] OK`) &&
            text.includes(`[GET] ${server.PREFIX}json => [200] OK`);
   }, { timeout: 10000 }).toBe(true);
 });

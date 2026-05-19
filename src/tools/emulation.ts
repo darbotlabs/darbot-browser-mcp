@@ -45,18 +45,23 @@ const emulateMedia: ToolFactory = captureSnapshot => defineTool({
 
   handle: async (context, params) => {
     const tab = context.currentTabOrDie();
-    
+
     const options: Record<string, string | null> = {};
-    if (params.colorScheme !== undefined) options.colorScheme = params.colorScheme === 'null' ? null : params.colorScheme;
-    if (params.reducedMotion !== undefined) options.reducedMotion = params.reducedMotion === 'null' ? null : params.reducedMotion;
-    if (params.contrast !== undefined) options.contrast = params.contrast === 'null' ? null : params.contrast;
-    if (params.media !== undefined) options.media = params.media === 'null' ? null : params.media;
-    if (params.forcedColors !== undefined) options.forcedColors = params.forcedColors === 'null' ? null : params.forcedColors;
+    if (params.colorScheme !== undefined)
+      options.colorScheme = params.colorScheme === 'null' ? null : params.colorScheme;
+    if (params.reducedMotion !== undefined)
+      options.reducedMotion = params.reducedMotion === 'null' ? null : params.reducedMotion;
+    if (params.contrast !== undefined)
+      options.contrast = params.contrast === 'null' ? null : params.contrast;
+    if (params.media !== undefined)
+      options.media = params.media === 'null' ? null : params.media;
+    if (params.forcedColors !== undefined)
+      options.forcedColors = params.forcedColors === 'null' ? null : params.forcedColors;
 
     const optionsStr = Object.entries(options)
-      .filter(([_, v]) => v !== undefined)
-      .map(([k, v]) => `${k}: ${v === null ? 'null' : `'${v}'`}`)
-      .join(', ');
+        .filter(([_, v]) => v !== undefined)
+        .map(([k, v]) => `${k}: ${v === null ? 'null' : `'${v}'`}`)
+        .join(', ');
 
     const code = [
       `// Emulate media features: ${optionsStr}`,
@@ -97,7 +102,7 @@ const emulateGeolocation: ToolFactory = captureSnapshot => defineTool({
   handle: async (context, params) => {
     const tab = context.currentTabOrDie();
     const browserContext = tab.page.context();
-    
+
     const code = [
       `// Emulate geolocation: ${params.latitude}, ${params.longitude}`,
       `await context.setGeolocation({ latitude: ${params.latitude}, longitude: ${params.longitude}${params.accuracy ? `, accuracy: ${params.accuracy}` : ''} });`,

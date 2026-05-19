@@ -75,13 +75,13 @@ async function handleSSE(server: Server, req: http.IncomingMessage, res: http.Se
 
 async function handleStreamable(server: Server, req: http.IncomingMessage, res: http.ServerResponse, sessions: Map<string, StreamableHTTPServerTransport>) {
   const sessionId = req.headers['mcp-session-id'] as string | undefined;
-  
+
   // If session ID provided, try to use existing session
   if (sessionId) {
     const existingTransport = sessions.get(sessionId);
-    if (existingTransport) {
+    if (existingTransport)
       return await existingTransport.handleRequest(req, res);
-    }
+
     // Session not found (server may have restarted) - create new session for POST requests
     // eslint-disable-next-line no-console
     console.error(`[MCP] Session ${sessionId} not found, will create new session if POST request`);
@@ -203,9 +203,9 @@ export async function startHttpServer(config: { host?: string, port?: number }):
 
   // Parse JSON bodies - but NOT for /mcp and /sse endpoints (MCP SDK handles its own body parsing)
   app.use((req, res, next) => {
-    if (req.path === '/mcp' || req.path === '/sse') {
+    if (req.path === '/mcp' || req.path === '/sse')
       return next();
-    }
+
     return express.json()(req, res, next);
   });
 
@@ -283,7 +283,7 @@ export function startHttpTransport(httpServer: http.Server, mcpServer: Server, a
 
   // Use unified authenticator that supports multiple auth methods
   const authenticator = createUnifiedAuthenticator();
-  
+
   // Initialize async auth providers (Managed Identity, Key Vault)
   void authenticator.initialize().catch(err => {
     // eslint-disable-next-line no-console
@@ -296,7 +296,7 @@ export function startHttpTransport(httpServer: http.Server, mcpServer: Server, a
       return true;
 
     const result = await authenticator.authenticate(req);
-    
+
     if (result.authenticated) {
       // Attach user info to request
       (req as any).auth = result;

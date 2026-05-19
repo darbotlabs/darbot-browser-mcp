@@ -62,12 +62,12 @@ test.describe(() => {
       name: 'browser_navigate',
       arguments: { url: 'data:text/html,<script>document.title = navigator.userAgent</script>' },
     });
-    
+
     // Either Firefox works and shows Firefox in UA, or it's not installed
     const text = (result.content as any)[0]?.text || '';
-    if (text.includes('not installed') || text.includes('Browser specified in your config')) {
+    if (text.includes('not installed') || text.includes('Browser specified in your config'))
       test.skip(true, 'Firefox is not installed on this system');
-    }
+
     expect(result).toContainTextContent(`Firefox`);
   });
 });

@@ -109,10 +109,14 @@ async function verifyEntraToken(
   });
 
   const extra: { sub?: string; oid?: string; tid?: string; roles?: string[] } = {};
-  if (payload.sub !== undefined) extra.sub = payload.sub;
-  if (payload.oid !== undefined) extra.oid = payload.oid;
-  if (payload.tid !== undefined) extra.tid = payload.tid;
-  if (payload.roles !== undefined) extra.roles = payload.roles;
+  if (payload.sub !== undefined)
+    extra.sub = payload.sub;
+  if (payload.oid !== undefined)
+    extra.oid = payload.oid;
+  if (payload.tid !== undefined)
+    extra.tid = payload.tid;
+  if (payload.roles !== undefined)
+    extra.roles = payload.roles;
 
   return {
     token,
