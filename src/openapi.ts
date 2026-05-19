@@ -16,6 +16,7 @@
 
 import debug from 'debug';
 import { zodToJsonSchema } from 'zod-to-json-schema';
+import type { ZodTypeAny } from 'zod/v3';
 
 import { packageJSON } from './package.js';
 
@@ -281,7 +282,7 @@ export class OpenAPIGenerator {
             required: true,
             content: {
               'application/json': {
-                schema: zodToJsonSchema(tool.schema.inputSchema, {
+                schema: zodToJsonSchema(tool.schema.inputSchema as unknown as ZodTypeAny, {
                   name: `${tool.schema.name}Input`,
                   $refStrategy: 'none',
                 }) as JsonValue,
@@ -394,7 +395,7 @@ export class OpenAPIGenerator {
 
     for (const tool of this._tools) {
       const schemaName = `${tool.schema.name}Input`;
-      schemas[schemaName] = zodToJsonSchema(tool.schema.inputSchema, {
+      schemas[schemaName] = zodToJsonSchema(tool.schema.inputSchema as unknown as ZodTypeAny, {
         name: schemaName,
         $refStrategy: 'none',
       }) as JsonValue;

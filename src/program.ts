@@ -107,7 +107,7 @@ program
       // (when configured via environment).
       const relayForProbe = cdpRelayServer;
       const healthService = createHealthCheckService({
-        bridgeStatusProbe: relayForProbe ? () => relayForProbe.getStatus() : undefined,
+        ...(relayForProbe && { bridgeStatusProbe: () => relayForProbe.getStatus() }),
         validateAzureConfig: shouldValidateAzureConfig(),
       });
 

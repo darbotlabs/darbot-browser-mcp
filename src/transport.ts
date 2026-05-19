@@ -28,6 +28,7 @@ import { mcpAuthRouter } from '@modelcontextprotocol/sdk/server/auth/router.js';
 
 import type { AddressInfo } from 'node:net';
 import type { Server } from './server.js';
+import type { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
 
 import { createUnifiedAuthenticator, type UnifiedAuthenticator } from './auth/index.js';
 import { createMcpOAuthProvider, getOAuthConfig, isOAuthConfigured } from './auth/mcpOAuthProvider.js';
@@ -103,7 +104,7 @@ async function handleStreamable(server: Server, req: http.IncomingMessage, res: 
         console.error(`[MCP] Session closed: ${transport.sessionId}`);
       }
     };
-    await server.createConnection(transport);
+    await server.createConnection(transport as Transport);
     await transport.handleRequest(req, res);
     return;
   }
