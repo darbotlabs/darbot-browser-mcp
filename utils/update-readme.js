@@ -36,13 +36,6 @@ import screenshotTools from '../lib/tools/screenshot.js';
 import testTools from '../lib/tools/testing.js';
 import visionTools from '../lib/tools/vision.js';
 import waitTools from '../lib/tools/wait.js';
-import aiNativeTools from '../lib/tools/ai-native.js';
-import autonomousTools from '../lib/tools/autonomous.js';
-import scrollTools from '../lib/tools/scroll.js';
-import clockTools from '../lib/tools/clock.js';
-import emulationTools from '../lib/tools/emulation.js';
-import diagnosticsTools from '../lib/tools/diagnostics.js';
-import storageTools from '../lib/tools/storage.js';
 import { execSync } from 'node:child_process';
 
 let zodToJsonSchema;
@@ -84,27 +77,6 @@ const categories = {
   ],
   'Testing': [
     ...testTools,
-  ],
-  'AI-Native': [
-    ...aiNativeTools,
-  ],
-  'Autonomous': [
-    ...autonomousTools,
-  ],
-  'Scroll': [
-    ...scrollTools(true),
-  ],
-  'Time Control': [
-    ...clockTools(true),
-  ],
-  'Emulation': [
-    ...emulationTools(true),
-  ],
-  'Diagnostics': [
-    ...diagnosticsTools,
-  ],
-  'Storage': [
-    ...storageTools,
   ],
   'Vision mode': [
     ...visionTools,
@@ -224,13 +196,56 @@ async function updateOptions(content) {
   ]);
 }
 
+function usage() {
+  console.log(`Usage: node utils/update-readme.js [options]
+
+Regenerates README generated sections from compiled lib/ modules and CLI help.
+Run npm run build before using this utility.
+
+Options:
+  --dry-run       Validate generation without writing README.md.
+  --readme <path> Use a custom README path.
+  -h, --help      Show this help.`);
+}
+
+const args = process.argv.slice(2);
+let dryRun = false;
+let readmePath = path.join(path.dirname(__filename), '..', 'README.md');
+
+for (let i = 0; i < args.length; i++) {
+  switch (args[i]) {
+    case '--dry-run':
+      dryRun = true;
+      break;
+    case '--readme':
+      readmePath = path.resolve(args[++i] ?? '');
+      break;
+    case '-h':
+    case '--help':
+      usage();
+      process.exit(0);
+    default:
+      console.error(`Unknown option: ${args[i]}`);
+      usage();
+      process.exit(2);
+  }
+}
+
+if (!readmePath) {
+  console.error('--readme requires a path.');
+  process.exit(2);
+}
+
 async function updateReadme() {
-  const readmePath = path.join(path.dirname(__filename), '..', 'README.md');
   const readmeContent = await fs.promises.readFile(readmePath, 'utf-8');
   const withTools = await updateTools(readmeContent);
   const withOptions = await updateOptions(withTools);
+  if (dryRun) {
+    console.log(`README generation succeeded for ${readmePath}; no files written.`);
+    return;
+  }
   await fs.promises.writeFile(readmePath, withOptions, 'utf-8');
-  console.log('README updated successfully');
+  console.log(`README updated successfully: ${readmePath}`);
 }
 
 updateReadme().catch(err => {
