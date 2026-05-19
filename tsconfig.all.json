@@ -1,4 +1,19 @@
 {
   "extends": "./tsconfig.json",
-  "include": ["**/*.ts", "**/*.js"],
+  "compilerOptions": {
+    "rootDir": "."
+  },
+  "include": ["**/*.ts", "**/*.tsx"],
+  "exclude": [
+    "node_modules",
+    "lib",
+    "out",
+    "**/out/**",
+    "**/lib/**",
+    "**/node_modules/**",
+    "vscode-extension",
+    "darbot-browser-cloud",
+    "darbot-browser-hosted",
+    "dotnet"
+  ]
 }

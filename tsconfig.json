@@ -1,16 +1,30 @@
 {
   "compilerOptions": {
-    "target": "ESNext",
-    "esModuleInterop": true,
-    "moduleResolution": "nodenext",
-    "strict": true,
+    "target": "ES2023",
+    "lib": ["ES2023"],
     "module": "NodeNext",
+    "moduleResolution": "nodenext",
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noImplicitAny": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "useUnknownInCatchVariables": true,
     "rootDir": "src",
     "outDir": "./lib",
-    "resolveJsonModule": true,
-    "forceConsistentCasingInFileNames": true
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "removeComments": false
   },
-  "include": [
-    "src",
-  ],
+  "include": ["src"]
 }
