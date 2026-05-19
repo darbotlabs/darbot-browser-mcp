@@ -43,7 +43,7 @@ export class IntentParser {
       pattern: /(?:go to|navigate to|visit|open)\s+(.+)/i,
       action: 'navigate',
       parameterExtractors: {
-        url: match => this.normalizeUrl(match[1].trim()),
+        url: match => this.normalizeUrl(match[1]!.trim()),
       },
       confidence: 0.9,
     },
@@ -61,7 +61,7 @@ export class IntentParser {
       pattern: /(?:click|press|tap)\s+(?:on\s+)?(?:the\s+)?(.+?)(?:\s+button|\s+link)?$/i,
       action: 'click',
       parameterExtractors: {
-        element: match => match[1].trim(),
+        element: match => match[1]!.trim(),
       },
       confidence: 0.8,
     },
@@ -71,8 +71,8 @@ export class IntentParser {
       pattern: /(?:type|enter|input|fill)\s+['""](.+?)['""]\s+(?:in|into)\s+(?:the\s+)?(.+)/i,
       action: 'type',
       parameterExtractors: {
-        text: match => match[1],
-        element: match => match[2].trim(),
+        text: match => match[1]!,
+        element: match => match[2]!.trim(),
       },
       confidence: 0.85,
     },
@@ -82,7 +82,7 @@ export class IntentParser {
       pattern: /search\s+for\s+['""]?(.+?)['""]?/i,
       action: 'search',
       parameterExtractors: {
-        query: match => match[1].trim(),
+        query: match => match[1]!.trim(),
       },
       confidence: 0.8,
     },
@@ -107,7 +107,7 @@ export class IntentParser {
       pattern: /(?:log\s*in|sign\s*in|login)\s+(?:to\s+)?(.+)/i,
       action: 'login',
       parameterExtractors: {
-        service: match => match[1].trim(),
+        service: match => match[1]!.trim(),
       },
       confidence: 0.85,
     },
@@ -117,7 +117,7 @@ export class IntentParser {
       pattern: /wait\s+(?:for\s+)?(?:the\s+)?(.+?)(?:\s+to\s+(?:appear|load|show))?/i,
       action: 'wait_for',
       parameterExtractors: {
-        target: match => match[1].trim(),
+        target: match => match[1]!.trim(),
       },
       confidence: 0.8,
     },

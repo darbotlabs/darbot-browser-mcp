@@ -78,7 +78,7 @@ export class CrawlReporter {
       startTime: Date.now(),
       endTime: 0,
       startUrl,
-      goal,
+      ...(goal !== undefined && { goal }),
       stats: {
         pagesVisited: 0,
         totalLinks: 0,

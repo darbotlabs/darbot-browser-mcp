@@ -237,16 +237,16 @@ export class MemoryManager {
         } catch (error) {
           log('Failed to initialize darbot-memory-mcp connector, falling back to local storage:', error);
           this.storage = new LocalMemoryStorage({
-            storagePath: config.storagePath,
-            maxStates: config.maxStates
+            ...(config.storagePath !== undefined && { storagePath: config.storagePath }),
+            ...(config.maxStates !== undefined && { maxStates: config.maxStates })
           });
         }
         break;
       case 'local':
       default:
         this.storage = new LocalMemoryStorage({
-          storagePath: config.storagePath,
-          maxStates: config.maxStates
+          ...(config.storagePath !== undefined && { storagePath: config.storagePath }),
+          ...(config.maxStates !== undefined && { maxStates: config.maxStates })
         });
         break;
     }
@@ -291,7 +291,7 @@ export class MemoryManager {
       title,
       stateHash,
       timestamp: Date.now(),
-      screenshot: screenshotPath,
+      ...(screenshotPath !== undefined && { screenshot: screenshotPath }),
       links,
       visited: true
     };

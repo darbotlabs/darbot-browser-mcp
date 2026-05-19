@@ -241,6 +241,8 @@ export class WorkflowEngine {
       for (let i = 0; i < template.steps.length; i++) {
         execution.currentStep = i;
         const step = template.steps[i];
+        if (!step)
+          continue;
         const resolvedStep = this._resolveStepParameters(step, parameters);
 
         try {

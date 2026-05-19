@@ -399,7 +399,7 @@ export class GuardrailSystem {
 
     // Keep only recent history
     const cutoff = Date.now() - 3600000; // 1 hour
-    while (this.actionHistory.length > 0 && this.actionHistory[0].timestamp < cutoff)
+    while (this.actionHistory.length > 0 && this.actionHistory[0]!.timestamp < cutoff)
       this.actionHistory.shift();
 
   }

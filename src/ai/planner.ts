@@ -215,7 +215,8 @@ export class BFSPlanner {
         .filter(el => this.isInterestingElement(el))
         .sort((a, b) => this.calculateElementPriority(b) - this.calculateElementPriority(a));
 
-    return clickableElements.length > 0 ? clickableElements[0] : null;
+    const best = clickableElements[0];
+    return best ? { selector: best.selector, text: best.text } : null;
   }
 
   /**
@@ -249,7 +250,7 @@ export class BFSPlanner {
   private calculateElementPriority(element: { text: string; selector: string; tag: string }): number {
     // Use ML-based scorer for intelligent element prioritization
     const context = {
-      goal: this.config.goalDescription,
+      ...(this.config.goalDescription !== undefined && { goal: this.config.goalDescription }),
       visitedUrls: this.visited,
       successfulUrls: this.visited,
       currentDepth: this.currentDepth
@@ -267,7 +268,7 @@ export class BFSPlanner {
   private calculatePriority(url: string): number {
     // Use ML-based scorer for intelligent URL prioritization
     const context = {
-      goal: this.config.goalDescription,
+      ...(this.config.goalDescription !== undefined && { goal: this.config.goalDescription }),
       visitedUrls: this.visited,
       successfulUrls: this.visited,
       currentDepth: this.currentDepth
