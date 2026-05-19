@@ -1,55 +1,310 @@
 name: Publish
+
+# Release publisher for darbot-browser-mcp.
+#
+# Trigger: pushing a tag matching v*.*.* (e.g. v2.0.0).
+#
+# Each publish target lives in its own job behind `needs: build` so that
+# a failure in one target (e.g. the VS Code Marketplace being down) does
+# not block the others, and the only re-run cost is on the failing job.
+#
+# Required GitHub secrets (configure in repo Settings → Secrets and variables → Actions):
+#   NPM_TOKEN        — npm automation token with publish rights on @darbotlabs scope
+#   VSCE_PAT         — Azure DevOps PAT with Marketplace publish scope (used by `vsce`)
+#   NUGET_API_KEY    — nuget.org API key with push rights on DarbotLabs.Browser.MCP
+#   GITHUB_TOKEN     — built-in, used by ghcr.io login (no setup needed)
+
 on:
-  release:
-    types: [published]
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Git ref (tag) to publish'
+        required: true
+        type: string
+
+concurrency:
+  group: publish-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
 jobs:
-  publish-npm:
+  build:
+    name: Build & test
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      id-token: write # Needed for npm provenance
+    outputs:
+      version: ${{ steps.version.outputs.version }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
         with:
-          node-version: 23
+          ref: ${{ inputs.ref || github.ref }}
+
+      - name: Resolve version
+        id: version
+        run: |
+          REF="${{ inputs.ref || github.ref_name }}"
+          # Strip leading 'v' if present
+          echo "version=${REF#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Use Node.js (from .nvmrc)
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
           registry-url: https://registry.npmjs.org/
-      - run: npm ci
-      - run: npx playwright install --with-deps
-      - run: npm run build
-      - run: npm run lint
-      - run: npm run ctest
-      - run: npm publish --provenance
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      - name: Build
+        run: npm run build
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm run ctest
+
+  publish-npm:
+    name: Publish to npm
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # for npm provenance
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          registry-url: https://registry.npmjs.org/
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Publish to npm
+        run: npm publish --access public --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
+  publish-vsix-core:
+    name: Publish vscode-extension to Marketplace
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: Install vsce
+        run: npm install -g @vscode/vsce
+
+      - name: Install extension dependencies
+        working-directory: vscode-extension
+        run: npm ci
+
+      - name: Compile extension
+        working-directory: vscode-extension
+        run: npm run compile || npm run build || echo "no build script"
+
+      - name: Package extension
+        working-directory: vscode-extension
+        run: vsce package --no-dependencies --out darbot-browser-mcp.vsix
+
+      - name: Publish to Marketplace
+        working-directory: vscode-extension
+        run: vsce publish --packagePath darbot-browser-mcp.vsix --pat "$VSCE_PAT"
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+
+      - name: Upload VSIX artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vscode-extension-vsix
+          path: vscode-extension/*.vsix
+
+  publish-vsix-cloud:
+    name: Publish vscode-extension-cloud to Marketplace
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: Install vsce
+        run: npm install -g @vscode/vsce
+
+      - name: Install extension dependencies
+        working-directory: darbot-browser-cloud/vscode-extension-cloud
+        run: npm ci
+
+      - name: Compile extension
+        working-directory: darbot-browser-cloud/vscode-extension-cloud
+        run: npm run compile || npm run build || echo "no build script"
+
+      - name: Package extension
+        working-directory: darbot-browser-cloud/vscode-extension-cloud
+        run: vsce package --no-dependencies --out darbot-browser-mcp-cloud.vsix
+
+      - name: Publish to Marketplace
+        working-directory: darbot-browser-cloud/vscode-extension-cloud
+        run: vsce publish --packagePath darbot-browser-mcp-cloud.vsix --pat "$VSCE_PAT"
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+
+      - name: Upload VSIX artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vscode-extension-cloud-vsix
+          path: darbot-browser-cloud/vscode-extension-cloud/*.vsix
+
+  publish-vsix-hosted:
+    name: Publish vscode-extension-hosted to Marketplace
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: Install vsce
+        run: npm install -g @vscode/vsce
+
+      - name: Install extension dependencies
+        working-directory: darbot-browser-hosted/vscode-extension-hosted
+        run: npm ci
+
+      - name: Compile extension
+        working-directory: darbot-browser-hosted/vscode-extension-hosted
+        run: npm run compile || npm run build || echo "no build script"
+
+      - name: Package extension
+        working-directory: darbot-browser-hosted/vscode-extension-hosted
+        run: vsce package --no-dependencies --out darbot-browser-mcp-hosted.vsix
+
+      - name: Publish to Marketplace
+        working-directory: darbot-browser-hosted/vscode-extension-hosted
+        run: vsce publish --packagePath darbot-browser-mcp-hosted.vsix --pat "$VSCE_PAT"
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+
+      - name: Upload VSIX artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vscode-extension-hosted-vsix
+          path: darbot-browser-hosted/vscode-extension-hosted/*.vsix
+
+  publish-nuget:
+    name: Publish to NuGet
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        working-directory: dotnet/DarbotLabs.Browser.MCP
+        run: dotnet restore DarbotLabs.Browser.MCP.csproj
+
+      - name: Pack
+        working-directory: dotnet/DarbotLabs.Browser.MCP
+        run: |
+          dotnet pack DarbotLabs.Browser.MCP.csproj \
+            --configuration Release \
+            --output ../../artifacts/nupkg \
+            -p:Version=${{ needs.build.outputs.version }}
+
+      - name: Push to nuget.org
+        run: |
+          dotnet nuget push artifacts/nupkg/*.nupkg \
+            --source https://api.nuget.org/v3/index.json \
+            --api-key "$NUGET_API_KEY" \
+            --skip-duplicate
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+
+      - name: Upload NuGet artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-package
+          path: artifacts/nupkg/*.nupkg
+
   publish-docker:
+    name: Publish Docker image to GHCR
+    needs: build
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      id-token: write # Needed for OIDC login to Azure
-    environment: allow-publishing-docker-to-acr
+      packages: write
     steps:
       - uses: actions/checkout@v4
-      - name: Set up QEMU # Needed for multi-platform builds (e.g., arm64 on amd64 runner)
-        uses: docker/setup-qemu-action@v3
-      - name: Set up Docker Buildx # Needed for multi-platform builds
-        uses: docker/setup-buildx-action@v3
-      - name: Azure Login via OIDC
-        uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZURE_DOCKER_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_DOCKER_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_DOCKER_SUBSCRIPTION_ID }}
-      - name: Login to ACR
-        run: az acr login --name playwright
-      - name: Build and push Docker image
+          ref: ${{ inputs.ref || github.ref }}
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: ./Dockerfile # Adjust path if your Dockerfile is elsewhere
+          file: ./Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            playwright.azurecr.io/public/playwright/mcp:${{ github.event.release.tag_name }}
-            playwright.azurecr.io/public/playwright/mcp:latest
+            ghcr.io/darbotlabs/darbot-browser-mcp:${{ needs.build.outputs.version }}
+            ghcr.io/darbotlabs/darbot-browser-mcp:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          labels: |
+            org.opencontainers.image.title=darbot-browser-mcp
+            org.opencontainers.image.description=Darbot Browser MCP server
+            org.opencontainers.image.source=https://github.com/darbotlabs/darbot-browser-mcp
+            org.opencontainers.image.version=${{ needs.build.outputs.version }}
+            org.opencontainers.image.licenses=Apache-2.0
