@@ -31,6 +31,7 @@ import type { Server } from './server.js';
 
 import { createUnifiedAuthenticator, type UnifiedAuthenticator } from './auth/index.js';
 import { createMcpOAuthProvider, getOAuthConfig, isOAuthConfigured } from './auth/mcpOAuthProvider.js';
+import { createHealthCheckService, type HealthCheckService } from './health.js';
 
 export async function startStdioTransport(server: Server) {
   await server.createConnection(new StdioServerTransport());
@@ -265,9 +266,19 @@ export async function startHttpServer(config: { host?: string, port?: number }):
   return { httpServer, app };
 }
 
-export function startHttpTransport(httpServer: http.Server, mcpServer: Server, app: express.Express) {
+export interface HttpTransportOptions {
+  /**
+   * Optional pre-configured health service. Allows the caller (e.g. `program.ts`)
+   * to inject bridge status / Azure validation probes before the server starts
+   * accepting traffic. When omitted, a default health service is created.
+   */
+  healthService?: HealthCheckService;
+}
+
+export function startHttpTransport(httpServer: http.Server, mcpServer: Server, app: express.Express, options: HttpTransportOptions = {}) {
   const sseSessions = new Map<string, SSEServerTransport>();
   const streamableSessions = new Map<string, StreamableHTTPServerTransport>();
+  const healthService = options.healthService ?? createHealthCheckService();
 
   // Use unified authenticator that supports multiple auth methods
   const authenticator = createUnifiedAuthenticator();
@@ -317,38 +328,12 @@ export function startHttpTransport(httpServer: http.Server, mcpServer: Server, a
     await handleSSE(mcpServer, req as http.IncomingMessage, res as http.ServerResponse, url, sseSessions);
   });
 
-  // Health check endpoints
-  app.get('/health', async (req, res) => {
-    try {
-      const { createHealthCheckService } = await import('./health.js');
-      const healthService = createHealthCheckService();
-      await healthService.handleHealthCheck(req, res);
-    } catch {
-      res.status(500).send('Health check service unavailable');
-    }
-  });
+  // Health check endpoints — k8s/Azure naming conventions are aliased for parity.
+  app.get(['/health', '/healthz'], healthService.handleHealthCheck);
+  app.get(['/ready', '/readyz'], healthService.handleReadinessCheck);
+  app.get(['/live', '/livez'], healthService.handleLivenessCheck);
 
-  app.get('/ready', async (req, res) => {
-    try {
-      const { createHealthCheckService } = await import('./health.js');
-      const healthService = createHealthCheckService();
-      await healthService.handleReadinessCheck(req, res);
-    } catch {
-      res.status(503).send('Service unavailable');
-    }
-  });
-
-  app.get('/live', async (req, res) => {
-    try {
-      const { createHealthCheckService } = await import('./health.js');
-      const healthService = createHealthCheckService();
-      await healthService.handleLivenessCheck(req, res);
-    } catch {
-      res.status(503).send('Service unavailable');
-    }
-  });
-
-  // OpenAPI specification endpoint
+  // OpenAPI specification endpoints (JSON + YAML for Copilot Studio / Power Platform connectors).
   app.get(['/openapi.json', '/swagger.json'], async (req, res) => {
     try {
       const { createOpenAPIGenerator } = await import('./openapi.js');
@@ -361,16 +346,28 @@ export function startHttpTransport(httpServer: http.Server, mcpServer: Server, a
     }
   });
 
+  app.get(['/openapi.yaml', '/swagger.yaml'], async (req, res) => {
+    try {
+      const { createOpenAPIGenerator } = await import('./openapi.js');
+      const { snapshotTools } = await import('./tools.js');
+      const openApiGenerator = createOpenAPIGenerator(snapshotTools);
+      openApiGenerator.handleOpenAPISpecYaml(req, res);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({ error: 'Failed to generate OpenAPI YAML', message: errorMessage });
+    }
+  });
+
   // Log server info
   const url = httpAddressToString(httpServer.address());
   const message = [
     `Darbot Browser MCP Server listening on ${url}`,
     '',
     'Available endpoints:',
-    `  Health Check: ${url}/health`,
-    `  Readiness:    ${url}/ready`,
-    `  Liveness:     ${url}/live`,
-    `  OpenAPI:      ${url}/openapi.json`,
+    `  Health Check: ${url}/health (alias: /healthz)`,
+    `  Readiness:    ${url}/ready  (alias: /readyz)`,
+    `  Liveness:     ${url}/live   (alias: /livez)`,
+    `  OpenAPI:      ${url}/openapi.json (also: /openapi.yaml)`,
     `  MCP:          ${url}/mcp`,
     `  SSE:          ${url}/sse`,
   ].join('\n');
