@@ -102,14 +102,14 @@ class BrowserServer {
       return { browser: undefined, error: error.message };
     });
     this._setEntries([...this._entries, {
-      browser,
+      ...(browser !== undefined && { browser }),
       info: {
         browserType: request.browserType,
         userDataDir: request.userDataDir,
         cdpPort,
         launchOptions: request.launchOptions,
         contextOptions: request.contextOptions,
-        error,
+        ...(error !== undefined && { error }),
       },
     }]);
     browser?.on('disconnected', () => {

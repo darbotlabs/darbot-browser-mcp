@@ -219,7 +219,7 @@ export class CDPRelayServer extends EventEmitter {
         targetInfo: message.targetInfo,
         // Page sessionId that should be used by this connection.
         sessionId: message.sessionId,
-        extensionVersion: message.extensionVersion,
+        ...(message.extensionVersion !== undefined && { extensionVersion: message.extensionVersion }),
       };
       return;
     }
@@ -234,7 +234,7 @@ export class CDPRelayServer extends EventEmitter {
     switch (message.method) {
       case 'Browser.getVersion':
         this._sendToPlaywright({
-          id: message.id,
+          ...(message.id !== undefined && { id: message.id }),
           result: {
             protocolVersion: '1.3',
             product: 'Browser/Extension-Bridge',
@@ -244,7 +244,7 @@ export class CDPRelayServer extends EventEmitter {
         break;
 
       case 'Browser.setDownloadBehavior':
-        this._sendToPlaywright({ id: message.id, result: {} });
+        this._sendToPlaywright({ ...(message.id !== undefined && { id: message.id }), result: {} });
         break;
 
       default:
@@ -267,7 +267,7 @@ export class CDPRelayServer extends EventEmitter {
               waitingForDebugger: false,
             },
           });
-          this._sendToPlaywright({ id: message.id, result: {} });
+          this._sendToPlaywright({ ...(message.id !== undefined && { id: message.id }), result: {} });
         } else {
           this._forwardToExtension(message);
         }
@@ -279,7 +279,7 @@ export class CDPRelayServer extends EventEmitter {
         if (this._connectionInfo)
           targetInfos.push({ ...this._connectionInfo.targetInfo, attached: true });
 
-        this._sendToPlaywright({ id: message.id, result: { targetInfos } });
+        this._sendToPlaywright({ ...(message.id !== undefined && { id: message.id }), result: { targetInfos } });
         break;
       }
 
@@ -338,7 +338,7 @@ export async function startCDPRelayServer(httpServer: http.Server): Promise<Star
 
 // CLI usage
 if (import.meta.url === `file://${process.argv[1]}`) {
-  const port = parseInt(process.argv[2], 10) || 9223;
+  const port = parseInt(process.argv[2] ?? '', 10) || 9223;
   const httpServer = http.createServer();
   await new Promise<void>(resolve => httpServer.listen(port, resolve));
   const server = new CDPRelayServer(httpServer);

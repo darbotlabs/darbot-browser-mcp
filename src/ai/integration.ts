@@ -351,7 +351,7 @@ export class AIToolIntegration {
 
 
     // Click the first visible one
-    await clickableElements[0].click();
+    await clickableElements[0]!.click();
 
     return {
       success: true,
@@ -374,7 +374,7 @@ export class AIToolIntegration {
 
     // Fill the first visible one
     const text = intent.parameters.text || '';
-    await inputs[0].fill(text);
+    await inputs[0]!.fill(text);
 
     return {
       success: true,

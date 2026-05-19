@@ -139,7 +139,8 @@ export class HttpServer {
     const range = request.headers.range;
     if (!range || !range.startsWith('bytes=') || range.includes(', ') || [...range].filter(char => char === '-').length !== 1) {
       response.statusCode = 400;
-      return response.end('Bad request');
+      response.end('Bad request');
+      return;
     }
 
     // Parse the range header: https://datatracker.ietf.org/doc/html/rfc7233#section-2.1
@@ -151,15 +152,15 @@ export class HttpServer {
     const size = fs.statSync(absoluteFilePath).size;
     if (startStr !== '' && endStr === '') {
       // No end specified: use the whole file
-      start = +startStr;
+      start = +(startStr ?? '');
       end = size - 1;
     } else if (startStr === '' && endStr !== '') {
       // No start specified: calculate start manually
-      start = size - +endStr;
+      start = size - +(endStr ?? '');
       end = size - 1;
     } else {
-      start = +startStr;
-      end = +endStr;
+      start = +(startStr ?? '');
+      end = +(endStr ?? '');
     }
 
     // Handle unavailable range request
@@ -168,7 +169,8 @@ export class HttpServer {
       response.writeHead(416, {
         'Content-Range': `bytes */${size}`
       });
-      return response.end();
+      response.end();
+      return;
     }
 
     // Sending Partial Content: https://datatracker.ietf.org/doc/html/rfc7233#section-4.1

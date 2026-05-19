@@ -130,7 +130,10 @@ class CdpContextFactory extends BaseContextFactory {
   }
 
   protected override async _doCreateContext(browser: playwright.Browser): Promise<playwright.BrowserContext> {
-    return this.browserConfig.isolated ? await browser.newContext() : browser.contexts()[0];
+    if (this.browserConfig.isolated)
+      return await browser.newContext();
+    // CDP-connected browsers always expose at least the default context.
+    return browser.contexts()[0]!;
   }
 }
 
@@ -239,7 +242,10 @@ export class BrowserServerContextFactory extends BaseContextFactory {
   }
 
   protected override async _doCreateContext(browser: playwright.Browser): Promise<playwright.BrowserContext> {
-    return this.browserConfig.isolated ? await browser.newContext() : browser.contexts()[0];
+    if (this.browserConfig.isolated)
+      return await browser.newContext();
+    // Remote-connected browsers always expose at least the default context.
+    return browser.contexts()[0]!;
   }
 
   private async _createUserDataDir() {

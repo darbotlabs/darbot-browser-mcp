@@ -101,7 +101,10 @@ export class Context {
   }
 
   async selectTab(index: number) {
-    this._currentTab = this._tabs[index - 1];
+    const tab = this._tabs[index - 1];
+    if (!tab)
+      throw new Error(`Tab index out of range: ${index}`);
+    this._currentTab = tab;
     await this._currentTab.page.bringToFront();
   }
 
@@ -117,7 +120,7 @@ export class Context {
       return '### No tabs open';
     const lines: string[] = ['### Open tabs'];
     for (let i = 0; i < this._tabs.length; i++) {
-      const tab = this._tabs[i];
+      const tab = this._tabs[i]!;
       const title = await tab.title();
       const url = tab.page.url();
       const current = tab === this._currentTab ? ' (current)' : '';
