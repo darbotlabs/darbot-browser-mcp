@@ -15,14 +15,19 @@
  */
 
 import fs from 'fs';
+import http from 'http';
 import os from 'os';
 import path from 'path';
-import http from 'http';
+
+import debug from 'debug';
 import { devices } from 'playwright';
 
 import type { Config as PublicConfig, ToolCapability } from '../config.js';
 import type { BrowserContextOptions, LaunchOptions } from 'playwright';
 import { sanitizeForFilePath } from './tools/utils.js';
+
+const configDebug = debug('pw:mcp:config');
+const bridgeDebug = debug('pw:mcp:bridge');
 
 type Config = PublicConfig & {
   /**
@@ -146,19 +151,28 @@ export type FullConfig = Config & {
   };
 };
 
+/**
+ * Merge a partial `Config` over the defaults. Used by callers that already
+ * have a fully-formed override object (e.g. programmatic embedding).
+ */
 export async function resolveConfig(config: Config): Promise<FullConfig> {
   return mergeConfig(defaultConfig, config);
 }
 
 /**
- * Well-known ports for the Darbot Browser Bridge
+ * Well-known ports for the Darbot Browser Bridge. The first responsive port
+ * that reports an attached extension is used.
  */
-const BRIDGE_PORTS = [9223, 9224, 9225];
+const BRIDGE_PORTS = [9223, 9224, 9225] as const;
 
 /**
- * Bridge status response from /bridge endpoint
+ * Hard timeout (ms) for each bridge probe. Kept short so a cold startup does
+ * not stall MCP server boot for users without the bridge installed.
  */
-interface BridgeStatus {
+const BRIDGE_PROBE_TIMEOUT_MS = 1000;
+
+/** Bridge status payload as returned by the `/bridge` endpoint. */
+interface BridgeStatusResponse {
   bridge: string;
   version: string;
   extensionConnected: boolean;
@@ -172,100 +186,125 @@ interface BridgeStatus {
   extensionVersion: string | null;
 }
 
+/** Result of a successful bridge auto-detection. */
+interface DetectedBridge {
+  bridgeUrl: string;
+  cdpEndpoint: string;
+  targetInfo: BridgeStatusResponse['targetInfo'];
+}
+
 /**
- * Check if the Darbot Browser Bridge is available and has an extension connected.
- * This allows the MCP server to automatically connect to a shared browser tab
- * without requiring the --extension flag.
- * 
- * @returns The bridge URL and CDP endpoint if available, or null if no bridge found
+ * Probe well-known local ports for a running Darbot Browser Bridge with an
+ * attached extension. When found, callers can connect via CDP without
+ * requiring the `--extension` flag.
+ *
+ * Returns `null` on no detection — never throws.
  */
-async function detectBridge(): Promise<{ bridgeUrl: string; cdpEndpoint: string; targetInfo: BridgeStatus['targetInfo'] } | null> {
+async function detectBridge(): Promise<DetectedBridge | null> {
   for (const port of BRIDGE_PORTS) {
     try {
       const status = await fetchBridgeStatus(port);
       if (status?.extensionConnected && status.targetInfo) {
-        // Bridge found with extension connected
         return {
           bridgeUrl: `http://localhost:${port}`,
           cdpEndpoint: `ws://localhost:${port}/cdp`,
           targetInfo: status.targetInfo,
         };
       }
-    } catch {
-      // Port not available or bridge not running, continue checking
+    } catch (error) {
+      bridgeDebug('probe of port %d threw: %O', port, error);
     }
   }
   return null;
 }
 
 /**
- * Fetch bridge status from a given port
+ * GET `/bridge` on `localhost:<port>` with a strict timeout. Resolves to the
+ * parsed status payload or `null` for any kind of failure (no server,
+ * timeout, non-JSON response).
  */
-function fetchBridgeStatus(port: number): Promise<BridgeStatus | null> {
-  return new Promise((resolve) => {
-    const timeout = setTimeout(() => resolve(null), 1000);
-    
+function fetchBridgeStatus(port: number): Promise<BridgeStatusResponse | null> {
+  return new Promise(resolve => {
+    const timeout = setTimeout(() => {
+      req.destroy();
+      resolve(null);
+    }, BRIDGE_PROBE_TIMEOUT_MS);
+
     const req = http.request({
       hostname: 'localhost',
       port,
       path: '/bridge',
       method: 'GET',
-      timeout: 1000,
-    }, (res) => {
+      timeout: BRIDGE_PROBE_TIMEOUT_MS,
+    }, res => {
       let data = '';
-      res.on('data', chunk => data += chunk);
+      res.setEncoding('utf8');
+      res.on('data', chunk => { data += chunk; });
       res.on('end', () => {
         clearTimeout(timeout);
         try {
-          resolve(JSON.parse(data) as BridgeStatus);
-        } catch {
+          resolve(JSON.parse(data) as BridgeStatusResponse);
+        } catch (error) {
+          bridgeDebug('failed to parse /bridge response from port %d: %O', port, error);
           resolve(null);
         }
       });
+      res.on('error', error => {
+        clearTimeout(timeout);
+        bridgeDebug('response error from port %d: %O', port, error);
+        resolve(null);
+      });
     });
-    
-    req.on('error', () => {
+
+    req.on('error', error => {
       clearTimeout(timeout);
+      bridgeDebug('request error on port %d: %O', port, error);
       resolve(null);
     });
-    
+
     req.on('timeout', () => {
       req.destroy();
       clearTimeout(timeout);
       resolve(null);
     });
-    
+
     req.end();
   });
 }
 
+/**
+ * Resolve the merged runtime configuration from CLI options, a config file
+ * (when supplied) and the default config. Performs bridge auto-detection
+ * when no CDP endpoint is supplied and extension mode is off.
+ */
 export async function resolveCLIConfig(cliOptions: CLIOptions): Promise<FullConfig> {
   const configInFile = await loadConfig(cliOptions.config);
   const cliOverrides = await configFromCLIOptions(cliOptions);
-  let result = mergeConfig(mergeConfig(defaultConfig, configInFile), cliOverrides);
-  
-  // Auto-detect bridge if no CDP endpoint specified and not explicitly in extension mode
-  // This allows MCP clients to automatically connect to a shared browser tab
+  const result = mergeConfig(mergeConfig(defaultConfig, configInFile), cliOverrides);
+
+  // Auto-detect bridge so MCP clients can attach to a shared browser tab
+  // without explicit configuration.
   if (!result.browser.cdpEndpoint && !result.extension) {
     const bridge = await detectBridge();
     if (bridge) {
-      // eslint-disable-next-line no-console
-      console.error(`Darbot Bridge detected at ${bridge.bridgeUrl}`);
-      // eslint-disable-next-line no-console
-      console.error(`  Connected tab: ${bridge.targetInfo?.title || 'Unknown'}`);
-      // eslint-disable-next-line no-console  
-      console.error(`  URL: ${bridge.targetInfo?.url || 'Unknown'}`);
+      configDebug('Darbot Bridge detected at %s', bridge.bridgeUrl);
+      configDebug('  connected tab: %s', bridge.targetInfo?.title || 'Unknown');
+      configDebug('  url:           %s', bridge.targetInfo?.url || 'Unknown');
       result.browser.cdpEndpoint = bridge.cdpEndpoint;
       result.browser.browserName = 'chromium'; // CDP requires chromium
     }
   }
-  
+
   // Derive artifact output directory from config.outputDir
   if (result.saveTrace)
     result.browser.launchOptions.tracesDir = path.join(result.outputDir, 'traces');
   return result;
 }
 
+/**
+ * Validate runtime invariants on a fully-resolved config. Currently enforces
+ * that extension mode is only used with a Chromium-family browser.
+ */
 export function validateConfig(config: Config) {
   if (config.extension) {
     if (config.browser?.browserName !== 'chromium')
@@ -391,10 +430,16 @@ async function loadConfig(configFile: string | undefined): Promise<Config> {
   try {
     return JSON.parse(await fs.promises.readFile(configFile, 'utf8'));
   } catch (error) {
-    throw new Error(`Failed to load config file: ${configFile}, ${error}`);
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`Failed to load config file: ${configFile}: ${message}`, { cause: error });
   }
 }
 
+/**
+ * Build an absolute file path inside the configured output directory,
+ * creating the directory if necessary. The filename is sanitised so callers
+ * can pass arbitrary user input without worrying about path traversal.
+ */
 export async function outputFile(config: FullConfig, name: string): Promise<string> {
   await fs.promises.mkdir(config.outputDir, { recursive: true });
   const fileName = sanitizeForFilePath(name);
