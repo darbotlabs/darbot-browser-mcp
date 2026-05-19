@@ -14,186 +14,238 @@
  * limitations under the License.
  */
 
+import debug from 'debug';
 import { zodToJsonSchema } from 'zod-to-json-schema';
+
 import { packageJSON } from './package.js';
+
+import type { Request, Response } from 'express';
 import type { Tool } from './tools/tool.js';
-import type { IncomingMessage, ServerResponse } from 'http';
+
+const openapiDebug = debug('pw:mcp:openapi');
+
+/**
+ * JSON-compatible value tree. The OpenAPI document is intentionally loose
+ * because the spec accepts a wide range of extension fields.
+ */
+export type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue | undefined };
+
+export interface OpenAPIInfo {
+  title: string;
+  description: string;
+  version: string;
+  contact?: { name: string; url: string; email: string };
+  license?: { name: string; url: string };
+}
 
 export interface OpenAPISpec {
   openapi: string;
-  info: {
-    title: string;
-    description: string;
-    version: string;
-    contact?: {
-      name: string;
-      url: string;
-      email: string;
-    };
-    license?: {
-      name: string;
-      url: string;
-    };
-  };
-  servers: Array<{
-    url: string;
-    description: string;
-  }>;
-  paths: Record<string, any>;
+  info: OpenAPIInfo;
+  servers: Array<{ url: string; description: string }>;
+  paths: Record<string, JsonValue>;
   components: {
-    schemas: Record<string, any>;
-    securitySchemes: Record<string, any>;
+    schemas: Record<string, JsonValue>;
+    securitySchemes: Record<string, JsonValue>;
   };
-  security: Array<Record<string, any>>;
-  tags: Array<{
-    name: string;
-    description: string;
-  }>;
+  security: Array<Record<string, string[]>>;
+  tags: Array<{ name: string; description: string }>;
 }
 
+const TOOL_CATEGORIES: Array<{ name: string; description: string; matchers: RegExp[] }> = [
+  { name: 'Navigation', description: 'Page navigation and URL manipulation tools', matchers: [/navigate/, /goto/, /url/] },
+  { name: 'Interaction', description: 'Page interaction tools (clicks, typing, drag & drop)', matchers: [/click/, /type/, /drag/, /hover/] },
+  { name: 'Capture', description: 'Screenshot, snapshot, and PDF generation tools', matchers: [/screenshot/, /snapshot/, /pdf/] },
+  { name: 'Tabs', description: 'Browser tab and window management tools', matchers: [/tab/, /window/] },
+  { name: 'Profiles', description: 'Work profile and session management tools', matchers: [/profile/, /session/] },
+  { name: 'Wait', description: 'Waiting and synchronization tools', matchers: [/wait/, /expect/] },
+  { name: 'Testing', description: 'Testing and assertion tools', matchers: [/\btest\b/, /assert/] },
+  { name: 'Network', description: 'Network monitoring and request tools', matchers: [/network/, /request/] },
+  { name: 'Console', description: 'Browser console and logging tools', matchers: [/console/, /\blog\b/] },
+  { name: 'Files', description: 'File upload, download, and management tools', matchers: [/\bfile\b/, /upload/, /download/] },
+];
+const FALLBACK_CATEGORY = 'General';
+const FALLBACK_CATEGORY_DESCRIPTION = 'General browser automation tools';
+
 /**
- * Generates OpenAPI specifications for MCP tools
- * Enables discovery and integration with Copilot Studio
+ * Generates OpenAPI 3.0.3 specifications for the MCP tool surface so that
+ * Microsoft Copilot Studio, Power Platform connectors and other consumers
+ * can auto-discover and call the tools as REST endpoints.
  */
 export class OpenAPIGenerator {
-  private tools: Tool<any>[];
-  private baseUrl: string;
+  private readonly _tools: Tool[];
+  private readonly _baseUrl: string;
 
-  constructor(tools: Tool<any>[], baseUrl: string = '') {
-    this.tools = tools;
-    this.baseUrl = baseUrl;
+  constructor(tools: Tool[], baseUrl: string = '') {
+    this._tools = tools;
+    this._baseUrl = baseUrl;
   }
 
   /**
-   * Generates complete OpenAPI specification
+   * Build the full OpenAPI specification. Description and tag counts are
+   * derived from the live tool list so the document never drifts from the
+   * runtime surface.
    */
   generateSpec(): OpenAPISpec {
-    const paths = this.generatePaths();
-    const schemas = this.generateSchemas();
-    const tags = this.generateTags();
-
     return {
       openapi: '3.0.3',
       info: {
         title: 'Darbot Browser MCP API',
-        description: 'Autonomous browser automation tools for Microsoft Copilot Studio integration. Provides 52 AI-driven browser capabilities including navigation, interaction, testing, and work profile management.',
+        description: `Autonomous browser automation tools for Microsoft Copilot Studio integration. ` +
+          `Provides ${this._tools.length} AI-driven browser capabilities including navigation, ` +
+          `interaction, testing, and work profile management.`,
         version: packageJSON.version,
         contact: {
           name: 'Darbot Labs',
           url: 'https://github.com/darbotlabs/darbot-browser-mcp',
-          email: 'support@darbotlabs.com'
+          email: 'support@darbotlabs.com',
         },
         license: {
           name: 'Apache 2.0',
-          url: 'https://www.apache.org/licenses/LICENSE-2.0'
-        }
+          url: 'https://www.apache.org/licenses/LICENSE-2.0',
+        },
       },
-      servers: [
-        {
-          url: this.baseUrl || '{protocol}://{host}:{port}',
-          description: 'Darbot Browser MCP Server'
-        }
-      ],
-      paths,
+      servers: [{
+        url: this._baseUrl || '{protocol}://{host}:{port}',
+        description: 'Darbot Browser MCP Server',
+      }],
+      paths: this._generatePaths(),
       components: {
-        schemas,
+        schemas: this._generateSchemas(),
         securitySchemes: {
           EntraID: {
             type: 'http',
             scheme: 'bearer',
             bearerFormat: 'JWT',
-            description: 'Microsoft Entra ID (Azure AD) authentication'
+            description: 'Microsoft Entra ID (Azure AD) authentication',
           },
           ApiKey: {
             type: 'apiKey',
             in: 'header',
             name: 'X-API-Key',
-            description: 'API Key authentication for service-to-service calls'
-          }
-        }
+            description: 'API Key authentication for service-to-service calls',
+          },
+        },
       },
       security: [
         { EntraID: [] },
-        { ApiKey: [] }
+        { ApiKey: [] },
       ],
-      tags
+      tags: this._generateTags(),
     };
   }
 
-  /**
-   * HTTP handler for OpenAPI specification endpoint
-   */
-  handleOpenAPISpec(req: IncomingMessage, res: ServerResponse) {
+  /** Express handler that serves the OpenAPI spec as JSON. */
+  handleOpenAPISpec = (_req: Request, res: Response): void => {
     try {
       const spec = this.generateSpec();
-      res.statusCode = 200;
-      res.setHeader('Content-Type', 'application/json');
-      res.setHeader('Access-Control-Allow-Origin', '*');
-      res.setHeader('Cache-Control', 'public, max-age=3600');
-      res.end(JSON.stringify(spec, null, 2));
+      res.status(200)
+          .set('Content-Type', 'application/json')
+          .set('Access-Control-Allow-Origin', '*')
+          .set('Cache-Control', 'public, max-age=3600')
+          .send(JSON.stringify(spec, null, 2));
     } catch (error) {
-      res.statusCode = 500;
-      res.setHeader('Content-Type', 'application/json');
-      res.end(JSON.stringify({
+      openapiDebug('handleOpenAPISpec failed: %O', error);
+      res.status(500).json({
         error: 'Failed to generate OpenAPI specification',
-        message: error instanceof Error ? error.message : 'Unknown error'
-      }));
+        message: error instanceof Error ? error.message : 'Unknown error',
+      });
     }
-  }
+  };
 
-  private generatePaths(): Record<string, any> {
-    const paths: Record<string, any> = {};
+  /** Express handler that serves the OpenAPI spec as YAML. */
+  handleOpenAPISpecYaml = (_req: Request, res: Response): void => {
+    try {
+      const spec = this.generateSpec();
+      const yaml = jsonToYaml(spec as unknown as JsonValue);
+      res.status(200)
+          .set('Content-Type', 'application/yaml; charset=utf-8')
+          .set('Access-Control-Allow-Origin', '*')
+          .set('Cache-Control', 'public, max-age=3600')
+          .send(yaml);
+    } catch (error) {
+      openapiDebug('handleOpenAPISpecYaml failed: %O', error);
+      res.status(500).json({
+        error: 'Failed to generate OpenAPI YAML',
+        message: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  };
 
-    // Add health endpoints
+  private _generatePaths(): Record<string, JsonValue> {
+    const paths: Record<string, JsonValue> = {};
+
     paths['/health'] = {
       get: {
         summary: 'Health Check',
         description: 'Returns the health status of the service',
         tags: ['Health'],
         responses: {
-          '200': {
-            description: 'Service is healthy',
-            content: {
-              'application/json': {
-                schema: {
-                  $ref: '#/components/schemas/HealthStatus'
-                }
-              }
-            }
-          },
-          '503': {
-            description: 'Service is unhealthy',
-            content: {
-              'application/json': {
-                schema: {
-                  $ref: '#/components/schemas/HealthStatus'
-                }
-              }
-            }
-          }
-        }
-      }
+          '200': healthResponse('Service is healthy'),
+          '503': healthResponse('Service is unhealthy'),
+        },
+      },
     };
 
     paths['/ready'] = {
       get: {
         summary: 'Readiness Check',
-        description: 'Returns readiness status for load balancer',
+        description: 'Returns readiness status for the load balancer',
         tags: ['Health'],
         responses: {
           '200': {
             description: 'Service is ready',
-            content: {
-              'text/plain': {
-                schema: { type: 'string', example: 'OK' }
-              }
-            }
-          }
-        }
-      }
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ReadinessStatus' } } },
+          },
+          '503': {
+            description: 'Service is not ready',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ReadinessStatus' } } },
+          },
+        },
+      },
     };
 
-    // Add MCP endpoints
+    paths['/live'] = {
+      get: {
+        summary: 'Liveness Check',
+        description: 'Returns process liveness — used by container orchestrators',
+        tags: ['Health'],
+        responses: {
+          '200': {
+            description: 'Process is alive',
+            content: { 'application/json': { schema: { type: 'object' } } },
+          },
+        },
+      },
+    };
+
+    paths['/openapi.json'] = {
+      get: {
+        summary: 'OpenAPI specification (JSON)',
+        description: 'Returns the OpenAPI 3.0.3 specification for this server.',
+        tags: ['Discovery'],
+        responses: {
+          '200': {
+            description: 'OpenAPI document',
+            content: { 'application/json': { schema: { type: 'object' } } },
+          },
+        },
+      },
+    };
+
+    paths['/openapi.yaml'] = {
+      get: {
+        summary: 'OpenAPI specification (YAML)',
+        description: 'Returns the OpenAPI 3.0.3 specification for this server in YAML.',
+        tags: ['Discovery'],
+        responses: {
+          '200': {
+            description: 'OpenAPI document',
+            content: { 'application/yaml': { schema: { type: 'string' } } },
+          },
+        },
+      },
+    };
+
     paths['/mcp/tools'] = {
       get: {
         summary: 'List Available Tools',
@@ -207,29 +259,23 @@ export class OpenAPIGenerator {
                 schema: {
                   type: 'object',
                   properties: {
-                    tools: {
-                      type: 'array',
-                      items: {
-                        $ref: '#/components/schemas/Tool'
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
+                    tools: { type: 'array', items: { $ref: '#/components/schemas/Tool' } },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
     };
 
-    // Add tool-specific endpoints
-    for (const tool of this.tools) {
+    for (const tool of this._tools) {
       const toolPath = `/api/v1/tools/${tool.schema.name}`;
       paths[toolPath] = {
         post: {
           summary: tool.schema.title || tool.schema.name,
           description: tool.schema.description,
-          tags: [this.getToolCategory(tool)],
+          tags: [getToolCategory(tool)],
           operationId: `execute_${tool.schema.name}`,
           requestBody: {
             required: true,
@@ -237,10 +283,10 @@ export class OpenAPIGenerator {
               'application/json': {
                 schema: zodToJsonSchema(tool.schema.inputSchema, {
                   name: `${tool.schema.name}Input`,
-                  $refStrategy: 'none'
-                })
-              }
-            }
+                  $refStrategy: 'none',
+                }) as JsonValue,
+              },
+            },
           },
           responses: {
             '200': {
@@ -252,64 +298,68 @@ export class OpenAPIGenerator {
                     properties: {
                       success: { type: 'boolean' },
                       result: { type: 'object' },
-                      metadata: { type: 'object' }
-                    }
-                  }
-                }
-              }
+                      metadata: { type: 'object' },
+                    },
+                  },
+                },
+              },
             },
             '400': {
               description: 'Invalid request parameters',
-              content: {
-                'application/json': {
-                  schema: {
-                    $ref: '#/components/schemas/Error'
-                  }
-                }
-              }
+              content: { 'application/json': { schema: { $ref: '#/components/schemas/Error' } } },
             },
-            '401': {
-              description: 'Authentication required'
-            },
+            '401': { description: 'Authentication required' },
             '500': {
               description: 'Internal server error',
-              content: {
-                'application/json': {
-                  schema: {
-                    $ref: '#/components/schemas/Error'
-                  }
-                }
-              }
-            }
-          }
-        }
+              content: { 'application/json': { schema: { $ref: '#/components/schemas/Error' } } },
+            },
+          },
+        },
       };
     }
 
     return paths;
   }
 
-  private generateSchemas(): Record<string, any> {
-    const schemas: Record<string, any> = {};
+  private _generateSchemas(): Record<string, JsonValue> {
+    const schemas: Record<string, JsonValue> = {};
 
-    // Common schemas
     schemas.Error = {
       type: 'object',
       properties: {
         error: { type: 'string' },
         message: { type: 'string' },
-        details: { type: 'object' }
+        details: { type: 'object' },
       },
-      required: ['error', 'message']
+      required: ['error', 'message'],
     };
 
     schemas.HealthStatus = {
       type: 'object',
       properties: {
-        status: {
-          type: 'string',
-          enum: ['healthy', 'degraded', 'unhealthy']
+        status: { type: 'string', enum: ['healthy', 'degraded', 'unhealthy'] },
+        timestamp: { type: 'string', format: 'date-time' },
+        version: { type: 'string' },
+        uptimeSeconds: { type: 'integer' },
+        checks: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              name: { type: 'string' },
+              status: { type: 'string', enum: ['pass', 'warn', 'fail'] },
+              duration: { type: 'number' },
+              details: { type: 'object' },
+            },
+          },
         },
+      },
+    };
+
+    schemas.ReadinessStatus = {
+      type: 'object',
+      properties: {
+        status: { type: 'string', enum: ['ready', 'not_ready'] },
         timestamp: { type: 'string', format: 'date-time' },
         version: { type: 'string' },
         checks: {
@@ -318,16 +368,11 @@ export class OpenAPIGenerator {
             type: 'object',
             properties: {
               name: { type: 'string' },
-              status: {
-                type: 'string',
-                enum: ['pass', 'warn', 'fail']
-              },
-              duration: { type: 'number' },
-              details: { type: 'object' }
-            }
-          }
-        }
-      }
+              status: { type: 'string', enum: ['pass', 'warn', 'fail'] },
+            },
+          },
+        },
+      },
     };
 
     schemas.Tool = {
@@ -341,106 +386,146 @@ export class OpenAPIGenerator {
           properties: {
             title: { type: 'string' },
             readOnlyHint: { type: 'boolean' },
-            destructiveHint: { type: 'boolean' }
-          }
-        }
-      }
+            destructiveHint: { type: 'boolean' },
+          },
+        },
+      },
     };
 
-    // Add tool-specific schemas
-    for (const tool of this.tools) {
+    for (const tool of this._tools) {
       const schemaName = `${tool.schema.name}Input`;
       schemas[schemaName] = zodToJsonSchema(tool.schema.inputSchema, {
         name: schemaName,
-        $refStrategy: 'none'
-      });
+        $refStrategy: 'none',
+      }) as JsonValue;
     }
 
     return schemas;
   }
 
-  private generateTags(): Array<{ name: string; description: string }> {
+  private _generateTags(): Array<{ name: string; description: string }> {
     const categories = new Set<string>();
+    for (const tool of this._tools)
+      categories.add(getToolCategory(tool));
 
-    for (const tool of this.tools)
-      categories.add(this.getToolCategory(tool));
-
-
-    const tags = [
+    const tags: Array<{ name: string; description: string }> = [
       { name: 'Health', description: 'Health check and monitoring endpoints' },
-      { name: 'MCP', description: 'Model Context Protocol endpoints' }
+      { name: 'Discovery', description: 'OpenAPI / capability discovery endpoints' },
+      { name: 'MCP', description: 'Model Context Protocol endpoints' },
     ];
-
-    for (const category of categories) {
-      tags.push({
-        name: category,
-        description: this.getCategoryDescription(category)
-      });
-    }
+    for (const category of categories)
+      tags.push({ name: category, description: getCategoryDescription(category) });
 
     return tags;
   }
+}
 
-  private getToolCategory(tool: Tool<any>): string {
-    // Categorize tools based on their names
-    const name = tool.schema.name.toLowerCase();
+function healthResponse(description: string): JsonValue {
+  return {
+    description,
+    content: { 'application/json': { schema: { $ref: '#/components/schemas/HealthStatus' } } },
+  };
+}
 
-    if (name.includes('navigate') || name.includes('goto') || name.includes('url'))
-      return 'Navigation';
-
-    if (name.includes('click') || name.includes('type') || name.includes('drag') || name.includes('hover'))
-      return 'Interaction';
-
-    if (name.includes('screenshot') || name.includes('snapshot') || name.includes('pdf'))
-      return 'Capture';
-
-    if (name.includes('tab') || name.includes('window'))
-      return 'Tabs';
-
-    if (name.includes('profile') || name.includes('session'))
-      return 'Profiles';
-
-    if (name.includes('wait') || name.includes('expect'))
-      return 'Wait';
-
-    if (name.includes('test') || name.includes('assert'))
-      return 'Testing';
-
-    if (name.includes('network') || name.includes('request'))
-      return 'Network';
-
-    if (name.includes('console') || name.includes('log'))
-      return 'Console';
-
-    if (name.includes('file') || name.includes('upload') || name.includes('download'))
-      return 'Files';
-
-
-    return 'General';
+function getToolCategory(tool: Tool): string {
+  const name = tool.schema.name.toLowerCase();
+  for (const category of TOOL_CATEGORIES) {
+    if (category.matchers.some(rx => rx.test(name)))
+      return category.name;
   }
+  return FALLBACK_CATEGORY;
+}
 
-  private getCategoryDescription(category: string): string {
-    const descriptions: Record<string, string> = {
-      'Navigation': 'Page navigation and URL manipulation tools',
-      'Interaction': 'Page interaction tools (clicks, typing, drag & drop)',
-      'Capture': 'Screenshot, snapshot, and PDF generation tools',
-      'Tabs': 'Browser tab and window management tools',
-      'Profiles': 'Work profile and session management tools',
-      'Wait': 'Waiting and synchronization tools',
-      'Testing': 'Testing and assertion tools',
-      'Network': 'Network monitoring and request tools',
-      'Console': 'Browser console and logging tools',
-      'Files': 'File upload, download, and management tools',
-      'General': 'General browser automation tools'
-    };
-
-    return descriptions[category] || 'Browser automation tools';
-  }
+function getCategoryDescription(category: string): string {
+  const known = TOOL_CATEGORIES.find(c => c.name === category);
+  return known?.description ?? FALLBACK_CATEGORY_DESCRIPTION;
 }
 
 /**
- * Creates an OpenAPI generator for the given tools
+ * Create an OpenAPI generator for the given tools.
  */
-export function createOpenAPIGenerator(tools: Tool<any>[], baseUrl?: string): OpenAPIGenerator {
+export function createOpenAPIGenerator(tools: Tool[], baseUrl?: string): OpenAPIGenerator {
   return new OpenAPIGenerator(tools, baseUrl);
+}
+
+/**
+ * Minimal JSON-to-YAML serializer scoped to the shape of an OpenAPI document.
+ *
+ * Supports the value subset OpenAPI uses: strings, numbers, booleans, null,
+ * arrays and objects. Strings are quoted whenever they contain characters
+ * that would otherwise produce an ambiguous YAML scalar.
+ */
+function jsonToYaml(value: JsonValue, indent: number = 0): string {
+  if (value === null)
+    return 'null';
+
+  const pad = '  '.repeat(indent);
+
+  if (Array.isArray(value)) {
+    if (value.length === 0)
+      return '[]';
+    return value.map(item => {
+      if (isContainer(item))
+        return `${pad}-\n${jsonToYaml(item, indent + 1)}`;
+      return `${pad}- ${formatScalar(item)}`;
+    }).join('\n');
+  }
+
+  if (typeof value === 'object') {
+    const entries = Object.entries(value).filter(([, v]) => v !== undefined) as Array<[string, JsonValue]>;
+    if (entries.length === 0)
+      return '{}';
+    return entries.map(([key, v]) => {
+      const safeKey = needsQuoting(key) ? `"${escapeYamlString(key)}"` : key;
+      if (isContainer(v))
+        return `${pad}${safeKey}:\n${jsonToYaml(v, indent + 1)}`;
+      return `${pad}${safeKey}: ${formatScalar(v)}`;
+    }).join('\n');
+  }
+
+  return formatScalar(value);
+}
+
+function isContainer(value: JsonValue | undefined): boolean {
+  return Array.isArray(value) || (typeof value === 'object' && value !== null);
+}
+
+function formatScalar(value: JsonValue): string {
+  if (value === null)
+    return 'null';
+  if (typeof value === 'boolean')
+    return value ? 'true' : 'false';
+  if (typeof value === 'number')
+    return Number.isFinite(value) ? String(value) : 'null';
+  if (typeof value === 'string')
+    return needsQuoting(value) ? `"${escapeYamlString(value)}"` : value;
+  return JSON.stringify(value);
+}
+
+function needsQuoting(value: string): boolean {
+  if (value.length === 0)
+    return true;
+  // Reserved boolean / null literals
+  if (/^(true|false|null|yes|no|on|off|~)$/i.test(value))
+    return true;
+  // Numbers / special floats / dates
+  if (/^[-+]?\d/.test(value))
+    return true;
+  // Anything containing YAML-significant punctuation, whitespace edges, or non-printables
+  if (/[:#&*!|>'"%@`{}\[\],?\\]/.test(value))
+    return true;
+  if (/^\s|\s$/.test(value))
+    return true;
+  if (/[\x00-\x1f]/.test(value))
+    return true;
+  return false;
+}
+
+function escapeYamlString(value: string): string {
+  return value
+      .replace(/\\/g, '\\\\')
+      .replace(/"/g, '\\"')
+      .replace(/\n/g, '\\n')
+      .replace(/\r/g, '\\r')
+      .replace(/\t/g, '\\t');
 }
