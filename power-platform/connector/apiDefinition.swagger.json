@@ -1,9 +1,9 @@
 {
   "swagger": "2.0",
   "info": {
-    "version": "1.3.0",
+    "version": "2.0.0",
     "title": "Darbot Browser MCP",
-    "description": "Autonomous browser automation for Microsoft Copilot Studio. Provides 52 AI-driven browser tools including navigation, interaction, testing, and work profile management. Connect via Azure deployment or VS Code Dev Tunnels for on-premises hosting.",
+    "description": "Browser automation for Microsoft Power Platform and Copilot Studio. Provides 63 current Darbot Browser MCP tools plus generic list and execute operations.",
     "contact": {
       "name": "Darbot Labs Support",
       "url": "https://github.com/darbotlabs/darbot-browser-mcp",
@@ -12,9 +12,15 @@
   },
   "host": "your-darbot-instance.azurewebsites.net",
   "basePath": "/api/v1",
-  "schemes": ["https"],
-  "consumes": ["application/json"],
-  "produces": ["application/json"],
+  "schemes": [
+    "https"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
   "securityDefinitions": {
     "EntraID": {
       "type": "oauth2",
@@ -39,7 +45,7 @@
     "/health": {
       "get": {
         "summary": "Health Check",
-        "description": "Check the health status of the Darbot Browser MCP service",
+        "description": "Check service health.",
         "operationId": "HealthCheck",
         "responses": {
           "200": {
@@ -52,116 +58,1356 @@
         "x-ms-visibility": "internal"
       }
     },
-    "/tools/browser_navigate": {
+    "/tools": {
+      "get": {
+        "summary": "List Tools",
+        "description": "List available Darbot Browser MCP tools.",
+        "operationId": "ListTools",
+        "responses": {
+          "200": {
+            "description": "Available tools",
+            "schema": {
+              "$ref": "#/definitions/ListToolsResponse"
+            }
+          }
+        }
+      }
+    },
+    "/tools/{toolName}": {
       "post": {
-        "summary": "Navigate to URL",
-        "description": "Navigate the browser to a specific URL",
-        "operationId": "BrowserNavigate",
+        "summary": "Execute Tool",
+        "description": "Execute any Darbot Browser MCP tool by name with a JSON arguments object.",
+        "operationId": "ExecuteTool",
         "parameters": [
+          {
+            "name": "toolName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
           {
             "name": "body",
             "in": "body",
-            "required": true,
+            "required": false,
             "schema": {
-              "$ref": "#/definitions/NavigateRequest"
+              "$ref": "#/definitions/GenericToolRequest"
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "Navigation completed successfully",
+            "description": "Tool execution response",
             "schema": {
               "$ref": "#/definitions/ToolResponse"
             }
-          },
-          "400": {
-            "description": "Invalid request parameters"
-          },
-          "401": {
-            "description": "Authentication required"
           }
         }
       }
     },
+    "/tools/auth.json": {
+      "post": {
+        "summary": "Auth.json",
+        "description": "Execute the auth.json Darbot Browser MCP tool.",
+        "operationId": "Auth.json",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/GenericToolRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tool execution response",
+            "schema": {
+              "$ref": "#/definitions/ToolResponse"
+            }
+          }
+        },
+        "x-ms-summary": "Auth.json"
+      }
+    },
+    "/tools/browser_analyze_context": {
+      "post": {
+        "summary": "Analyze Context",
+        "description": "Execute the browser_analyze_context Darbot Browser MCP tool.",
+        "operationId": "BrowserAnalyzeContext",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/GenericToolRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tool execution response",
+            "schema": {
+              "$ref": "#/definitions/ToolResponse"
+            }
+          }
+        },
+        "x-ms-summary": "Analyze Context"
+      }
+    },
+    "/tools/browser_clear_cookies": {
+      "post": {
+        "summary": "Clear Cookies",
+        "description": "Execute the browser_clear_cookies Darbot Browser MCP tool.",
+        "operationId": "BrowserClearCookies",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/GenericToolRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tool execution response",
+            "schema": {
+              "$ref": "#/definitions/ToolResponse"
+            }
+          }
+        },
+        "x-ms-summary": "Clear Cookies"
+      }
+    },
     "/tools/browser_click": {
       "post": {
-        "summary": "Click Element",
-        "description": "Click on a specific element on the current page",
+        "summary": "Click",
+        "description": "Execute the browser_click Darbot Browser MCP tool.",
         "operationId": "BrowserClick",
         "parameters": [
           {
             "name": "body",
             "in": "body",
-            "required": true,
+            "required": false,
             "schema": {
-              "$ref": "#/definitions/ClickRequest"
+              "$ref": "#/definitions/GenericToolRequest"
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "Click action completed successfully",
+            "description": "Tool execution response",
             "schema": {
               "$ref": "#/definitions/ToolResponse"
             }
           }
-        }
+        },
+        "x-ms-summary": "Click"
       }
     },
-    "/tools/browser_type": {
+    "/tools/browser_clock_fast_forward": {
       "post": {
-        "summary": "Type Text",
-        "description": "Type text into an editable element",
-        "operationId": "BrowserType",
+        "summary": "Clock Fast Forward",
+        "description": "Execute the browser_clock_fast_forward Darbot Browser MCP tool.",
+        "operationId": "BrowserClockFastForward",
         "parameters": [
           {
             "name": "body",
             "in": "body",
-            "required": true,
+            "required": false,
             "schema": {
-              "$ref": "#/definitions/TypeRequest"
+              "$ref": "#/definitions/GenericToolRequest"
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "Text input completed successfully",
+            "description": "Tool execution response",
             "schema": {
               "$ref": "#/definitions/ToolResponse"
             }
           }
-        }
+        },
+        "x-ms-summary": "Clock Fast Forward"
       }
     },
-    "/tools/browser_take_screenshot": {
+    "/tools/browser_clock_install": {
       "post": {
-        "summary": "Take Screenshot",
-        "description": "Capture a screenshot of the current page or specific element",
-        "operationId": "BrowserTakeScreenshot",
+        "summary": "Clock Install",
+        "description": "Execute the browser_clock_install Darbot Browser MCP tool.",
+        "operationId": "BrowserClockInstall",
         "parameters": [
           {
             "name": "body",
             "in": "body",
-            "required": true,
+            "required": false,
             "schema": {
-              "$ref": "#/definitions/ScreenshotRequest"
+              "$ref": "#/definitions/GenericToolRequest"
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "Screenshot captured successfully",
+            "description": "Tool execution response",
             "schema": {
-              "$ref": "#/definitions/ScreenshotResponse"
+              "$ref": "#/definitions/ToolResponse"
             }
           }
-        }
+        },
+        "x-ms-summary": "Clock Install"
+      }
+    },
+    "/tools/browser_clock_pause": {
+      "post": {
+        "summary": "Clock Pause",
+        "description": "Execute the browser_clock_pause Darbot Browser MCP tool.",
+        "operationId": "BrowserClockPause",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/GenericToolRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tool execution response",
+            "schema": {
+              "$ref": "#/definitions/ToolResponse"
+            }
+          }
+        },
+        "x-ms-summary": "Clock Pause"
+      }
+    },
+    "/tools/browser_clock_resume": {
+      "post": {
+        "summary": "Clock Resume",
+        "description": "Execute the browser_clock_resume Darbot Browser MCP tool.",
+        "operationId": "BrowserClockResume",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/GenericToolRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tool execution response",
+            "schema": {
+              "$ref": "#/definitions/ToolResponse"
+            }
+          }
+        },
+        "x-ms-summary": "Clock Resume"
+      }
+    },
+    "/tools/browser_clock_set_fixed_time": {
+      "post": {
+        "summary": "Clock Set Fixed Time",
+        "description": "Execute the browser_clock_set_fixed_time Darbot Browser MCP tool.",
+        "operationId": "BrowserClockSetFixedTime",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/GenericToolRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tool execution response",
+            "schema": {
+              "$ref": "#/definitions/ToolResponse"
+            }
+          }
+        },
+        "x-ms-summary": "Clock Set Fixed Time"
+      }
+    },
+    "/tools/browser_close": {
+      "post": {
+        "summary": "Close",
+        "description": "Execute the browser_close Darbot Browser MCP tool.",
+        "operationId": "BrowserClose",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/GenericToolRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tool execution response",
+            "schema": {
+              "$ref": "#/definitions/ToolResponse"
+            }
+          }
+        },
+        "x-ms-summary": "Close"
+      }
+    },
+    "/tools/browser_configure_memory": {
+      "post": {
+        "summary": "Configure Memory",
+        "description": "Execute the browser_configure_memory Darbot Browser MCP tool.",
+        "operationId": "BrowserConfigureMemory",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/GenericToolRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tool execution response",
+            "schema": {
+              "$ref": "#/definitions/ToolResponse"
+            }
+          }
+        },
+        "x-ms-summary": "Configure Memory"
+      }
+    },
+    "/tools/browser_console_filtered": {
+      "post": {
+        "summary": "Console Filtered",
+        "description": "Execute the browser_console_filtered Darbot Browser MCP tool.",
+        "operationId": "BrowserConsoleFiltered",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/GenericToolRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tool execution response",
+            "schema": {
+              "$ref": "#/definitions/ToolResponse"
+            }
+          }
+        },
+        "x-ms-summary": "Console Filtered"
+      }
+    },
+    "/tools/browser_console_messages": {
+      "post": {
+        "summary": "Console Messages",
+        "description": "Execute the browser_console_messages Darbot Browser MCP tool.",
+        "operationId": "BrowserConsoleMessages",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/GenericToolRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tool execution response",
+            "schema": {
+              "$ref": "#/definitions/ToolResponse"
+            }
+          }
+        },
+        "x-ms-summary": "Console Messages"
+      }
+    },
+    "/tools/browser_delete_profile": {
+      "post": {
+        "summary": "Delete Profile",
+        "description": "Execute the browser_delete_profile Darbot Browser MCP tool.",
+        "operationId": "BrowserDeleteProfile",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/GenericToolRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tool execution response",
+            "schema": {
+              "$ref": "#/definitions/ToolResponse"
+            }
+          }
+        },
+        "x-ms-summary": "Delete Profile"
+      }
+    },
+    "/tools/browser_discover_profiles": {
+      "post": {
+        "summary": "Discover Profiles",
+        "description": "Execute the browser_discover_profiles Darbot Browser MCP tool.",
+        "operationId": "BrowserDiscoverProfiles",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/GenericToolRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tool execution response",
+            "schema": {
+              "$ref": "#/definitions/ToolResponse"
+            }
+          }
+        },
+        "x-ms-summary": "Discover Profiles"
+      }
+    },
+    "/tools/browser_drag": {
+      "post": {
+        "summary": "Drag",
+        "description": "Execute the browser_drag Darbot Browser MCP tool.",
+        "operationId": "BrowserDrag",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/GenericToolRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tool execution response",
+            "schema": {
+              "$ref": "#/definitions/ToolResponse"
+            }
+          }
+        },
+        "x-ms-summary": "Drag"
+      }
+    },
+    "/tools/browser_emulate_geolocation": {
+      "post": {
+        "summary": "Emulate Geolocation",
+        "description": "Execute the browser_emulate_geolocation Darbot Browser MCP tool.",
+        "operationId": "BrowserEmulateGeolocation",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/GenericToolRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tool execution response",
+            "schema": {
+              "$ref": "#/definitions/ToolResponse"
+            }
+          }
+        },
+        "x-ms-summary": "Emulate Geolocation"
+      }
+    },
+    "/tools/browser_emulate_media": {
+      "post": {
+        "summary": "Emulate Media",
+        "description": "Execute the browser_emulate_media Darbot Browser MCP tool.",
+        "operationId": "BrowserEmulateMedia",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/GenericToolRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tool execution response",
+            "schema": {
+              "$ref": "#/definitions/ToolResponse"
+            }
+          }
+        },
+        "x-ms-summary": "Emulate Media"
+      }
+    },
+    "/tools/browser_emulate_timezone": {
+      "post": {
+        "summary": "Emulate Timezone",
+        "description": "Execute the browser_emulate_timezone Darbot Browser MCP tool.",
+        "operationId": "BrowserEmulateTimezone",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/GenericToolRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tool execution response",
+            "schema": {
+              "$ref": "#/definitions/ToolResponse"
+            }
+          }
+        },
+        "x-ms-summary": "Emulate Timezone"
+      }
+    },
+    "/tools/browser_evaluate": {
+      "post": {
+        "summary": "Evaluate",
+        "description": "Execute the browser_evaluate Darbot Browser MCP tool.",
+        "operationId": "BrowserEvaluate",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/GenericToolRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tool execution response",
+            "schema": {
+              "$ref": "#/definitions/ToolResponse"
+            }
+          }
+        },
+        "x-ms-summary": "Evaluate"
+      }
+    },
+    "/tools/browser_execute_intent": {
+      "post": {
+        "summary": "Execute Intent",
+        "description": "Execute the browser_execute_intent Darbot Browser MCP tool.",
+        "operationId": "BrowserExecuteIntent",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/GenericToolRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tool execution response",
+            "schema": {
+              "$ref": "#/definitions/ToolResponse"
+            }
+          }
+        },
+        "x-ms-summary": "Execute Intent"
+      }
+    },
+    "/tools/browser_execute_workflow": {
+      "post": {
+        "summary": "Execute Workflow",
+        "description": "Execute the browser_execute_workflow Darbot Browser MCP tool.",
+        "operationId": "BrowserExecuteWorkflow",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/GenericToolRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tool execution response",
+            "schema": {
+              "$ref": "#/definitions/ToolResponse"
+            }
+          }
+        },
+        "x-ms-summary": "Execute Workflow"
+      }
+    },
+    "/tools/browser_file_upload": {
+      "post": {
+        "summary": "File Upload",
+        "description": "Execute the browser_file_upload Darbot Browser MCP tool.",
+        "operationId": "BrowserFileUpload",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/GenericToolRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tool execution response",
+            "schema": {
+              "$ref": "#/definitions/ToolResponse"
+            }
+          }
+        },
+        "x-ms-summary": "File Upload"
+      }
+    },
+    "/tools/browser_generate_playwright_test": {
+      "post": {
+        "summary": "Generate Playwright Test",
+        "description": "Execute the browser_generate_playwright_test Darbot Browser MCP tool.",
+        "operationId": "BrowserGeneratePlaywrightTest",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/GenericToolRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tool execution response",
+            "schema": {
+              "$ref": "#/definitions/ToolResponse"
+            }
+          }
+        },
+        "x-ms-summary": "Generate Playwright Test"
+      }
+    },
+    "/tools/browser_get_cookies": {
+      "post": {
+        "summary": "Get Cookies",
+        "description": "Execute the browser_get_cookies Darbot Browser MCP tool.",
+        "operationId": "BrowserGetCookies",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/GenericToolRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tool execution response",
+            "schema": {
+              "$ref": "#/definitions/ToolResponse"
+            }
+          }
+        },
+        "x-ms-summary": "Get Cookies"
+      }
+    },
+    "/tools/browser_get_local_storage": {
+      "post": {
+        "summary": "Get Local Storage",
+        "description": "Execute the browser_get_local_storage Darbot Browser MCP tool.",
+        "operationId": "BrowserGetLocalStorage",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/GenericToolRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tool execution response",
+            "schema": {
+              "$ref": "#/definitions/ToolResponse"
+            }
+          }
+        },
+        "x-ms-summary": "Get Local Storage"
+      }
+    },
+    "/tools/browser_handle_dialog": {
+      "post": {
+        "summary": "Handle Dialog",
+        "description": "Execute the browser_handle_dialog Darbot Browser MCP tool.",
+        "operationId": "BrowserHandleDialog",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/GenericToolRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tool execution response",
+            "schema": {
+              "$ref": "#/definitions/ToolResponse"
+            }
+          }
+        },
+        "x-ms-summary": "Handle Dialog"
+      }
+    },
+    "/tools/browser_hover": {
+      "post": {
+        "summary": "Hover",
+        "description": "Execute the browser_hover Darbot Browser MCP tool.",
+        "operationId": "BrowserHover",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/GenericToolRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tool execution response",
+            "schema": {
+              "$ref": "#/definitions/ToolResponse"
+            }
+          }
+        },
+        "x-ms-summary": "Hover"
+      }
+    },
+    "/tools/browser_install": {
+      "post": {
+        "summary": "Install",
+        "description": "Execute the browser_install Darbot Browser MCP tool.",
+        "operationId": "BrowserInstall",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/GenericToolRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tool execution response",
+            "schema": {
+              "$ref": "#/definitions/ToolResponse"
+            }
+          }
+        },
+        "x-ms-summary": "Install"
+      }
+    },
+    "/tools/browser_list_profiles": {
+      "post": {
+        "summary": "List Profiles",
+        "description": "Execute the browser_list_profiles Darbot Browser MCP tool.",
+        "operationId": "BrowserListProfiles",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/GenericToolRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tool execution response",
+            "schema": {
+              "$ref": "#/definitions/ToolResponse"
+            }
+          }
+        },
+        "x-ms-summary": "List Profiles"
+      }
+    },
+    "/tools/browser_navigate": {
+      "post": {
+        "summary": "Navigate",
+        "description": "Execute the browser_navigate Darbot Browser MCP tool.",
+        "operationId": "BrowserNavigate",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/GenericToolRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tool execution response",
+            "schema": {
+              "$ref": "#/definitions/ToolResponse"
+            }
+          }
+        },
+        "x-ms-summary": "Navigate"
+      }
+    },
+    "/tools/browser_navigate_back": {
+      "post": {
+        "summary": "Navigate Back",
+        "description": "Execute the browser_navigate_back Darbot Browser MCP tool.",
+        "operationId": "BrowserNavigateBack",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/GenericToolRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tool execution response",
+            "schema": {
+              "$ref": "#/definitions/ToolResponse"
+            }
+          }
+        },
+        "x-ms-summary": "Navigate Back"
+      }
+    },
+    "/tools/browser_navigate_forward": {
+      "post": {
+        "summary": "Navigate Forward",
+        "description": "Execute the browser_navigate_forward Darbot Browser MCP tool.",
+        "operationId": "BrowserNavigateForward",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/GenericToolRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tool execution response",
+            "schema": {
+              "$ref": "#/definitions/ToolResponse"
+            }
+          }
+        },
+        "x-ms-summary": "Navigate Forward"
+      }
+    },
+    "/tools/browser_network_requests": {
+      "post": {
+        "summary": "Network Requests",
+        "description": "Execute the browser_network_requests Darbot Browser MCP tool.",
+        "operationId": "BrowserNetworkRequests",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/GenericToolRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tool execution response",
+            "schema": {
+              "$ref": "#/definitions/ToolResponse"
+            }
+          }
+        },
+        "x-ms-summary": "Network Requests"
+      }
+    },
+    "/tools/browser_pdf_save": {
+      "post": {
+        "summary": "Pdf Save",
+        "description": "Execute the browser_pdf_save Darbot Browser MCP tool.",
+        "operationId": "BrowserPdfSave",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/GenericToolRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tool execution response",
+            "schema": {
+              "$ref": "#/definitions/ToolResponse"
+            }
+          }
+        },
+        "x-ms-summary": "Pdf Save"
+      }
+    },
+    "/tools/browser_performance_metrics": {
+      "post": {
+        "summary": "Performance Metrics",
+        "description": "Execute the browser_performance_metrics Darbot Browser MCP tool.",
+        "operationId": "BrowserPerformanceMetrics",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/GenericToolRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tool execution response",
+            "schema": {
+              "$ref": "#/definitions/ToolResponse"
+            }
+          }
+        },
+        "x-ms-summary": "Performance Metrics"
+      }
+    },
+    "/tools/browser_press_key": {
+      "post": {
+        "summary": "Press Key",
+        "description": "Execute the browser_press_key Darbot Browser MCP tool.",
+        "operationId": "BrowserPressKey",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/GenericToolRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tool execution response",
+            "schema": {
+              "$ref": "#/definitions/ToolResponse"
+            }
+          }
+        },
+        "x-ms-summary": "Press Key"
+      }
+    },
+    "/tools/browser_resize": {
+      "post": {
+        "summary": "Resize",
+        "description": "Execute the browser_resize Darbot Browser MCP tool.",
+        "operationId": "BrowserResize",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/GenericToolRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tool execution response",
+            "schema": {
+              "$ref": "#/definitions/ToolResponse"
+            }
+          }
+        },
+        "x-ms-summary": "Resize"
+      }
+    },
+    "/tools/browser_save_profile": {
+      "post": {
+        "summary": "Save Profile",
+        "description": "Execute the browser_save_profile Darbot Browser MCP tool.",
+        "operationId": "BrowserSaveProfile",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/GenericToolRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tool execution response",
+            "schema": {
+              "$ref": "#/definitions/ToolResponse"
+            }
+          }
+        },
+        "x-ms-summary": "Save Profile"
+      }
+    },
+    "/tools/browser_save_storage_state": {
+      "post": {
+        "summary": "Save Storage State",
+        "description": "Execute the browser_save_storage_state Darbot Browser MCP tool.",
+        "operationId": "BrowserSaveStorageState",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/GenericToolRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tool execution response",
+            "schema": {
+              "$ref": "#/definitions/ToolResponse"
+            }
+          }
+        },
+        "x-ms-summary": "Save Storage State"
+      }
+    },
+    "/tools/browser_screen_capture": {
+      "post": {
+        "summary": "Screen Capture",
+        "description": "Execute the browser_screen_capture Darbot Browser MCP tool.",
+        "operationId": "BrowserScreenCapture",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/GenericToolRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tool execution response",
+            "schema": {
+              "$ref": "#/definitions/ToolResponse"
+            }
+          }
+        },
+        "x-ms-summary": "Screen Capture"
+      }
+    },
+    "/tools/browser_screen_click": {
+      "post": {
+        "summary": "Screen Click",
+        "description": "Execute the browser_screen_click Darbot Browser MCP tool.",
+        "operationId": "BrowserScreenClick",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/GenericToolRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tool execution response",
+            "schema": {
+              "$ref": "#/definitions/ToolResponse"
+            }
+          }
+        },
+        "x-ms-summary": "Screen Click"
+      }
+    },
+    "/tools/browser_screen_drag": {
+      "post": {
+        "summary": "Screen Drag",
+        "description": "Execute the browser_screen_drag Darbot Browser MCP tool.",
+        "operationId": "BrowserScreenDrag",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/GenericToolRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tool execution response",
+            "schema": {
+              "$ref": "#/definitions/ToolResponse"
+            }
+          }
+        },
+        "x-ms-summary": "Screen Drag"
+      }
+    },
+    "/tools/browser_screen_move_mouse": {
+      "post": {
+        "summary": "Screen Move Mouse",
+        "description": "Execute the browser_screen_move_mouse Darbot Browser MCP tool.",
+        "operationId": "BrowserScreenMoveMouse",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/GenericToolRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tool execution response",
+            "schema": {
+              "$ref": "#/definitions/ToolResponse"
+            }
+          }
+        },
+        "x-ms-summary": "Screen Move Mouse"
+      }
+    },
+    "/tools/browser_screen_type": {
+      "post": {
+        "summary": "Screen Type",
+        "description": "Execute the browser_screen_type Darbot Browser MCP tool.",
+        "operationId": "BrowserScreenType",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/GenericToolRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tool execution response",
+            "schema": {
+              "$ref": "#/definitions/ToolResponse"
+            }
+          }
+        },
+        "x-ms-summary": "Screen Type"
+      }
+    },
+    "/tools/browser_scroll": {
+      "post": {
+        "summary": "Scroll",
+        "description": "Execute the browser_scroll Darbot Browser MCP tool.",
+        "operationId": "BrowserScroll",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/GenericToolRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tool execution response",
+            "schema": {
+              "$ref": "#/definitions/ToolResponse"
+            }
+          }
+        },
+        "x-ms-summary": "Scroll"
+      }
+    },
+    "/tools/browser_scroll_to_element": {
+      "post": {
+        "summary": "Scroll To Element",
+        "description": "Execute the browser_scroll_to_element Darbot Browser MCP tool.",
+        "operationId": "BrowserScrollToElement",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/GenericToolRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tool execution response",
+            "schema": {
+              "$ref": "#/definitions/ToolResponse"
+            }
+          }
+        },
+        "x-ms-summary": "Scroll To Element"
+      }
+    },
+    "/tools/browser_select_option": {
+      "post": {
+        "summary": "Select Option",
+        "description": "Execute the browser_select_option Darbot Browser MCP tool.",
+        "operationId": "BrowserSelectOption",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/GenericToolRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tool execution response",
+            "schema": {
+              "$ref": "#/definitions/ToolResponse"
+            }
+          }
+        },
+        "x-ms-summary": "Select Option"
+      }
+    },
+    "/tools/browser_set_cookie": {
+      "post": {
+        "summary": "Set Cookie",
+        "description": "Execute the browser_set_cookie Darbot Browser MCP tool.",
+        "operationId": "BrowserSetCookie",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/GenericToolRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tool execution response",
+            "schema": {
+              "$ref": "#/definitions/ToolResponse"
+            }
+          }
+        },
+        "x-ms-summary": "Set Cookie"
+      }
+    },
+    "/tools/browser_set_local_storage": {
+      "post": {
+        "summary": "Set Local Storage",
+        "description": "Execute the browser_set_local_storage Darbot Browser MCP tool.",
+        "operationId": "BrowserSetLocalStorage",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/GenericToolRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tool execution response",
+            "schema": {
+              "$ref": "#/definitions/ToolResponse"
+            }
+          }
+        },
+        "x-ms-summary": "Set Local Storage"
       }
     },
     "/tools/browser_snapshot": {
       "post": {
-        "summary": "Get Page Snapshot",
-        "description": "Capture accessibility snapshot of the current page",
+        "summary": "Snapshot",
+        "description": "Execute the browser_snapshot Darbot Browser MCP tool.",
         "operationId": "BrowserSnapshot",
         "parameters": [
           {
@@ -169,108 +1415,331 @@
             "in": "body",
             "required": false,
             "schema": {
-              "$ref": "#/definitions/SnapshotRequest"
+              "$ref": "#/definitions/GenericToolRequest"
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "Page snapshot captured successfully",
-            "schema": {
-              "$ref": "#/definitions/SnapshotResponse"
-            }
-          }
-        }
-      }
-    },
-    "/tools/browser_wait_for": {
-      "post": {
-        "summary": "Wait for Condition",
-        "description": "Wait for text to appear, disappear, or a specified time to pass",
-        "operationId": "BrowserWaitFor",
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/WaitRequest"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Wait condition met successfully",
+            "description": "Tool execution response",
             "schema": {
               "$ref": "#/definitions/ToolResponse"
             }
           }
-        }
+        },
+        "x-ms-summary": "Snapshot"
       }
     },
-    "/tools/browser_save_profile": {
+    "/tools/browser_start_autonomous_crawl": {
       "post": {
-        "summary": "Save Work Profile",
-        "description": "Save the current browser session as a work profile",
-        "operationId": "BrowserSaveProfile",
+        "summary": "Start Autonomous Crawl",
+        "description": "Execute the browser_start_autonomous_crawl Darbot Browser MCP tool.",
+        "operationId": "BrowserStartAutonomousCrawl",
         "parameters": [
           {
             "name": "body",
             "in": "body",
-            "required": true,
+            "required": false,
             "schema": {
-              "$ref": "#/definitions/SaveProfileRequest"
+              "$ref": "#/definitions/GenericToolRequest"
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "Profile saved successfully",
+            "description": "Tool execution response",
             "schema": {
-              "$ref": "#/definitions/ProfileResponse"
+              "$ref": "#/definitions/ToolResponse"
             }
           }
-        }
+        },
+        "x-ms-summary": "Start Autonomous Crawl"
       }
     },
     "/tools/browser_switch_profile": {
       "post": {
-        "summary": "Switch Work Profile",
-        "description": "Switch to a different work profile",
+        "summary": "Switch Profile",
+        "description": "Execute the browser_switch_profile Darbot Browser MCP tool.",
         "operationId": "BrowserSwitchProfile",
         "parameters": [
           {
             "name": "body",
             "in": "body",
-            "required": true,
+            "required": false,
             "schema": {
-              "$ref": "#/definitions/SwitchProfileRequest"
+              "$ref": "#/definitions/GenericToolRequest"
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "Profile switched successfully",
+            "description": "Tool execution response",
             "schema": {
-              "$ref": "#/definitions/ProfileResponse"
+              "$ref": "#/definitions/ToolResponse"
             }
           }
-        }
+        },
+        "x-ms-summary": "Switch Profile"
       }
     },
-    "/tools/browser_list_profiles": {
-      "get": {
-        "summary": "List Work Profiles",
-        "description": "Get a list of all available work profiles",
-        "operationId": "BrowserListProfiles",
-        "responses": {
-          "200": {
-            "description": "Profiles listed successfully",
+    "/tools/browser_tab_close": {
+      "post": {
+        "summary": "Tab Close",
+        "description": "Execute the browser_tab_close Darbot Browser MCP tool.",
+        "operationId": "BrowserTabClose",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": false,
             "schema": {
-              "$ref": "#/definitions/ListProfilesResponse"
+              "$ref": "#/definitions/GenericToolRequest"
             }
           }
-        }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tool execution response",
+            "schema": {
+              "$ref": "#/definitions/ToolResponse"
+            }
+          }
+        },
+        "x-ms-summary": "Tab Close"
+      }
+    },
+    "/tools/browser_tab_list": {
+      "post": {
+        "summary": "Tab List",
+        "description": "Execute the browser_tab_list Darbot Browser MCP tool.",
+        "operationId": "BrowserTabList",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/GenericToolRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tool execution response",
+            "schema": {
+              "$ref": "#/definitions/ToolResponse"
+            }
+          }
+        },
+        "x-ms-summary": "Tab List"
+      }
+    },
+    "/tools/browser_tab_new": {
+      "post": {
+        "summary": "Tab New",
+        "description": "Execute the browser_tab_new Darbot Browser MCP tool.",
+        "operationId": "BrowserTabNew",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/GenericToolRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tool execution response",
+            "schema": {
+              "$ref": "#/definitions/ToolResponse"
+            }
+          }
+        },
+        "x-ms-summary": "Tab New"
+      }
+    },
+    "/tools/browser_tab_select": {
+      "post": {
+        "summary": "Tab Select",
+        "description": "Execute the browser_tab_select Darbot Browser MCP tool.",
+        "operationId": "BrowserTabSelect",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/GenericToolRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tool execution response",
+            "schema": {
+              "$ref": "#/definitions/ToolResponse"
+            }
+          }
+        },
+        "x-ms-summary": "Tab Select"
+      }
+    },
+    "/tools/browser_take_screenshot": {
+      "post": {
+        "summary": "Take Screenshot",
+        "description": "Execute the browser_take_screenshot Darbot Browser MCP tool.",
+        "operationId": "BrowserTakeScreenshot",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/GenericToolRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tool execution response",
+            "schema": {
+              "$ref": "#/definitions/ToolResponse"
+            }
+          }
+        },
+        "x-ms-summary": "Take Screenshot"
+      }
+    },
+    "/tools/browser_type": {
+      "post": {
+        "summary": "Type",
+        "description": "Execute the browser_type Darbot Browser MCP tool.",
+        "operationId": "BrowserType",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/GenericToolRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tool execution response",
+            "schema": {
+              "$ref": "#/definitions/ToolResponse"
+            }
+          }
+        },
+        "x-ms-summary": "Type"
+      }
+    },
+    "/tools/browser_wait_for": {
+      "post": {
+        "summary": "Wait For",
+        "description": "Execute the browser_wait_for Darbot Browser MCP tool.",
+        "operationId": "BrowserWaitFor",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/GenericToolRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tool execution response",
+            "schema": {
+              "$ref": "#/definitions/ToolResponse"
+            }
+          }
+        },
+        "x-ms-summary": "Wait For"
+      }
+    },
+    "/tools/github-logged-in": {
+      "post": {
+        "summary": "Github-logged-in",
+        "description": "Execute the github-logged-in Darbot Browser MCP tool.",
+        "operationId": "Github-logged-in",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/GenericToolRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tool execution response",
+            "schema": {
+              "$ref": "#/definitions/ToolResponse"
+            }
+          }
+        },
+        "x-ms-summary": "Github-logged-in"
+      }
+    },
+    "/tools/session": {
+      "post": {
+        "summary": "Session",
+        "description": "Execute the session Darbot Browser MCP tool.",
+        "operationId": "Session",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/GenericToolRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tool execution response",
+            "schema": {
+              "$ref": "#/definitions/ToolResponse"
+            }
+          }
+        },
+        "x-ms-summary": "Session"
+      }
+    },
+    "/tools/stale-snapshot": {
+      "post": {
+        "summary": "Stale-snapshot",
+        "description": "Execute the stale-snapshot Darbot Browser MCP tool.",
+        "operationId": "Stale-snapshot",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/GenericToolRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tool execution response",
+            "schema": {
+              "$ref": "#/definitions/ToolResponse"
+            }
+          }
+        },
+        "x-ms-summary": "Stale-snapshot"
       }
     }
   },
@@ -279,320 +1748,81 @@
       "type": "object",
       "properties": {
         "status": {
-          "type": "string",
-          "enum": ["healthy", "degraded", "unhealthy"],
-          "description": "Overall health status"
+          "type": "string"
         },
         "timestamp": {
           "type": "string",
-          "format": "date-time",
-          "description": "Health check timestamp"
+          "format": "date-time"
         },
         "version": {
-          "type": "string",
-          "description": "Service version"
+          "type": "string"
         },
         "checks": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/HealthCheck"
+            "type": "object"
           }
         }
       }
     },
-    "HealthCheck": {
+    "GenericToolRequest": {
+      "type": "object",
+      "description": "Tool arguments as defined by the MCP tool schema. Use ListTools to inspect schemas before calling tools.",
+      "additionalProperties": true
+    },
+    "ToolDescriptor": {
       "type": "object",
       "properties": {
         "name": {
-          "type": "string",
-          "description": "Check name"
+          "type": "string"
         },
-        "status": {
-          "type": "string",
-          "enum": ["pass", "warn", "fail"],
-          "description": "Check status"
-        },
-        "duration": {
-          "type": "number",
-          "description": "Check duration in milliseconds"
-        },
-        "details": {
-          "type": "object",
-          "description": "Additional check details"
-        }
-      }
-    },
-    "NavigateRequest": {
-      "type": "object",
-      "required": ["url"],
-      "properties": {
-        "url": {
-          "type": "string",
-          "description": "The URL to navigate to",
-          "x-ms-summary": "URL"
-        }
-      }
-    },
-    "ClickRequest": {
-      "type": "object",
-      "required": ["element", "ref"],
-      "properties": {
-        "element": {
-          "type": "string",
-          "description": "Human-readable element description",
-          "x-ms-summary": "Element Description"
-        },
-        "ref": {
-          "type": "string",
-          "description": "Element reference from page snapshot",
-          "x-ms-summary": "Element Reference"
-        },
-        "doubleClick": {
-          "type": "boolean",
-          "description": "Whether to perform a double click",
-          "x-ms-summary": "Double Click",
-          "default": false
-        }
-      }
-    },
-    "TypeRequest": {
-      "type": "object",
-      "required": ["element", "ref", "text"],
-      "properties": {
-        "element": {
-          "type": "string",
-          "description": "Human-readable element description",
-          "x-ms-summary": "Element Description"
-        },
-        "ref": {
-          "type": "string",
-          "description": "Element reference from page snapshot",
-          "x-ms-summary": "Element Reference"
-        },
-        "text": {
-          "type": "string",
-          "description": "Text to type into the element",
-          "x-ms-summary": "Text to Type"
-        },
-        "slowly": {
-          "type": "boolean",
-          "description": "Whether to type one character at a time",
-          "x-ms-summary": "Type Slowly",
-          "default": false
-        },
-        "submit": {
-          "type": "boolean",
-          "description": "Whether to submit after typing (press Enter)",
-          "x-ms-summary": "Submit After Typing",
-          "default": false
-        }
-      }
-    },
-    "ScreenshotRequest": {
-      "type": "object",
-      "properties": {
-        "element": {
-          "type": "string",
-          "description": "Element description to screenshot (optional)",
-          "x-ms-summary": "Element to Screenshot"
-        },
-        "ref": {
-          "type": "string",
-          "description": "Element reference (if element specified)",
-          "x-ms-summary": "Element Reference"
-        },
-        "filename": {
-          "type": "string",
-          "description": "Custom filename for the screenshot",
-          "x-ms-summary": "Filename"
-        },
-        "raw": {
-          "type": "boolean",
-          "description": "Return uncompressed PNG format",
-          "x-ms-summary": "Raw Format",
-          "default": false
-        }
-      }
-    },
-    "SnapshotRequest": {
-      "type": "object",
-      "properties": {}
-    },
-    "WaitRequest": {
-      "type": "object",
-      "properties": {
-        "text": {
-          "type": "string",
-          "description": "Text to wait for to appear",
-          "x-ms-summary": "Text to Appear"
-        },
-        "textGone": {
-          "type": "string",
-          "description": "Text to wait for to disappear",
-          "x-ms-summary": "Text to Disappear"
-        },
-        "time": {
-          "type": "number",
-          "description": "Time to wait in seconds",
-          "x-ms-summary": "Wait Time (seconds)"
-        }
-      }
-    },
-    "SaveProfileRequest": {
-      "type": "object",
-      "required": ["name"],
-      "properties": {
-        "name": {
-          "type": "string",
-          "description": "Name for the work profile",
-          "x-ms-summary": "Profile Name"
+        "title": {
+          "type": "string"
         },
         "description": {
-          "type": "string",
-          "description": "Description of the work profile",
-          "x-ms-summary": "Profile Description"
+          "type": "string"
+        },
+        "inputSchema": {
+          "type": "object",
+          "additionalProperties": true
         }
       }
     },
-    "SwitchProfileRequest": {
+    "ListToolsResponse": {
       "type": "object",
-      "required": ["name"],
       "properties": {
-        "name": {
-          "type": "string",
-          "description": "Name of the profile to switch to",
-          "x-ms-summary": "Profile Name"
+        "tools": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ToolDescriptor"
+          }
+        },
+        "count": {
+          "type": "integer",
+          "format": "int32"
         }
       }
     },
     "ToolResponse": {
       "type": "object",
       "properties": {
-        "success": {
-          "type": "boolean",
-          "description": "Whether the operation succeeded"
+        "content": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "isError": {
+          "type": "boolean"
         },
         "result": {
           "type": "object",
-          "description": "Operation result data"
+          "additionalProperties": true
         },
         "metadata": {
           "type": "object",
-          "description": "Additional metadata"
-        }
-      }
-    },
-    "ScreenshotResponse": {
-      "type": "object",
-      "properties": {
-        "success": {
-          "type": "boolean",
-          "description": "Whether the screenshot was captured successfully"
-        },
-        "result": {
-          "type": "object",
-          "properties": {
-            "filename": {
-              "type": "string",
-              "description": "Screenshot filename"
-            },
-            "data": {
-              "type": "string",
-              "format": "byte",
-              "description": "Base64 encoded image data"
-            },
-            "mimeType": {
-              "type": "string",
-              "description": "Image MIME type"
-            }
-          }
-        }
-      }
-    },
-    "SnapshotResponse": {
-      "type": "object",
-      "properties": {
-        "success": {
-          "type": "boolean",
-          "description": "Whether the snapshot was captured successfully"
-        },
-        "result": {
-          "type": "object",
-          "properties": {
-            "snapshot": {
-              "type": "string",
-              "description": "Accessibility snapshot of the page"
-            },
-            "title": {
-              "type": "string",
-              "description": "Page title"
-            },
-            "url": {
-              "type": "string",
-              "description": "Current page URL"
-            }
-          }
-        }
-      }
-    },
-    "ProfileResponse": {
-      "type": "object",
-      "properties": {
-        "success": {
-          "type": "boolean",
-          "description": "Whether the profile operation succeeded"
-        },
-        "result": {
-          "type": "object",
-          "properties": {
-            "name": {
-              "type": "string",
-              "description": "Profile name"
-            },
-            "description": {
-              "type": "string",
-              "description": "Profile description"
-            },
-            "url": {
-              "type": "string",
-              "description": "Current URL after profile switch"
-            }
-          }
-        }
-      }
-    },
-    "ListProfilesResponse": {
-      "type": "object",
-      "properties": {
-        "success": {
-          "type": "boolean",
-          "description": "Whether the profile listing succeeded"
-        },
-        "result": {
-          "type": "object",
-          "properties": {
-            "profiles": {
-              "type": "array",
-              "items": {
-                "type": "object",
-                "properties": {
-                  "name": {
-                    "type": "string",
-                    "description": "Profile name"
-                  },
-                  "description": {
-                    "type": "string",
-                    "description": "Profile description"
-                  },
-                  "created": {
-                    "type": "string",
-                    "format": "date-time",
-                    "description": "Creation timestamp"
-                  }
-                }
-              }
-            }
-          }
+          "additionalProperties": true
         }
       }
     }
