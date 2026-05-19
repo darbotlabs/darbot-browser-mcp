@@ -1,239 +1,80 @@
-# Azure Deployment for Darbot Browser MCP
+# Azure deployment
 
-This directory contains Azure deployment templates and scripts for deploying Darbot Browser MCP with Microsoft Copilot Studio integration capabilities.
-
-## Quick Start
-
-### Prerequisites
-- Azure CLI installed and configured (`az login`)
-- Azure subscription with contributor permissions
-- Resource group (will be created if doesn't exist)
-
-### Deploy with Script
-```bash
-# Make sure you're in the project root
-cd darbot-browser-mcp
-
-# Run the deployment script
-./azure/deploy.sh my-resource-group darbot-browser-mcp eastus
-```
-
-### Deploy with Bicep
-```bash
-# Deploy using Bicep template
-az deployment group create \
-  --resource-group my-resource-group \
-  --template-file azure/templates/main.bicep \
-  --parameters @azure/parameters.example.json
-```
+Deploy darbot-browser-mcp to Azure App Service with managed identity, OAuth via Entra, and OpenTelemetry observability.
 
 ## Architecture
 
-The deployment creates the following Azure resources:
-
-- **App Service** - Hosts the MCP server with Linux containers
-- **App Service Plan** - Provides compute resources (S1 SKU by default)
-- **Key Vault** - Stores secrets securely (client secret, API keys)
-- **Application Insights** - Monitoring and diagnostics
-- **Log Analytics Workspace** - Centralized logging
-- **Storage Account** - Session storage and artifacts
-
-## Configuration
-
-### Environment Variables
-
-The following environment variables are automatically configured:
-
-#### Authentication
-- `AZURE_TENANT_ID` - Your Azure tenant ID
-- `AZURE_CLIENT_ID` - Application client ID
-- `AZURE_CLIENT_SECRET` - Application secret (stored in Key Vault)
-- `ENTRA_AUTH_ENABLED=true` - Enable Entra ID authentication
-
-#### Copilot Studio Integration  
-- `COPILOT_STUDIO_ENABLED=true` - Enable Copilot Studio features
-- `COPILOT_STUDIO_CALLBACK_URL` - OAuth callback URL
-- `MAX_CONCURRENT_SESSIONS=20` - Maximum browser sessions
-- `SESSION_TIMEOUT_MS=1800000` - Session timeout (30 minutes)
-
-#### Monitoring
-- `AUDIT_LOGGING_ENABLED=true` - Enable audit logging
-- `APPINSIGHTS_INSTRUMENTATIONKEY` - Application Insights key
-- `APPLICATIONINSIGHTS_CONNECTION_STRING` - Connection string
-
-### Custom Configuration
-
-1. Copy `azure/parameters.example.json` to `azure/parameters.json`
-2. Update the parameters with your values:
-   ```json
-   {
-     "parameters": {
-       "appName": { "value": "your-app-name" },
-       "azureTenantId": { "value": "your-tenant-id" },
-       "azureClientId": { "value": "your-client-id" },
-       "copilotStudioCallbackUrl": { "value": "your-callback-url" }
-     }
-   }
-   ```
-3. Deploy using the custom parameters:
-   ```bash
-   az deployment group create \
-     --resource-group my-resource-group \
-     --template-file azure/templates/main.bicep \
-     --parameters @azure/parameters.json
-   ```
-
-## Security
-
-### Authentication Setup
-
-The deployment automatically creates an Azure AD application registration. You can also use an existing one:
-
-```bash
-# Create application registration
-az ad app create \
-  --display-name "Darbot Browser MCP" \
-  --web-redirect-uris "https://your-app.azurewebsites.net/auth/callback"
-
-# Create client secret
-az ad app credential reset --id YOUR_CLIENT_ID
+```mermaid
+flowchart LR
+  User[Copilot Studio / MCP client] -->|HTTPS| App[Azure App Service\nLinux container]
+  App -->|system-assigned MI| ACR[Azure Container Registry]
+  App -->|system-assigned MI| KV[Azure Key Vault]
+  App -->|telemetry| AI[Application Insights]
+  AI --> LAW[Log Analytics]
 ```
 
-### Secure by Default
+## Prerequisites
 
-- HTTPS enforced
-- Client secrets stored in Key Vault
-- Managed identity for Key Vault access
-- Network security configured
-- Application Insights monitoring enabled
+- Azure CLI (`az`) logged in with Contributor on the target subscription.
+- A resource group name, Azure region, short environment, and region code.
+- Optional: PowerShell 7 for `scripts/deploy.ps1`.
 
-## Monitoring
+## Deploy
 
-### Health Checks
+Bicep what-if is the default safety gate; deployment requires confirmation.
 
-The deployment includes comprehensive health monitoring:
-
-- **Health Endpoint**: `https://your-app.azurewebsites.net/health`
-- **Readiness**: `https://your-app.azurewebsites.net/ready`
-- **Liveness**: `https://your-app.azurewebsites.net/live`
-
-### Application Insights
-
-Monitor your deployment with:
-- Performance metrics
-- Error tracking
-- Custom telemetry
-- Availability monitoring
-
-Access via Azure Portal > Your Resource Group > Application Insights
-
-### Logs
-
-View application logs:
 ```bash
-# Stream logs
-az webapp log tail --resource-group my-resource-group --name your-app-name
-
-# View recent logs
-az webapp log show --resource-group my-resource-group --name your-app-name
+export AZURE_RESOURCE_GROUP=rg-darbot-dev-eus
+export AZURE_LOCATION=eastus
+export AZURE_PREFIX=darbot
+export AZURE_ENVIRONMENT=dev
+export AZURE_REGION_CODE=eus
+./azure/scripts/deploy.sh
+./azure/scripts/deploy.sh --confirm --build-image
 ```
 
-## Scaling
+PowerShell:
 
-### Vertical Scaling (Scale Up)
-```bash
-# Scale to a larger SKU
-az appservice plan update \
-  --resource-group my-resource-group \
-  --name your-app-plan \
-  --sku P1
+```powershell
+$env:AZURE_RESOURCE_GROUP = 'rg-darbot-dev-eus'
+$env:AZURE_LOCATION = 'eastus'
+$env:AZURE_PREFIX = 'darbot'
+$env:AZURE_ENVIRONMENT = 'dev'
+$env:AZURE_REGION_CODE = 'eus'
+./azure/scripts/deploy.ps1
+./azure/scripts/deploy.ps1 -Confirm -BuildImage
 ```
 
-### Horizontal Scaling (Scale Out)
+The template creates App Service, App Service Plan, ACR, Key Vault, Application Insights, Log Analytics, and managed-identity RBAC assignments. Names follow `${prefix}-${env}-${region}-${role}` except ACR, which removes hyphens to satisfy Azure naming rules.
+
+## Configuration reference
+
+Bicep parameters: `prefix`, `environment`, `location`, `regionCode`, `appServiceSku`, `containerRegistrySku`, `containerImage`, `runtime`, `entraTenantId`, `entraClientId`, `authClientSecretName`, `serverBaseUrl`, `healthCheckPath`, `allowedOrigins`, `network`, `extraTags`.
+
+App settings: `PORT`, `WEBSITES_PORT`, `SERVER_BASE_URL`, `AZURE_TENANT_ID`, optional `AZURE_CLIENT_ID`, optional Key Vault-referenced `AZURE_CLIENT_SECRET`, `ENTRA_AUTH_ENABLED`, `COPILOT_STUDIO_ENABLED`, `AUDIT_LOGGING_ENABLED`, `MAX_CONCURRENT_SESSIONS`, `SESSION_TIMEOUT_MS`, `APPLICATIONINSIGHTS_CONNECTION_STRING`, `OTEL_SERVICE_NAME`, `OTEL_RESOURCE_ATTRIBUTES`, optional `ALLOWED_ORIGINS`.
+
+No production parameter files or secret values belong in source control. If an OAuth client secret is required, set `authClientSecretName`, deploy, then run:
+
 ```bash
-# Scale to multiple instances
-az appservice plan update \
-  --resource-group my-resource-group \
-  --name your-app-plan \
-  --number-of-workers 3
+az keyvault secret set --vault-name <output-key-vault-name> --name <secret-name> --value '<secret-from-safe-store>'
 ```
 
-### Auto-scaling
-Configure auto-scaling rules in the Azure Portal:
-1. Go to App Service Plan
-2. Select "Scale out (App Service plan)"
-3. Configure rules based on CPU, memory, or custom metrics
+## Operations
 
-## Troubleshooting
+- Rolling deploy: build a new image tag with `az acr build`, update `containerImage.tag`, run what-if, then deploy.
+- Scale: change `appServiceSku` or use `az appservice plan update --number-of-workers <n>`.
+- Monitor: use Application Insights live metrics, failures, and Log Analytics queries.
+- Rollback: redeploy the previous image tag and restart the web app.
+- Teardown: `AZURE_RESOURCE_GROUP=<rg> ./azure/scripts/teardown.sh` previews; add `--confirm` to delete tagged resources.
 
-### Common Issues
+## Cost notes
 
-#### 1. Deployment Fails
-```bash
-# Check deployment status
-az deployment group show \
-  --resource-group my-resource-group \
-  --name deployment-name
+Default `B1` App Service and `Basic` ACR are low-cost development defaults. Production should use Premium v3 App Service, reserved capacity where appropriate, log-retention budgets, and autoscale limits.
 
-# View deployment operations
-az deployment operation group list \
-  --resource-group my-resource-group \
-  --name deployment-name
-```
+## Security notes
 
-#### 2. Application Won't Start
-```bash
-# Check application logs
-az webapp log tail --resource-group my-resource-group --name your-app-name
+The App Service is public by default. Restrict access with App Service access restrictions, private endpoints, WAF/Front Door, and `network.publicNetworkAccess=Disabled` only after private connectivity exists. ACR admin user is disabled. Key Vault uses RBAC, soft delete, purge protection, and managed identity. Secrets are referenced from Key Vault, not stored in parameter files.
 
-# Check configuration
-az webapp config appsettings list \
-  --resource-group my-resource-group \
-  --name your-app-name
-```
+## Disaster recovery
 
-#### 3. Authentication Issues
-- Verify tenant ID, client ID in configuration
-- Check client secret in Key Vault
-- Ensure proper permissions on Azure AD application
-
-#### 4. Performance Issues
-- Check Application Insights for performance metrics
-- Consider scaling up/out
-- Review browser session limits
-
-### Debug Mode
-
-Enable debug logging:
-```bash
-az webapp config appsettings set \
-  --resource-group my-resource-group \
-  --name your-app-name \
-  --settings DEBUG=darbot:*
-```
-
-## Cleanup
-
-Remove all resources:
-```bash
-# Delete resource group (removes all resources)
-az group delete --name my-resource-group --yes
-
-# Or delete individual resources
-az webapp delete --resource-group my-resource-group --name your-app-name
-az appservice plan delete --resource-group my-resource-group --name your-app-plan
-```
-
-## Support
-
-- Review logs in Application Insights
-- Check health endpoints for service status
-- Create issues on [GitHub](https://github.com/darbotlabs/darbot-browser-mcp/issues)
-- View OpenAPI spec at `https://your-app.azurewebsites.net/openapi.json`
-
-## Next Steps
-
-1. **Configure Copilot Studio**: Use the deployed endpoints in your Copilot Studio connector
-2. **Test Integration**: Verify health endpoints and tool functionality
-3. **Monitor Performance**: Set up alerts and dashboards in Azure Monitor
-4. **Scale as Needed**: Adjust resources based on usage patterns
+Keep Bicep parameters, Entra app registration metadata, and image tags in release records. To recover in a paired region, create a new resource group, choose a new `regionCode`, deploy from this template, import or recreate required Key Vault secrets from the approved secret store, push the last known-good image tag to the new ACR, update DNS/OAuth redirect URIs, and validate `/healthz`, `/openapi.json`, and MCP endpoints before routing users.
