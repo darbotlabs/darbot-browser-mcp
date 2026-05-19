@@ -28,6 +28,34 @@ import type { BrowserInfo, LaunchBrowserRequest } from './browserServer.js';
 
 const testDebug = debug('pw:mcp:test');
 
+/**
+ * Suppress the `navigator.webdriver` flag every newly-created context exposes.
+ *
+ * Playwright launches Chromium with `--enable-automation`, which causes pages
+ * to see `navigator.webdriver === true`. Many sites (e.g. anti-bot WAFs)
+ * gate user-agent behaviour on this flag and either rate-limit or outright
+ * block automation. Since the entire point of darbot-browser-mcp is to drive
+ * a real user-facing workflow, we override the property to `false` in every
+ * future document via `addInitScript`. Existing pages need no fix-up because
+ * contexts always run the init script on next navigation/document.
+ *
+ * Implemented as a context-scoped tweak (not a global launch flag) so it
+ * survives `--isolated`, persistent and remote/CDP launch modes.
+ */
+async function hardenAutomationContext(browserContext: playwright.BrowserContext): Promise<void> {
+  await browserContext.addInitScript(() => {
+    try {
+      Object.defineProperty(Navigator.prototype, 'webdriver', {
+        configurable: true,
+        enumerable: true,
+        get: () => false,
+      });
+    } catch {
+      // Ignore: a page may already have an immutable property here.
+    }
+  });
+}
+
 export function contextFactory(browserConfig: FullConfig['browser']): BrowserContextFactory {
   if (browserConfig.remoteEndpoint)
     return new RemoteContextFactory(browserConfig);
@@ -77,6 +105,7 @@ class BaseContextFactory implements BrowserContextFactory {
     testDebug(`create browser context (${this.name})`);
     const browser = await this._obtainBrowser();
     const browserContext = await this._doCreateContext(browser);
+    await hardenAutomationContext(browserContext);
     return { browserContext, close: () => this._closeBrowserContext(browserContext, browser) };
   }
 
@@ -168,6 +197,15 @@ class PersistentContextFactory implements BrowserContextFactory {
     testDebug('create browser context (persistent)');
     const userDataDir = this.browserConfig.userDataDir ?? await this._createUserDataDir();
 
+    // Fast-fail when the same in-process factory already holds the data dir
+    // (typical when a second MCP client connects to a persistent SSE server).
+    // Avoids spawning a second msedge that the OS singleton lock would race
+    // and tear down, which previously surfaced as the opaque "Target page,
+    // context or browser has been closed" message instead of the actionable
+    // --isolated guidance.
+    if (this._userDataDirs.has(userDataDir))
+      throw new Error(`Browser is already in use for ${userDataDir}, use --isolated to run multiple instances of the same browser`);
+
     this._userDataDirs.add(userDataDir);
     testDebug('lock user data dir', userDataDir);
 
@@ -180,6 +218,7 @@ class PersistentContextFactory implements BrowserContextFactory {
           handleSIGINT: false,
           handleSIGTERM: false,
         });
+        await hardenAutomationContext(browserContext);
         const close = () => this._closeBrowserContext(browserContext, userDataDir);
         return { browserContext, close };
       } catch (error: any) {
@@ -190,9 +229,14 @@ class PersistentContextFactory implements BrowserContextFactory {
           await new Promise(resolve => setTimeout(resolve, 1000));
           continue;
         }
+        // Out-of-process contention drops the lock cleanly but Playwright now
+        // surfaces it as a generic "Target ... has been closed" message; the
+        // user should still be steered toward --isolated.
+        this._userDataDirs.delete(userDataDir);
         throw error;
       }
     }
+    this._userDataDirs.delete(userDataDir);
     throw new Error(`Browser is already in use for ${userDataDir}, use --isolated to run multiple instances of the same browser`);
   }
 

@@ -464,6 +464,10 @@ async function discoverEdgeProfiles(userDataDir?: string): Promise<DiscoveredEdg
     }
 
     const entries = await fs.promises.readdir(dataDir);
+    // Natural sort so 'Profile 2' lists before 'Profile 10'. The default
+    // ASCII readdir order on Windows/Linux returns 'Profile 10' first, which
+    // breaks users skimming the list as well as our sort-order test.
+    entries.sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
     for (const entry of entries) {
       // Edge profile folders are named 'Default' or 'Profile N'.
       if (entry !== 'Default' && !/^Profile \d+$/.test(entry))
