@@ -16,11 +16,29 @@
 
 /**
  * MCP OAuth Provider using Entra ID as the upstream authorization server.
- * 
- * This implements the MCP OAuth protocol by proxying to Microsoft Entra ID,
+ *
+ * Implements the MCP OAuth protocol by proxying to Microsoft Entra ID,
  * enabling VS Code's MCP client to authenticate users through standard OAuth flow.
- * 
+ *
  * Supports Dynamic Client Registration (RFC 7591) for VS Code compatibility.
+ *
+ * ## Environment variable contract
+ *
+ * All four of the following variables must be present for OAuth to activate.
+ * Missing any one causes {@link getOAuthConfig} to return `null` (fail-closed)
+ * and a single `OAUTH_CONFIG_INCOMPLETE` warning to be emitted.
+ *
+ * | Variable              | Description                                                        |
+ * | --------------------- | ------------------------------------------------------------------ |
+ * | `AZURE_TENANT_ID`     | Entra ID tenant GUID, or one of `common` / `organizations`.        |
+ * | `AZURE_CLIENT_ID`     | Application (client) ID of the Entra ID app registration.          |
+ * | `AZURE_CLIENT_SECRET` | Client secret for the Entra ID app registration.                   |
+ * | `SERVER_BASE_URL`     | Absolute https URL where this MCP server is reachable.             |
+ *
+ * Consumers (e.g. `src/health.ts`, `src/transport.ts`) should call
+ * {@link validateOAuthConfig} to inspect configuration completeness without
+ * triggering the warning, and {@link getOAuthConfig} to obtain the parsed
+ * config when ready to wire the provider.
  */
 
 import crypto from 'node:crypto';
@@ -30,16 +48,39 @@ import type { OAuthRegisteredClientsStore } from '@modelcontextprotocol/sdk/serv
 import type { AuthInfo } from '@modelcontextprotocol/sdk/server/auth/types.js';
 import { verifyEntraJwt, type JWTPayload } from './entraJwtVerifier.js';
 
+/**
+ * Strongly-typed Entra ID OAuth configuration.
+ *
+ * `serverBaseUrl` is modelled as a {@link URL} to ensure callers never pass
+ * a non-absolute string and to make path joining (`new URL('/auth/callback', base)`)
+ * type-safe.
+ */
 export interface EntraOAuthConfig {
-  tenantId: string;
-  clientId: string;
-  clientSecret: string;
+  readonly tenantId: string;
+  readonly clientId: string;
+  readonly clientSecret: string;
   /**
-   * The base URL of this MCP server (e.g., https://<your-app>.azurewebsites.net)
-   * Set via SERVER_BASE_URL environment variable
+   * Absolute base URL of this MCP server, e.g. `https://my-mcp.azurewebsites.net`.
+   * Sourced from the `SERVER_BASE_URL` environment variable.
    */
-  serverBaseUrl: string;
+  readonly serverBaseUrl: URL;
 }
+
+/** Result of {@link validateOAuthConfig}. */
+export interface OAuthConfigValidation {
+  /** True iff every required env var is present and `SERVER_BASE_URL` parses as a URL. */
+  ok: boolean;
+  /** Names of the missing or invalid environment variables (empty when `ok` is true). */
+  missing: string[];
+}
+
+/** Required environment variable names, in declaration order. */
+const REQUIRED_OAUTH_ENV_VARS = [
+  'AZURE_TENANT_ID',
+  'AZURE_CLIENT_ID',
+  'AZURE_CLIENT_SECRET',
+  'SERVER_BASE_URL',
+] as const;
 
 /**
  * Get Entra ID OAuth endpoints for a given tenant
@@ -110,8 +151,8 @@ class DynamicClientsStore implements OAuthRegisteredClientsStore {
         'http://127.0.0.1/callback',
         // VS Code web redirect
         'https://vscode.dev/redirect',
-        // Azure AD redirect
-        `${config.serverBaseUrl}/auth/callback`,
+        // Azure AD redirect (resolved against the base URL so trailing slashes don't double up)
+        new URL('/auth/callback', config.serverBaseUrl).toString(),
       ],
       grant_types: ['authorization_code', 'refresh_token'],
       response_types: ['code'],
@@ -199,33 +240,87 @@ export function createMcpOAuthProvider(config: EntraOAuthConfig): ProxyOAuthServ
 }
 
 /**
- * Check if OAuth is properly configured
+ * Check if OAuth is fully configured (all required env vars present).
+ *
+ * Prefer {@link validateOAuthConfig} when you need to know *which* vars are
+ * missing (e.g. for health endpoints or startup diagnostics).
  */
 export function isOAuthConfigured(): boolean {
-  return !!(
-    process.env.AZURE_TENANT_ID &&
-    process.env.AZURE_CLIENT_ID &&
-    process.env.AZURE_CLIENT_SECRET
-  );
+  return validateOAuthConfig().ok;
 }
 
 /**
- * Get OAuth configuration from environment
+ * Inspect OAuth configuration completeness without side effects.
+ *
+ * Reports every required env var that is missing, so callers like
+ * `src/health.ts` can surface actionable error messages instead of opaque
+ * "OAuth not configured" booleans.
+ *
+ * @example
+ * const v = validateOAuthConfig();
+ * if (!v.ok) console.warn('OAuth disabled. Missing:', v.missing.join(', '));
+ */
+export function validateOAuthConfig(): OAuthConfigValidation {
+  const missing: string[] = [];
+  for (const name of REQUIRED_OAUTH_ENV_VARS) {
+    if (!process.env[name])
+      missing.push(name);
+  }
+
+  // Even when SERVER_BASE_URL is set, reject malformed values up front so we
+  // don't pass an invalid URL into the rest of the OAuth pipeline.
+  if (!missing.includes('SERVER_BASE_URL')) {
+    try {
+      // eslint-disable-next-line no-new
+      new URL(process.env.SERVER_BASE_URL!);
+    } catch {
+      missing.push('SERVER_BASE_URL (invalid URL)');
+    }
+  }
+
+  return { ok: missing.length === 0, missing };
+}
+
+// Guard against log spam: warn at most once per process about partial config.
+let oauthIncompleteWarningEmitted = false;
+
+/**
+ * Get OAuth configuration from environment, returning `null` when any
+ * required variable is missing (fail-closed).
+ *
+ * On the *first* call where partial config is detected (one or more env vars
+ * set but at least one missing), logs a single `OAUTH_CONFIG_INCOMPLETE`
+ * warning naming the missing variables. Subsequent calls return `null`
+ * silently to avoid log flooding.
+ *
+ * @returns A frozen {@link EntraOAuthConfig} or `null` when not fully configured.
+ *
+ * @example
+ * const cfg = getOAuthConfig();
+ * if (cfg) {
+ *   const provider = createMcpOAuthProvider(cfg);
+ * }
  */
 export function getOAuthConfig(): EntraOAuthConfig | null {
-  const tenantId = process.env.AZURE_TENANT_ID;
-  const clientId = process.env.AZURE_CLIENT_ID;
-  const clientSecret = process.env.AZURE_CLIENT_SECRET;
-  const serverBaseUrl = process.env.SERVER_BASE_URL;
-
-  if (!tenantId || !clientId || !clientSecret || !serverBaseUrl) {
+  const validation = validateOAuthConfig();
+  if (!validation.ok) {
+    const anyPresent = REQUIRED_OAUTH_ENV_VARS.some(name => process.env[name]);
+    if (anyPresent && !oauthIncompleteWarningEmitted) {
+      oauthIncompleteWarningEmitted = true;
+      // eslint-disable-next-line no-console
+      console.warn(
+          `[OAuth] OAUTH_CONFIG_INCOMPLETE: OAuth disabled because the following env ` +
+          `var(s) are missing or invalid: ${validation.missing.join(', ')}. ` +
+          `Set all of ${REQUIRED_OAUTH_ENV_VARS.join(', ')} to enable Entra-backed auth.`
+      );
+    }
     return null;
   }
 
-  return {
-    tenantId,
-    clientId,
-    clientSecret,
-    serverBaseUrl,
-  };
+  return Object.freeze({
+    tenantId: process.env.AZURE_TENANT_ID!,
+    clientId: process.env.AZURE_CLIENT_ID!,
+    clientSecret: process.env.AZURE_CLIENT_SECRET!,
+    serverBaseUrl: new URL(process.env.SERVER_BASE_URL!),
+  });
 }
