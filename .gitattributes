@@ -1,0 +1,51 @@
+# Default: text files normalized to LF in repo, native on checkout
+* text=auto eol=lf
+
+# Windows-specific scripts must keep CRLF
+*.ps1     text eol=crlf
+*.psm1    text eol=crlf
+*.psd1    text eol=crlf
+*.bat     text eol=crlf
+*.cmd     text eol=crlf
+*.sln     text eol=crlf
+
+# Force LF on shell scripts and unix-y files
+*.sh      text eol=lf
+*.bash    text eol=lf
+Dockerfile text eol=lf
+.gitignore text eol=lf
+.dockerignore text eol=lf
+
+# Binary files
+*.png     binary
+*.jpg     binary
+*.jpeg    binary
+*.gif     binary
+*.ico     binary
+*.svg     binary
+*.woff    binary
+*.woff2   binary
+*.ttf     binary
+*.eot     binary
+*.pdf     binary
+*.zip     binary
+*.gz      binary
+*.tar     binary
+*.tgz     binary
+*.7z      binary
+*.dll     binary
+*.exe     binary
+*.pdb     binary
+*.nupkg   binary
+*.vsix    binary
+*.snk     binary
+*.pfx     binary
+
+# Lock files: don't show diffs by default
+package-lock.json -diff
+yarn.lock -diff
+pnpm-lock.yaml -diff
+
+# Generated files
+*.min.js  -diff
+*.map     -diff
