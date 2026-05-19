@@ -22,6 +22,7 @@ import { fileURLToPath } from 'node:url';
 import stylistic from '@stylistic/eslint-plugin';
 import importRules from 'eslint-plugin-import';
 import eslintJs from '@eslint/js';
+import globals from 'globals';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -123,7 +124,7 @@ export const baseRules = {
   ],
   'no-whitespace-before-property': 2,
   'arrow-spacing': [2, { after: true, before: true }],
-  '@stylistic/func-call-spacing': 2,
+  '@stylistic/function-call-spacing': 2,
   '@stylistic/type-annotation-spacing': 2,
 
   // file whitespace
@@ -155,6 +156,10 @@ const languageOptions = {
   parser: tsParser,
   ecmaVersion: 2023,
   sourceType: 'module',
+  globals: {
+    ...globals.node,
+    ...globals.es2023,
+  },
   parserOptions: {
     project: path.join(__dirname, 'tsconfig.all.json'),
   },
