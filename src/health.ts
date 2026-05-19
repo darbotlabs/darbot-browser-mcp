@@ -15,10 +15,11 @@
  */
 
 import debug from 'debug';
+import express from 'express';
 
 import { packageJSON } from './package.js';
 
-import type { Request, Response } from 'express';
+import type { Express, Request, Response } from 'express';
 
 const debugLogger = debug('pw:mcp:health');
 
@@ -315,4 +316,143 @@ function maskId(value: string | undefined): string | undefined {
  */
 export function createHealthCheckService(options: HealthCheckServiceOptions = {}): HealthCheckService {
   return new HealthCheckService(options);
+}
+
+/** Partial bridge snapshot accepted by {@link HealthAppOptions.getBridgeStatus}. */
+export interface PartialBridgeStatus {
+  extensionConnected: boolean;
+  mcpConnected?: boolean;
+  extensionVersion?: string | null;
+  sessionId?: string | null;
+}
+
+/** Shape returned by either the env-driven `validateOAuthConfig` (`ok`) or
+ *  test mocks that prefer the older `valid` field. */
+export type OAuthValidationLike =
+  | { ok: boolean; missing?: string[] }
+  | { valid: boolean; missing?: string[] };
+
+export interface HealthAppOptions {
+  /**
+   * When `true`, readiness fails (HTTP 503 on `/readyz`) if the bridge is not
+   * connected. When `false` (default), bridge status is informational only.
+   */
+  bridgeRequired?: boolean;
+  /** Probe returning the current bridge state. Required when `bridgeRequired` is true. */
+  getBridgeStatus?: () => PartialBridgeStatus;
+  /**
+   * Optional OAuth validator. When supplied, `/healthz` includes an
+   * `oauth: { valid }` block. Failures here do *not* flip the overall status,
+   * since deployments may legitimately run without Entra-backed auth.
+   */
+  validateOAuthConfig?: () => OAuthValidationLike;
+}
+
+function normalizeOAuthValid(result: OAuthValidationLike): { valid: boolean; missing?: string[] } {
+  const valid = 'valid' in result ? result.valid : result.ok;
+  return result.missing && result.missing.length > 0
+    ? { valid, missing: result.missing }
+    : { valid };
+}
+
+/**
+ * Express app exposing `/healthz`, `/readyz` and `/livez` (plus the alias
+ * paths without the trailing `z`) suitable for Kubernetes-style orchestrators
+ * and Azure App Service health probes.
+ *
+ * Health and readiness aggregate the underlying {@link HealthCheckService},
+ * with two app-level concerns layered on top:
+ *   - `bridgeRequired` gates readiness on extension connectivity
+ *   - `validateOAuthConfig` decorates `/healthz` with an `oauth` block
+ */
+export function createHealthApp(options: HealthAppOptions = {}): Express {
+  const bridgeRequired = options.bridgeRequired ?? false;
+  const probe = options.getBridgeStatus;
+  const validate = options.validateOAuthConfig;
+
+  const service = createHealthCheckService({
+    ...(probe
+      ? {
+        bridgeStatusProbe: (): BridgeStatusSnapshot => {
+          const status = probe();
+          return {
+            extensionConnected: status.extensionConnected,
+            mcpConnected: status.mcpConnected ?? false,
+            extensionVersion: status.extensionVersion ?? null,
+            sessionId: status.sessionId ?? null,
+          };
+        },
+      }
+      : {}),
+  });
+
+  const app = express();
+
+  const computeBridgeOk = (): boolean => {
+    if (!bridgeRequired)
+      return true;
+    if (!probe)
+      return false;
+    return probe().extensionConnected === true;
+  };
+
+  const handleHealth = async (_req: Request, res: Response): Promise<void> => {
+    try {
+      const health = await service.runChecks();
+      const bridgeOk = computeBridgeOk();
+      const checksOk = health.status !== 'unhealthy';
+      const overallOk = bridgeOk && checksOk;
+
+      const body: Record<string, unknown> = {
+        status: overallOk ? 'ok' : 'degraded',
+        timestamp: health.timestamp,
+        version: health.version,
+        uptimeSeconds: health.uptimeSeconds,
+        checks: health.checks,
+      };
+      if (validate)
+        body.oauth = normalizeOAuthValid(validate());
+
+      res.status(overallOk ? 200 : 503)
+          .set('Cache-Control', 'no-store')
+          .json(body);
+    } catch (error) {
+      debugLogger('createHealthApp /healthz failed: %O', error);
+      res.status(500)
+          .set('Cache-Control', 'no-store')
+          .json({
+            status: 'unhealthy',
+            timestamp: new Date().toISOString(),
+            error: error instanceof Error ? error.message : 'Health check failed',
+          });
+    }
+  };
+
+  const handleReady = async (_req: Request, res: Response): Promise<void> => {
+    try {
+      const health = await service.runChecks();
+      const bridgeOk = computeBridgeOk();
+      const ready = bridgeOk && health.status !== 'unhealthy';
+      res.status(ready ? 200 : 503)
+          .set('Cache-Control', 'no-store')
+          .json({
+            status: ready ? 'ok' : 'not_ready',
+            timestamp: health.timestamp,
+            version: health.version,
+            checks: health.checks.map(c => ({ name: c.name, status: c.status })),
+          });
+    } catch (error) {
+      debugLogger('createHealthApp /readyz failed: %O', error);
+      res.status(503).set('Cache-Control', 'no-store').send('Service Unavailable');
+    }
+  };
+
+  app.get('/healthz', handleHealth);
+  app.get('/health', handleHealth);
+  app.get('/readyz', handleReady);
+  app.get('/ready', handleReady);
+  app.get('/livez', service.handleLivenessCheck);
+  app.get('/live', service.handleLivenessCheck);
+
+  return app;
 }

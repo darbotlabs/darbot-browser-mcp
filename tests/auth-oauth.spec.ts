@@ -85,7 +85,7 @@ test.describe('getOAuthConfig', () => {
 
     try {
       expect(oauth.getOAuthConfig()).toEqual({
-        serverBaseUrl: 'https://mcp.example.test',
+        serverBaseUrl: new URL('https://mcp.example.test'),
         tenantId: 'tenant-id',
         clientId: 'client-id',
         clientSecret: 'client-secret',
@@ -99,18 +99,30 @@ test.describe('getOAuthConfig', () => {
     const oauth = await loadOAuthModule();
     test.skip(typeof oauth.validateOAuthConfig !== 'function', 'validateOAuthConfig export is required for URL validation');
 
-    expect(oauth.validateOAuthConfig({
-      serverBaseUrl: 'https://mcp.example.test/path',
-      tenantId: 'tenant-id',
-      clientId: 'client-id',
-      clientSecret: 'client-secret',
-    })).toEqual(expect.objectContaining({ valid: true }));
+    const restoreValid = withOAuthEnv({
+      SERVER_BASE_URL: 'https://mcp.example.test/path',
+      AZURE_TENANT_ID: 'tenant-id',
+      AZURE_CLIENT_ID: 'client-id',
+      AZURE_CLIENT_SECRET: 'client-secret',
+    });
+    try {
+      expect(oauth.validateOAuthConfig()).toEqual({ ok: true, missing: [] });
+    } finally {
+      restoreValid();
+    }
 
-    expect(oauth.validateOAuthConfig({
-      serverBaseUrl: 'not a url',
-      tenantId: 'tenant-id',
-      clientId: 'client-id',
-      clientSecret: 'client-secret',
-    })).toEqual(expect.objectContaining({ valid: false }));
+    const restoreInvalid = withOAuthEnv({
+      SERVER_BASE_URL: 'not a url',
+      AZURE_TENANT_ID: 'tenant-id',
+      AZURE_CLIENT_ID: 'client-id',
+      AZURE_CLIENT_SECRET: 'client-secret',
+    });
+    try {
+      const result = oauth.validateOAuthConfig();
+      expect(result.ok).toBe(false);
+      expect(result.missing).toContain('SERVER_BASE_URL (invalid URL)');
+    } finally {
+      restoreInvalid();
+    }
   });
 });
