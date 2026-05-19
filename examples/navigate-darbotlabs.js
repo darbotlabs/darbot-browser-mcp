@@ -1,55 +1,37 @@
 #!/usr/bin/env node
+// @ts-check
 /**
- * Darbot Browser MCP - Simple Navigation Example
- * 
- * Minimal example showing how to navigate to DarbotLabs GitHub.
- * 
- * Usage: node navigate-darbotlabs.js
+ * Demonstrates basic navigation to DarbotLabs GitHub with the MCP SDK v1 client.
+ * Run from the repository root:
+ *   node examples/navigate-darbotlabs.js [url]
  */
 
-import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
+import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
+
+const DEFAULT_URL = 'https://github.com/darbotlabs';
 
 async function main() {
-  const client = new Client({ name: 'darbot-simple', version: '1.3.0' });
-  
-  // Connect to Darbot Browser MCP
+  const url = process.argv[2] ?? DEFAULT_URL;
+  const client = new Client({ name: 'darbot-navigate-darbotlabs', version: '2.0.0' });
   const transport = new StdioClientTransport({
     command: 'npx',
-    args: ['@darbotlabs/darbot-browser-mcp@latest', '--browser', 'msedge'],
+    args: ['-y', '@darbotlabs/darbot-browser-mcp@latest', '--browser', 'msedge'],
   });
-  
-  await client.connect(transport);
-  console.log('Connected');
-  
-  // Navigate to DarbotLabs GitHub
-  await client.callTool({
-    name: 'browser_navigate',
-    arguments: { url: 'https://github.com/darbotlabs' }
-  });
-  console.log('Opened https://github.com/darbotlabs');
-  
-  // Take a screenshot
-  const screenshot = await client.callTool({
-    name: 'browser_take_screenshot',
-    arguments: {}
-  });
-  console.log('Screenshot taken');
-  
-  // Get page snapshot
-  const snapshot = await client.callTool({
-    name: 'browser_snapshot',
-    arguments: {}
-  });
-  console.log('Page snapshot:', snapshot.content?.[0]?.text?.substring(0, 200) + '...');
-  
-  // Cleanup
-  await client.callTool({ name: 'browser_close' });
-  await client.close();
-  console.log('Done');
+
+  try {
+    await client.connect(transport);
+    await client.callTool({ name: 'browser_navigate', arguments: { url } });
+    const snapshot = await client.callTool({ name: 'browser_snapshot', arguments: {} });
+    const text = snapshot.content?.find((item) => item.type === 'text')?.text ?? '';
+    console.log(text.slice(0, 500));
+  } finally {
+    try { await client.callTool({ name: 'browser_close', arguments: {} }); } catch {}
+    await client.close();
+  }
 }
 
-main().catch(err => {
-  console.error('Error:', err.message);
+main().catch((error) => {
+  console.error(error instanceof Error ? error.message : error);
   process.exit(1);
 });
