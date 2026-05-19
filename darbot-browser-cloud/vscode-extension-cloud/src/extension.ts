@@ -1,5 +1,6 @@
 /**
- * Copyright (c) 2024 DarbotLabs
+ * Copyright (c) DarbotLabs.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,380 +15,334 @@
  */
 
 import * as vscode from 'vscode';
+import * as http from 'http';
+import * as https from 'https';
+
+const EXTENSION_ID = 'darbot-browser-mcp-cloud';
+const CONFIG_SECTION = 'darbot-browser-mcp-cloud';
+const EXTENSION_VERSION = '2.0.0';
+const AUTH_PROVIDER = 'microsoft';
+
+interface CloudConfig {
+  serverUrl: string;
+  mcpEndpoint: string;
+  autoConnect: boolean;
+  connectionTimeoutMs: number;
+  enableHealthChecks: boolean;
+  healthCheckIntervalMs: number;
+  scopes: string[];
+}
+
+function readConfig(): CloudConfig {
+  const cfg = vscode.workspace.getConfiguration(CONFIG_SECTION);
+  const envOverride = process.env.SERVER_BASE_URL?.trim();
+  const baseFromSetting = cfg.get<string>('serverUrl', '').trim();
+  const serverUrl = envOverride || baseFromSetting;
+
+  let mcpEndpoint = cfg.get<string>('sseEndpoint', '').trim();
+  if (!mcpEndpoint && serverUrl)
+    mcpEndpoint = stripTrailingSlash(serverUrl) + '/mcp';
+
+  const scopes = cfg.get<string[]>('scopes', ['openid', 'profile', 'email', 'User.Read']);
+
+  return {
+    serverUrl,
+    mcpEndpoint,
+    autoConnect: cfg.get<boolean>('autoConnect', true),
+    connectionTimeoutMs: cfg.get<number>('connectionTimeout', 30000),
+    enableHealthChecks: cfg.get<boolean>('enableHealthChecks', true),
+    healthCheckIntervalMs: cfg.get<number>('healthCheckInterval', 60000),
+    scopes,
+  };
+}
+
+function stripTrailingSlash(value: string): string {
+  return value.endsWith('/') ? value.slice(0, -1) : value;
+}
 
 let isCloudConnected = false;
-let statusBarItem: vscode.StatusBarItem;
-let mcpOutputChannel: vscode.OutputChannel;
-let healthCheckInterval: NodeJS.Timeout | null = null;
-
-// Cached authentication session
-let cachedAuthSession: vscode.AuthenticationSession | null = null;
+let statusBarItem: vscode.StatusBarItem | undefined;
+let output: vscode.OutputChannel;
+let healthCheckTimer: NodeJS.Timeout | null = null;
+let cachedSession: vscode.AuthenticationSession | null = null;
 
 /**
- * Get Microsoft/Entra ID authentication token using VS Code's built-in auth
- * This uses the 'microsoft' authentication provider that's built into VS Code
- * The token is obtained silently if the user is already signed in
+ * Resolve an Entra ID access token using VS Code's built-in Microsoft
+ * authentication provider. Tries a silent fetch first and only falls back
+ * to an interactive prompt when explicitly requested.
  */
-async function getMicrosoftAuthToken(forceNew: boolean = false): Promise<string | null> {
+async function getMicrosoftAccessToken(opts: { interactive: boolean } = { interactive: false }): Promise<string | null> {
+  const { scopes } = readConfig();
   try {
-    // If we have a cached session and don't need to force refresh, use it
-    if (cachedAuthSession && !forceNew) {
-      mcpOutputChannel?.appendLine('Using cached Microsoft auth session');
-      return cachedAuthSession.accessToken;
-    }
+    if (cachedSession)
+      return cachedSession.accessToken;
 
-    // Request a Microsoft authentication session
-    // Scopes: openid, profile, email are standard OIDC scopes
-    // User.Read is for Microsoft Graph (validates the user is authenticated)
-    const scopes = ['openid', 'profile', 'email', 'User.Read'];
-    
-    mcpOutputChannel?.appendLine('Requesting Microsoft authentication session...');
-    
-    // First try to get session silently (without prompting)
-    let session = await vscode.authentication.getSession('microsoft', scopes, { 
+    let session = await vscode.authentication.getSession(AUTH_PROVIDER, scopes, {
       createIfNone: false,
-      silent: true 
+      silent: true,
     });
 
-    // If no silent session, create one (this may show a one-time sign-in prompt)
-    if (!session) {
-      mcpOutputChannel?.appendLine('No existing session, requesting new authentication...');
-      session = await vscode.authentication.getSession('microsoft', scopes, { 
-        createIfNone: true 
-      });
+    if (!session && opts.interactive) {
+      output.appendLine('Requesting interactive Microsoft sign-in...');
+      session = await vscode.authentication.getSession(AUTH_PROVIDER, scopes, { createIfNone: true });
     }
 
     if (session) {
-      cachedAuthSession = session;
-      mcpOutputChannel?.appendLine(`Authenticated as: ${session.account.label}`);
+      cachedSession = session;
+      output.appendLine(`Authenticated as ${session.account.label}.`);
       return session.accessToken;
     }
-
-    mcpOutputChannel?.appendLine('Failed to obtain Microsoft authentication session');
     return null;
   } catch (error) {
-    mcpOutputChannel?.appendLine(`Microsoft authentication error: ${error}`);
+    output.appendLine(`Authentication error: ${formatError(error)}`);
     return null;
   }
 }
 
 /**
- * MCP Server Definition Provider for GitHub Copilot agent mode
- * This class provides the server configuration for VS Code's MCP infrastructure
- * For cloud servers, we use McpHttpServerDefinition with the Streamable HTTP endpoint
- * 
- * Authentication is handled automatically using VS Code's built-in Microsoft auth:
- * - provideMcpServerDefinitions: Returns server definition without auth (called eagerly)
- * - resolveMcpServerDefinition: Gets Microsoft token and adds auth headers (called when starting)
+ * MCP Server Definition Provider for VS Code's chat / agent mode. Uses
+ * `McpHttpServerDefinition` when available and adds the bearer token only
+ * at `resolveMcpServerDefinition` time so we don't trigger sign-in prompts
+ * eagerly.
  */
-class DarbotBrowserMCPProvider implements vscode.McpServerDefinitionProvider {
-  
-  /**
-   * Provides available MCP servers. Called eagerly by VS Code.
-   * We don't do authentication here - that happens in resolveMcpServerDefinition
-   */
+class DarbotBrowserMCPCloudProvider implements vscode.McpServerDefinitionProvider {
   async provideMcpServerDefinitions(): Promise<vscode.McpServerDefinition[]> {
-    const config = vscode.workspace.getConfiguration('darbot-browser-mcp-cloud');
-    const sseEndpoint = config.get<string>('sseEndpoint', '');
-
-    // Return server definition without auth headers - auth is added in resolve
-    try {
-      const McpHttpServerDefinition = (vscode as any).McpHttpServerDefinition;
-      if (McpHttpServerDefinition) {
-        const serverDef = new McpHttpServerDefinition(
-          'Darbot Browser MCP Cloud',
-          vscode.Uri.parse(sseEndpoint),
-          undefined, // No headers yet - will be added in resolveMcpServerDefinition
-          '1.3.0'
-        );
-        mcpOutputChannel?.appendLine(`MCP Server Definition created: ${sseEndpoint}`);
-        return [serverDef];
-      }
-    } catch (e) {
-      mcpOutputChannel?.appendLine(`McpHttpServerDefinition not available: ${e}`);
+    const { mcpEndpoint } = readConfig();
+    if (!mcpEndpoint) {
+      output.appendLine('Cloud MCP endpoint not configured — set darbot-browser-mcp-cloud.serverUrl or SERVER_BASE_URL.');
+      return [];
     }
 
-    // Fallback for older VS Code versions
-    mcpOutputChannel?.appendLine('Using fallback MCP server definition format');
+    const HttpDef = (vscode as unknown as { McpHttpServerDefinition?: new (label: string, uri: vscode.Uri, headers?: Record<string, string>, version?: string) => vscode.McpServerDefinition }).McpHttpServerDefinition;
+    if (HttpDef) {
+      output.appendLine(`Advertising MCP endpoint: ${mcpEndpoint}`);
+      return [new HttpDef('Darbot Browser MCP Cloud', vscode.Uri.parse(mcpEndpoint), undefined, EXTENSION_VERSION)];
+    }
+
+    output.appendLine('McpHttpServerDefinition unavailable — using legacy literal shape.');
     return [{
       label: 'Darbot Browser MCP Cloud',
-      uri: vscode.Uri.parse(sseEndpoint),
-      version: '1.3.0'
-    } as any];
+      uri: vscode.Uri.parse(mcpEndpoint),
+      version: EXTENSION_VERSION,
+    } as unknown as vscode.McpServerDefinition];
   }
 
-  /**
-   * Resolves the MCP server definition before starting.
-   * This is where we do authentication - VS Code calls this when the server is about to be used.
-   * We get a Microsoft token silently and add it to the headers.
-   */
   async resolveMcpServerDefinition(
-    server: vscode.McpServerDefinition, 
-    token: vscode.CancellationToken
+      server: vscode.McpServerDefinition,
+      _token: vscode.CancellationToken,
   ): Promise<vscode.McpServerDefinition | undefined> {
-    mcpOutputChannel?.appendLine('Resolving MCP server definition with authentication...');
-
-    try {
-      // Get Microsoft auth token automatically (no user interaction needed if already signed in)
-      const authToken = await getMicrosoftAuthToken();
-      
-      if (!authToken) {
-        mcpOutputChannel?.appendLine('Warning: No Microsoft auth token available. Server may require authentication.');
-        // Return the server as-is, it might work without auth or handle it differently
-        return server;
-      }
-
-      // Add the Bearer token to headers
-      const serverWithAuth = server as any;
-      serverWithAuth.headers = {
-        ...serverWithAuth.headers,
-        'Authorization': `Bearer ${authToken}`
-      };
-
-      mcpOutputChannel?.appendLine('Authentication token added to server headers');
-      return serverWithAuth;
-    } catch (error) {
-      mcpOutputChannel?.appendLine(`Error resolving server with auth: ${error}`);
-      // Return server without auth as fallback
+    const accessToken = await getMicrosoftAccessToken();
+    if (!accessToken) {
+      output.appendLine('No Entra ID token available; passing server definition through without Authorization header.');
       return server;
     }
+    const withAuth = server as unknown as { headers?: Record<string, string> };
+    withAuth.headers = { ...withAuth.headers, Authorization: `Bearer ${accessToken}` };
+    output.appendLine('Attached Entra ID bearer token to MCP server definition.');
+    return server;
   }
 }
 
-export function activate(context: vscode.ExtensionContext) {
-  // Create output channel for logging
-  mcpOutputChannel = vscode.window.createOutputChannel('Darbot Browser MCP Cloud');
-  context.subscriptions.push(mcpOutputChannel);
+export function activate(context: vscode.ExtensionContext): void {
+  output = vscode.window.createOutputChannel('Darbot Browser MCP Cloud');
+  context.subscriptions.push(output);
 
-  // Create status bar item
   statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
   statusBarItem.text = '$(cloud) MCP Cloud: Disconnected';
-  statusBarItem.tooltip = 'Browser MCP Cloud Server Status';
-  statusBarItem.command = 'darbot-browser-mcp-cloud.showStatus';
+  statusBarItem.tooltip = 'Darbot Browser MCP Cloud — click for actions';
+  statusBarItem.command = `${EXTENSION_ID}.showStatus`;
   statusBarItem.show();
   context.subscriptions.push(statusBarItem);
 
-  // Register MCP Server Definition Provider for GitHub Copilot agent mode
-  try {
-    const mcpProvider = new DarbotBrowserMCPProvider();
-    // The correct API is vscode.lm.registerMcpServerDefinitionProvider (language model namespace)
-    if (vscode.lm && typeof (vscode.lm as any).registerMcpServerDefinitionProvider === 'function') {
-      const mcpProviderDisposable = (vscode.lm as any).registerMcpServerDefinitionProvider('darbot-browser-mcp-cloud', mcpProvider);
-      context.subscriptions.push(mcpProviderDisposable);
-      mcpOutputChannel.appendLine('MCP Server Definition Provider registered via vscode.lm API.');
-    } else {
-      // Fallback: try the older vscode.mcp API
-      const mcpApi = (vscode as any).mcp;
-      if (mcpApi && typeof mcpApi.registerMcpServerDefinitionProvider === 'function') {
-        const mcpProviderDisposable = mcpApi.registerMcpServerDefinitionProvider('darbot-browser-mcp-cloud', mcpProvider);
-        context.subscriptions.push(mcpProviderDisposable);
-        mcpOutputChannel.appendLine('MCP Server Definition Provider registered via vscode.mcp API.');
-      } else {
-        mcpOutputChannel.appendLine('MCP Server Definition Provider API not available. Will use settings-based configuration.');
-      }
-    }
-  } catch (error) {
-    mcpOutputChannel.appendLine(`Failed to register MCP Server Definition Provider: ${error}. Using settings-based configuration.`);
+  registerMcpProvider(context);
+  registerCommands(context);
+
+  const config = readConfig();
+  if (!config.serverUrl) {
+    output.appendLine('No cloud server URL configured. Set darbot-browser-mcp-cloud.serverUrl or the SERVER_BASE_URL environment variable.');
+    return;
   }
 
-  // Register commands
-  const connectServerCommand = vscode.commands.registerCommand('darbot-browser-mcp-cloud.connectServer', connectToCloud);
-  const disconnectServerCommand = vscode.commands.registerCommand('darbot-browser-mcp-cloud.disconnectServer', disconnectFromCloud);
-  const showStatusCommand = vscode.commands.registerCommand('darbot-browser-mcp-cloud.showStatus', showStatus);
-  const testConnectionCommand = vscode.commands.registerCommand('darbot-browser-mcp-cloud.testConnection', testConnection);
+  output.appendLine(`Configured cloud server: ${config.serverUrl}`);
+  output.appendLine(`MCP endpoint: ${config.mcpEndpoint}`);
+  output.appendLine('Authentication: VS Code Microsoft account (built-in provider).');
 
-  context.subscriptions.push(connectServerCommand, disconnectServerCommand, showStatusCommand, testConnectionCommand);
-
-  // Auto-configure MCP server on first activation
-  void configureMCPServer();
-
-  // Auto-connect if configured
-  const config = vscode.workspace.getConfiguration('darbot-browser-mcp-cloud');
-  if (config.get('autoConnect', true))
+  if (config.autoConnect)
     void connectToCloud();
 }
 
-export function deactivate() {
-  if (healthCheckInterval) {
-    clearInterval(healthCheckInterval);
-    healthCheckInterval = null;
+export function deactivate(): void {
+  if (healthCheckTimer) {
+    clearInterval(healthCheckTimer);
+    healthCheckTimer = null;
   }
-  isCloudConnected = false;
-  if (statusBarItem)
-    statusBarItem.dispose();
-  if (mcpOutputChannel)
-    mcpOutputChannel.dispose();
+  statusBarItem?.dispose();
+  output?.dispose();
+  cachedSession = null;
 }
 
-async function configureMCPServer() {
-  // The MCP server is registered via McpServerDefinitionProvider API
-  // No need to write to chat.mcp.servers settings - VS Code handles this automatically
-  // when the provider is registered in activate()
-  
-  const config = vscode.workspace.getConfiguration('darbot-browser-mcp-cloud');
-  const mcpEndpoint = config.get<string>('sseEndpoint', '');
-
-  mcpOutputChannel.appendLine('Darbot Browser MCP Cloud server registered via McpServerDefinitionProvider.');
-  mcpOutputChannel.appendLine(`MCP Endpoint: ${mcpEndpoint}`);
-  mcpOutputChannel.appendLine('Authentication: Automatic via VS Code Microsoft account');
-  mcpOutputChannel.appendLine('The server will appear in GitHub Copilot agent mode tools list.');
-}
-
-async function connectToCloud() {
-  if (isCloudConnected) {
-    void vscode.window.showInformationMessage('Already connected to Browser MCP Cloud Server');
-    return;
-  }
-
-  const config = vscode.workspace.getConfiguration('darbot-browser-mcp-cloud');
-  const serverUrl = config.get<string>('serverUrl', '');
-  const enableHealthChecks = config.get('enableHealthChecks', true);
-  const healthCheckIntervalMs = config.get('healthCheckInterval', 60000);
-
-  mcpOutputChannel.appendLine(`Connecting to cloud server: ${serverUrl}`);
-
+function registerMcpProvider(context: vscode.ExtensionContext): void {
   try {
-    // Test connection first
-    const healthResult = await performHealthCheck(serverUrl);
-    
-    if (healthResult.success) {
-      isCloudConnected = true;
-      updateStatusBarItem(true);
-      mcpOutputChannel.appendLine('Connected to Browser MCP Cloud Server successfully.');
-      mcpOutputChannel.appendLine(`Server URL: ${serverUrl}`);
-      mcpOutputChannel.appendLine(`Server Version: ${healthResult.version}`);
-      mcpOutputChannel.appendLine(`Server Status: ${healthResult.status}`);
-      mcpOutputChannel.show(true);
-
-      // Start periodic health checks if enabled
-      if (enableHealthChecks) {
-        healthCheckInterval = setInterval(async () => {
-          const check = await performHealthCheck(serverUrl);
-          if (!check.success) {
-            mcpOutputChannel.appendLine(`Health check failed: ${check.error}`);
-            // Don't disconnect automatically, just log
-          }
-        }, healthCheckIntervalMs);
-      }
-
-      void vscode.window.showInformationMessage(`Connected to Browser MCP Cloud Server (v${healthResult.version})`);
+    const provider = new DarbotBrowserMCPCloudProvider();
+    const lmApi = vscode.lm as unknown as { registerMcpServerDefinitionProvider?: typeof vscode.lm.registerMcpServerDefinitionProvider } | undefined;
+    if (lmApi && typeof lmApi.registerMcpServerDefinitionProvider === 'function') {
+      const disposable = lmApi.registerMcpServerDefinitionProvider(EXTENSION_ID, provider);
+      context.subscriptions.push(disposable);
+      output.appendLine('Registered MCP Server Definition Provider via vscode.lm.');
     } else {
-      throw new Error(healthResult.error);
+      output.appendLine('vscode.lm.registerMcpServerDefinitionProvider unavailable — rely on user-managed MCP configuration.');
     }
   } catch (error) {
-    mcpOutputChannel.appendLine(`Connection failed: ${error}`);
-    void vscode.window.showErrorMessage(`Failed to connect to cloud server: ${error}`);
-    updateStatusBarItem(false);
+    output.appendLine(`Failed to register MCP provider: ${formatError(error)}`);
   }
 }
 
-async function performHealthCheck(serverUrl: string): Promise<{success: boolean; status?: string; version?: string; error?: string}> {
-  try {
-    const https = await import('https');
-    const http = await import('http');
-    const protocol = serverUrl.startsWith('https') ? https : http;
-
-    return new Promise((resolve) => {
-      const req = protocol.get(`${serverUrl}/health`, { timeout: 10000 }, res => {
-        let data = '';
-        res.on('data', chunk => { data += chunk; });
-        res.on('end', () => {
-          // Accept 200 (healthy) and 503 (unhealthy but reachable) as valid responses
-          if (res.statusCode === 200 || res.statusCode === 503) {
-            try {
-              const json = JSON.parse(data);
-              resolve({ success: true, status: json.status, version: json.version });
-            } catch {
-              resolve({ success: true, status: 'unknown', version: 'unknown' });
-            }
-          } else {
-            resolve({ success: false, error: `HTTP ${res.statusCode}` });
-          }
-        });
-      });
-      
-      req.on('error', err => {
-        resolve({ success: false, error: err.message });
-      });
-      
-      req.on('timeout', () => {
-        req.destroy();
-        resolve({ success: false, error: 'Connection timeout' });
-      });
-    });
-  } catch (error) {
-    return { success: false, error: String(error) };
-  }
+function registerCommands(context: vscode.ExtensionContext): void {
+  context.subscriptions.push(
+      vscode.commands.registerCommand(`${EXTENSION_ID}.connectServer`, connectToCloud),
+      vscode.commands.registerCommand(`${EXTENSION_ID}.disconnectServer`, disconnectFromCloud),
+      vscode.commands.registerCommand(`${EXTENSION_ID}.showStatus`, showStatus),
+      vscode.commands.registerCommand(`${EXTENSION_ID}.testConnection`, testConnection),
+      vscode.commands.registerCommand(`${EXTENSION_ID}.signIn`, () => getMicrosoftAccessToken({ interactive: true })),
+  );
 }
 
-function disconnectFromCloud() {
-  if (!isCloudConnected) {
-    void vscode.window.showInformationMessage('Not connected to Browser MCP Cloud Server');
+async function connectToCloud(): Promise<void> {
+  if (isCloudConnected) {
+    void vscode.window.showInformationMessage('Already connected to Browser MCP Cloud Server.');
+    return;
+  }
+  const config = readConfig();
+  if (!config.serverUrl) {
+    void vscode.window.showWarningMessage('Set darbot-browser-mcp-cloud.serverUrl (or SERVER_BASE_URL) before connecting.');
     return;
   }
 
-  if (healthCheckInterval) {
-    clearInterval(healthCheckInterval);
-    healthCheckInterval = null;
+  output.appendLine(`Connecting to ${config.serverUrl} ...`);
+
+  const result = await performHealthCheck(config.serverUrl, config.connectionTimeoutMs);
+  if (!result.success) {
+    output.appendLine(`Connection failed: ${result.error}`);
+    void vscode.window.showErrorMessage(`Failed to connect to cloud server: ${result.error}`);
+    updateStatusBarItem(false);
+    return;
   }
 
+  isCloudConnected = true;
+  updateStatusBarItem(true);
+  output.appendLine(`Connected. Server version: ${result.version ?? 'unknown'} (status: ${result.status ?? 'unknown'})`);
+  void vscode.window.showInformationMessage(`Connected to Browser MCP Cloud (v${result.version ?? '?'}).`);
+
+  if (config.enableHealthChecks) {
+    if (healthCheckTimer)
+      clearInterval(healthCheckTimer);
+    healthCheckTimer = setInterval(async () => {
+      const check = await performHealthCheck(config.serverUrl, config.connectionTimeoutMs);
+      if (!check.success)
+        output.appendLine(`Periodic health check failed: ${check.error}`);
+    }, config.healthCheckIntervalMs);
+  }
+}
+
+function disconnectFromCloud(): void {
+  if (!isCloudConnected) {
+    void vscode.window.showInformationMessage('Not connected to Browser MCP Cloud Server.');
+    return;
+  }
+  if (healthCheckTimer) {
+    clearInterval(healthCheckTimer);
+    healthCheckTimer = null;
+  }
   isCloudConnected = false;
   updateStatusBarItem(false);
-  mcpOutputChannel.appendLine('Disconnected from Browser MCP Cloud Server');
-  void vscode.window.showInformationMessage('Disconnected from Browser MCP Cloud Server');
+  output.appendLine('Disconnected from Browser MCP Cloud.');
+  void vscode.window.showInformationMessage('Disconnected from Browser MCP Cloud.');
 }
 
-async function testConnection() {
-  const config = vscode.workspace.getConfiguration('darbot-browser-mcp-cloud');
-  const serverUrl = config.get<string>('serverUrl', '');
-
-  mcpOutputChannel.appendLine(`Testing connection to: ${serverUrl}/health`);
-  
-  const result = await performHealthCheck(serverUrl);
-  
+async function testConnection(): Promise<void> {
+  const config = readConfig();
+  if (!config.serverUrl) {
+    void vscode.window.showWarningMessage('Configure darbot-browser-mcp-cloud.serverUrl (or set SERVER_BASE_URL) first.');
+    return;
+  }
+  output.appendLine(`Testing ${config.serverUrl}/health ...`);
+  const result = await performHealthCheck(config.serverUrl, config.connectionTimeoutMs);
   if (result.success) {
-    mcpOutputChannel.appendLine(`Connection test successful!`);
-    mcpOutputChannel.appendLine(`  Status: ${result.status}`);
-    mcpOutputChannel.appendLine(`  Version: ${result.version}`);
-    void vscode.window.showInformationMessage(`Cloud server is healthy (v${result.version}) at ${serverUrl}`);
+    output.appendLine(`Healthy. version=${result.version ?? 'unknown'} status=${result.status ?? 'unknown'}`);
+    void vscode.window.showInformationMessage(`Cloud server is reachable (v${result.version ?? '?'}).`);
   } else {
-    mcpOutputChannel.appendLine(`Connection test failed: ${result.error}`);
-    void vscode.window.showErrorMessage(`Failed to connect to cloud server: ${result.error}`);
+    output.appendLine(`Health check failed: ${result.error}`);
+    void vscode.window.showErrorMessage(`Cloud server health check failed: ${result.error}`);
   }
 }
 
-function showStatus() {
-  const status = isCloudConnected ? 'Connected' : 'Disconnected';
-  const config = vscode.workspace.getConfiguration('darbot-browser-mcp-cloud');
-  const serverUrl = config.get<string>('serverUrl', '');
-  const mcpEndpoint = config.get<string>('sseEndpoint', '');
-  const hasSession = cachedAuthSession !== null;
+function showStatus(): void {
+  const config = readConfig();
+  const lines = [
+    `Darbot Browser MCP Cloud: ${isCloudConnected ? 'Connected' : 'Disconnected'}`,
+    `serverUrl: ${config.serverUrl || '(unset)'}`,
+    `mcpEndpoint: ${config.mcpEndpoint || '(unset)'}`,
+    `authenticated as: ${cachedSession?.account.label ?? '(not signed in)'}`,
+  ];
+  output.appendLine('--- Status ---');
+  lines.forEach(line => output.appendLine(line));
 
-  mcpOutputChannel.appendLine(`--- Status Check ---`);
-  mcpOutputChannel.appendLine(`Connection: ${status}`);
-  mcpOutputChannel.appendLine(`Server URL: ${serverUrl}`);
-  mcpOutputChannel.appendLine(`MCP Endpoint: ${mcpEndpoint}`);
-  mcpOutputChannel.appendLine(`Authentication: ${hasSession ? `Microsoft (${cachedAuthSession?.account.label})` : 'Automatic via VS Code'}`);
-  mcpOutputChannel.show();
-
-  vscode.window.showInformationMessage(
-      `Browser MCP Cloud: ${status}`,
-      ...(isCloudConnected ? ['Disconnect', 'Test Connection'] : ['Connect', 'Test Connection']),
-  ).then((selection: string | undefined) => {
-    if (selection === 'Connect')
-      void connectToCloud();
-    else if (selection === 'Disconnect')
-      disconnectFromCloud();
-    else if (selection === 'Test Connection')
-      void testConnection();
+  const actions = isCloudConnected ? ['Disconnect', 'Test Connection', 'Sign in'] : ['Connect', 'Test Connection', 'Sign in'];
+  void vscode.window.showInformationMessage(lines.join('\n'), ...actions).then(choice => {
+    if (choice === 'Connect') void connectToCloud();
+    else if (choice === 'Disconnect') disconnectFromCloud();
+    else if (choice === 'Test Connection') void testConnection();
+    else if (choice === 'Sign in') void getMicrosoftAccessToken({ interactive: true });
   });
 }
 
-function updateStatusBarItem(isConnected: boolean) {
-  if (statusBarItem) {
-    statusBarItem.text = isConnected ? '$(cloud) MCP Cloud: Connected' : '$(cloud) MCP Cloud: Disconnected';
-    statusBarItem.backgroundColor = isConnected
-      ? new vscode.ThemeColor('statusBarItem.prominentBackground')
-      : undefined;
-  }
+interface HealthResult {
+  success: boolean;
+  status?: string;
+  version?: string;
+  error?: string;
+}
+
+async function performHealthCheck(serverUrl: string, timeoutMs: number): Promise<HealthResult> {
+  const url = `${stripTrailingSlash(serverUrl)}/health`;
+  const protocol = serverUrl.startsWith('https') ? https : http;
+
+  return new Promise<HealthResult>(resolve => {
+    const req = protocol.get(url, { timeout: timeoutMs }, res => {
+      let data = '';
+      res.on('data', chunk => { data += chunk; });
+      res.on('end', () => {
+        if (res.statusCode === 200 || res.statusCode === 503) {
+          try {
+            const json = JSON.parse(data) as { status?: string; version?: string };
+            resolve({ success: true, status: json.status, version: json.version });
+          } catch {
+            resolve({ success: true, status: 'unknown', version: 'unknown' });
+          }
+        } else {
+          resolve({ success: false, error: `HTTP ${res.statusCode}` });
+        }
+      });
+    });
+    req.on('error', err => resolve({ success: false, error: err.message }));
+    req.on('timeout', () => {
+      req.destroy();
+      resolve({ success: false, error: `Timeout after ${timeoutMs}ms` });
+    });
+  });
+}
+
+function updateStatusBarItem(connected: boolean): void {
+  if (!statusBarItem)
+    return;
+  statusBarItem.text = connected ? '$(cloud) MCP Cloud: Connected' : '$(cloud) MCP Cloud: Disconnected';
+  statusBarItem.backgroundColor = connected
+    ? new vscode.ThemeColor('statusBarItem.prominentBackground')
+    : undefined;
+}
+
+function formatError(error: unknown): string {
+  if (error instanceof Error)
+    return error.message;
+  return String(error);
 }

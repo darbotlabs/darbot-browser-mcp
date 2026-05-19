@@ -35,9 +35,9 @@ All items validated against current repository and Azure deployment:
 **Status**: **VALIDATED** - Key Vault configured with RBAC, secret stored and accessible
 
 #### Key Vault Details
-- **Name**: `darbotbrowsermcpkv`
-- **Resource ID**: `/subscriptions/<your-subscription-id>/resourceGroups/darbot-browser-mcp/providers/Microsoft.KeyVault/vaults/darbotbrowsermcpkv`
-- **Location**: East US
+- **Name**: `<your-keyvault>`
+- **Resource ID**: `/subscriptions/<your-subscription-id>/resourceGroups/<your-resource-group>/providers/Microsoft.KeyVault/vaults/<your-keyvault>`
+- **Location**: `<region>` (e.g. `eastus`)
 - **Access Model**: RBAC-based authorization (validated)
 - **Soft Delete / Purge Protection**: Enabled (7-day retention)
 
@@ -208,7 +208,7 @@ config/local.json
 All sensitive values use Key Vault references:
 ```json
 {
-  "AZURE_CLIENT_SECRET": "@Microsoft.KeyVault(SecretUri=https://darbotbrowsermcpkv.vault.azure.net/secrets/azure-client-secret/)"
+  "AZURE_CLIENT_SECRET": "@Microsoft.KeyVault(SecretUri=https://<your-keyvault>.vault.azure.net/secrets/azure-client-secret/)"
 }
 ```
 
@@ -221,7 +221,7 @@ All sensitive values use Key Vault references:
 **Status**: **VALIDATED - SECURE**
 
 #### Storage Account
-- **Name**: `darbotbrowsermcpstorage`
+- **Name**: `<your-storage>`
 - **SKU**: Standard_LRS (Locally redundant storage)
 - **HTTPS Only**: `supportsHttpsTrafficOnly: true`
 - **TLS Version**: Minimum TLS 1.2
@@ -312,11 +312,11 @@ param azureClientSecret string
 **Status**: **VALIDATED - SECURE CONTAINER**
 
 #### Container Registry
-- **Name**: `darbotbrowsermcp`
+- **Name**: `<your-acr>`
 - **SKU**: Basic tier
 - **Access**: Via managed identity (AcrPull role)
-- **Image**: `darbotbrowsermcp.azurecr.io/darbot-browser-mcp:latest`
-- **Digest**: `sha256:e97421a68d97b029bce67cba69287ca08c2d2bba9c9d76e2f59fb9c89de8309e`
+- **Image**: `<your-acr>.azurecr.io/darbot-browser-mcp:<tag>`
+- **Digest**: `sha256:<pinned-digest>`
 
 #### Build Security
 - Multi-stage Docker build

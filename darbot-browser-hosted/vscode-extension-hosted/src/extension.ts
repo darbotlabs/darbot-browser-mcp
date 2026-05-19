@@ -1,446 +1,431 @@
 /**
- * Copyright (c) 2024 DarbotLabs
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Copyright (c) 2024-2026 DarbotLabs
+ * Licensed under the Apache License, Version 2.0 (the "License").
  */
 
 import * as vscode from 'vscode';
+import { exec } from 'node:child_process';
+import * as http from 'node:http';
+import * as https from 'node:https';
+
+const EXTENSION_VERSION = '2.0.0';
+const CONFIG_NAMESPACE = 'darbot-browser-mcp-hosted';
+
+interface HostedConfig {
+  serverUrl: string;
+  mcpEndpoint: string;
+  autoConnect: boolean;
+  connectionTimeout: number;
+  enableHealthChecks: boolean;
+  healthCheckInterval: number;
+  useMsalAuth: boolean;
+  scopes: string[];
+  autoStartContainer: boolean;
+  containerName: string;
+}
+
+interface HealthResult {
+  success: boolean;
+  status?: string;
+  version?: string;
+  error?: string;
+}
+
+interface McpHttpServerDefinitionLike {
+  label: string;
+  uri: vscode.Uri;
+  version?: string;
+  headers?: Record<string, string>;
+}
+
+/**
+ * Narrow shim for `vscode.McpHttpServerDefinition`, which is not present in the
+ * `@types/vscode@1.96.0` ambient definitions used by this extension. The shape
+ * matches the proposed VS Code MCP API; if the runtime constructor is missing
+ * we fall back to a plain object literal that satisfies the same interface.
+ */
+type McpHttpServerDefinitionCtor = new (
+  label: string,
+  uri: vscode.Uri,
+  headers?: Record<string, string>,
+  version?: string,
+) => McpHttpServerDefinitionLike;
 
 let isHostedConnected = false;
 let statusBarItem: vscode.StatusBarItem;
 let mcpOutputChannel: vscode.OutputChannel;
-let healthCheckInterval: NodeJS.Timeout | null = null;
-
-// Cached authentication session (for optional MSAL auth)
+let healthCheckTimer: NodeJS.Timeout | null = null;
 let cachedAuthSession: vscode.AuthenticationSession | null = null;
 
-/**
- * Get Microsoft/Entra ID authentication token using VS Code's built-in auth
- * This is optional for hosted deployments - only used if MSAL auth is enabled
- */
-async function getMicrosoftAuthToken(forceNew: boolean = false): Promise<string | null> {
-  const config = vscode.workspace.getConfiguration('darbot-browser-mcp-hosted');
-  const useMsalAuth = config.get('useMsalAuth', false);
-  
+function readConfig(): HostedConfig {
+  const config = vscode.workspace.getConfiguration(CONFIG_NAMESPACE);
+  const envOverride = process.env.SERVER_BASE_URL?.trim();
+  const serverUrl = (envOverride && envOverride.length > 0)
+    ? envOverride
+    : (config.get<string>('serverUrl') ?? 'http://localhost:8080').trim();
+  const explicitEndpoint = (config.get<string>('mcpEndpoint') ?? '').trim();
+  const mcpEndpoint = explicitEndpoint.length > 0
+    ? explicitEndpoint
+    : `${serverUrl.replace(/\/+$/, '')}/mcp`;
+
+  return {
+    serverUrl,
+    mcpEndpoint,
+    autoConnect: config.get<boolean>('autoConnect', true),
+    connectionTimeout: config.get<number>('connectionTimeout', 10_000),
+    enableHealthChecks: config.get<boolean>('enableHealthChecks', true),
+    healthCheckInterval: config.get<number>('healthCheckInterval', 30_000),
+    useMsalAuth: config.get<boolean>('useMsalAuth', false),
+    scopes: config.get<string[]>('scopes', ['openid', 'profile', 'email', 'User.Read']),
+    autoStartContainer: config.get<boolean>('autoStartContainer', true),
+    containerName: (config.get<string>('containerName') ?? 'darbot-browser-hosted').trim(),
+  };
+}
+
+function formatError(err: unknown): string {
+  if (err instanceof Error)
+    return err.message;
+  if (typeof err === 'string')
+    return err;
+  try {
+    return JSON.stringify(err);
+  } catch {
+    return String(err);
+  }
+}
+
+async function getMicrosoftAuthToken(forceInteractive: boolean): Promise<string | null> {
+  const { useMsalAuth, scopes } = readConfig();
   if (!useMsalAuth) {
-    mcpOutputChannel?.appendLine('MSAL authentication disabled - using anonymous access');
+    mcpOutputChannel?.appendLine('MSAL authentication disabled — using anonymous access.');
     return null;
   }
-
   try {
-    if (cachedAuthSession && !forceNew) {
-      mcpOutputChannel?.appendLine('Using cached Microsoft auth session');
+    if (cachedAuthSession && !forceInteractive) {
+      mcpOutputChannel?.appendLine('Reusing cached Microsoft auth session.');
       return cachedAuthSession.accessToken;
     }
-
-    const scopes = ['openid', 'profile', 'email', 'User.Read'];
-    
-    mcpOutputChannel?.appendLine('Requesting Microsoft authentication session...');
-    
-    let session = await vscode.authentication.getSession('microsoft', scopes, { 
+    let session = await vscode.authentication.getSession('microsoft', scopes, {
       createIfNone: false,
-      silent: true 
+      silent: true,
     });
-
-    if (!session) {
-      mcpOutputChannel?.appendLine('No existing session, requesting new authentication...');
-      session = await vscode.authentication.getSession('microsoft', scopes, { 
-        createIfNone: true 
+    if (!session && forceInteractive) {
+      session = await vscode.authentication.getSession('microsoft', scopes, {
+        createIfNone: true,
       });
     }
-
     if (session) {
       cachedAuthSession = session;
-      mcpOutputChannel?.appendLine(`Authenticated as: ${session.account.label}`);
+      mcpOutputChannel?.appendLine(`Authenticated as ${session.account.label}.`);
       return session.accessToken;
     }
-
-    mcpOutputChannel?.appendLine('Failed to obtain Microsoft authentication session');
+    mcpOutputChannel?.appendLine('No Microsoft authentication session available.');
     return null;
-  } catch (error) {
-    mcpOutputChannel?.appendLine(`Microsoft authentication error: ${error}`);
+  } catch (err) {
+    mcpOutputChannel?.appendLine(`Microsoft authentication error: ${formatError(err)}`);
     return null;
   }
 }
 
-/**
- * MCP Server Definition Provider for GitHub Copilot agent mode
- * This class provides the server configuration for VS Code's MCP infrastructure
- * For hosted servers, we use McpHttpServerDefinition with the local Docker endpoint
- */
 class DarbotBrowserMCPHostedProvider implements vscode.McpServerDefinitionProvider {
-  
-  /**
-   * Provides available MCP servers. Called eagerly by VS Code.
-   */
   async provideMcpServerDefinitions(): Promise<vscode.McpServerDefinition[]> {
-    const config = vscode.workspace.getConfiguration('darbot-browser-mcp-hosted');
-    const mcpEndpoint = config.get('mcpEndpoint', 'http://localhost:8080/mcp');
-
-    try {
-      const McpHttpServerDefinition = (vscode as any).McpHttpServerDefinition;
-      if (McpHttpServerDefinition) {
-        const serverDef = new McpHttpServerDefinition(
-          'Darbot Browser MCP Hosted',
-          vscode.Uri.parse(mcpEndpoint),
-          undefined, // Headers added in resolve
-          '1.3.0'
-        );
-        mcpOutputChannel?.appendLine(`MCP Server Definition created: ${mcpEndpoint}`);
-        return [serverDef];
-      }
-    } catch (e) {
-      mcpOutputChannel?.appendLine(`McpHttpServerDefinition not available: ${e}`);
+    const { mcpEndpoint } = readConfig();
+    const McpHttpServerDefinition = (vscode as unknown as { McpHttpServerDefinition?: McpHttpServerDefinitionCtor }).McpHttpServerDefinition;
+    if (McpHttpServerDefinition) {
+      const def = new McpHttpServerDefinition(
+        'Darbot Browser MCP Hosted',
+        vscode.Uri.parse(mcpEndpoint),
+        undefined,
+        EXTENSION_VERSION,
+      );
+      mcpOutputChannel?.appendLine(`MCP server definition created at ${mcpEndpoint}.`);
+      return [def as unknown as vscode.McpServerDefinition];
     }
-
-    // Fallback for older VS Code versions
-    mcpOutputChannel?.appendLine('Using fallback MCP server definition format');
-    return [{
+    mcpOutputChannel?.appendLine('McpHttpServerDefinition constructor not available — emitting plain definition.');
+    const fallback: McpHttpServerDefinitionLike = {
       label: 'Darbot Browser MCP Hosted',
       uri: vscode.Uri.parse(mcpEndpoint),
-      version: '1.3.0'
-    } as any];
+      version: EXTENSION_VERSION,
+    };
+    return [fallback as unknown as vscode.McpServerDefinition];
   }
 
-  /**
-   * Resolves the MCP server definition before starting.
-   * Optionally adds MSAL authentication if enabled.
-   */
   async resolveMcpServerDefinition(
-    server: vscode.McpServerDefinition, 
-    token: vscode.CancellationToken
+    server: vscode.McpServerDefinition,
+    _token: vscode.CancellationToken,
   ): Promise<vscode.McpServerDefinition | undefined> {
-    mcpOutputChannel?.appendLine('Resolving MCP server definition...');
-
-    try {
-      const config = vscode.workspace.getConfiguration('darbot-browser-mcp-hosted');
-      const useMsalAuth = config.get('useMsalAuth', false);
-
-      if (useMsalAuth) {
-        const authToken = await getMicrosoftAuthToken();
-        
-        if (authToken) {
-          const serverWithAuth = server as any;
-          serverWithAuth.headers = {
-            ...serverWithAuth.headers,
-            'Authorization': `Bearer ${authToken}`
-          };
-          mcpOutputChannel?.appendLine('MSAL authentication token added to server headers');
-          return serverWithAuth;
-        }
-      }
-
-      mcpOutputChannel?.appendLine('Using server without authentication headers');
+    const { useMsalAuth } = readConfig();
+    if (!useMsalAuth)
       return server;
-    } catch (error) {
-      mcpOutputChannel?.appendLine(`Error resolving server: ${error}`);
+
+    const token = await getMicrosoftAuthToken(false);
+    if (!token) {
+      mcpOutputChannel?.appendLine('Resolving server without authentication header — silent token fetch returned nothing.');
       return server;
     }
+    const headerHolder = server as unknown as McpHttpServerDefinitionLike;
+    headerHolder.headers = {
+      ...(headerHolder.headers ?? {}),
+      Authorization: `Bearer ${token}`,
+    };
+    mcpOutputChannel?.appendLine('Attached bearer token to MCP server definition.');
+    return server;
   }
 }
 
-export function activate(context: vscode.ExtensionContext) {
-  // Create output channel for logging
+export function activate(context: vscode.ExtensionContext): void {
   mcpOutputChannel = vscode.window.createOutputChannel('Darbot Browser MCP Hosted');
   context.subscriptions.push(mcpOutputChannel);
 
-  // Create status bar item
   statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 99);
   statusBarItem.text = '$(server) MCP Hosted: Disconnected';
-  statusBarItem.tooltip = 'Browser MCP Hosted Server Status';
-  statusBarItem.command = 'darbot-browser-mcp-hosted.showStatus';
+  statusBarItem.tooltip = 'Darbot Browser MCP Hosted Server';
+  statusBarItem.command = `${CONFIG_NAMESPACE}.showStatus`;
   statusBarItem.show();
   context.subscriptions.push(statusBarItem);
 
-  // Register MCP Server Definition Provider for GitHub Copilot agent mode
   try {
-    const mcpProvider = new DarbotBrowserMCPHostedProvider();
-    if (vscode.lm && typeof (vscode.lm as any).registerMcpServerDefinitionProvider === 'function') {
-      const mcpProviderDisposable = (vscode.lm as any).registerMcpServerDefinitionProvider('darbot-browser-mcp-hosted', mcpProvider);
-      context.subscriptions.push(mcpProviderDisposable);
-      mcpOutputChannel.appendLine('MCP Server Definition Provider registered via vscode.lm API.');
+    const lm = vscode.lm as unknown as {
+      registerMcpServerDefinitionProvider?: (id: string, provider: vscode.McpServerDefinitionProvider) => vscode.Disposable;
+    };
+    if (lm && typeof lm.registerMcpServerDefinitionProvider === 'function') {
+      const provider = new DarbotBrowserMCPHostedProvider();
+      const disposable = lm.registerMcpServerDefinitionProvider(CONFIG_NAMESPACE, provider);
+      context.subscriptions.push(disposable);
+      mcpOutputChannel.appendLine('MCP server-definition provider registered via vscode.lm.');
     } else {
-      const mcpApi = (vscode as any).mcp;
-      if (mcpApi && typeof mcpApi.registerMcpServerDefinitionProvider === 'function') {
-        const mcpProviderDisposable = mcpApi.registerMcpServerDefinitionProvider('darbot-browser-mcp-hosted', mcpProvider);
-        context.subscriptions.push(mcpProviderDisposable);
-        mcpOutputChannel.appendLine('MCP Server Definition Provider registered via vscode.mcp API.');
-      } else {
-        mcpOutputChannel.appendLine('MCP Server Definition Provider API not available. Will use settings-based configuration.');
-      }
+      mcpOutputChannel.appendLine('vscode.lm.registerMcpServerDefinitionProvider unavailable; relying on settings-based MCP configuration.');
     }
-  } catch (error) {
-    mcpOutputChannel.appendLine(`Failed to register MCP Server Definition Provider: ${error}. Using settings-based configuration.`);
+  } catch (err) {
+    mcpOutputChannel.appendLine(`Failed to register MCP server-definition provider: ${formatError(err)}`);
   }
 
-  // Register commands
-  const connectServerCommand = vscode.commands.registerCommand('darbot-browser-mcp-hosted.connectServer', connectToHosted);
-  const disconnectServerCommand = vscode.commands.registerCommand('darbot-browser-mcp-hosted.disconnectServer', disconnectFromHosted);
-  const showStatusCommand = vscode.commands.registerCommand('darbot-browser-mcp-hosted.showStatus', showStatus);
-  const testConnectionCommand = vscode.commands.registerCommand('darbot-browser-mcp-hosted.testConnection', testConnection);
+  context.subscriptions.push(
+    vscode.commands.registerCommand(`${CONFIG_NAMESPACE}.signIn`, () => signIn()),
+    vscode.commands.registerCommand(`${CONFIG_NAMESPACE}.connectServer`, () => connectToHosted()),
+    vscode.commands.registerCommand(`${CONFIG_NAMESPACE}.disconnectServer`, () => disconnectFromHosted()),
+    vscode.commands.registerCommand(`${CONFIG_NAMESPACE}.showStatus`, () => showStatus()),
+    vscode.commands.registerCommand(`${CONFIG_NAMESPACE}.testConnection`, () => testConnection()),
+  );
 
-  context.subscriptions.push(connectServerCommand, disconnectServerCommand, showStatusCommand, testConnectionCommand);
+  logConfiguration();
 
-  // Log configuration
-  void configureMCPServer();
-
-  // Auto-connect if configured
-  const config = vscode.workspace.getConfiguration('darbot-browser-mcp-hosted');
-  if (config.get('autoConnect', true)) {
+  const { autoConnect } = readConfig();
+  if (autoConnect)
     void connectToHosted();
-  }
 }
 
-export function deactivate() {
-  if (healthCheckInterval) {
-    clearInterval(healthCheckInterval);
-    healthCheckInterval = null;
+export function deactivate(): void {
+  if (healthCheckTimer) {
+    clearInterval(healthCheckTimer);
+    healthCheckTimer = null;
   }
   isHostedConnected = false;
-  if (statusBarItem) {
-    statusBarItem.dispose();
-  }
-  if (mcpOutputChannel) {
-    mcpOutputChannel.dispose();
-  }
+  statusBarItem?.dispose();
+  mcpOutputChannel?.dispose();
 }
 
-async function configureMCPServer() {
-  const config = vscode.workspace.getConfiguration('darbot-browser-mcp-hosted');
-  const mcpEndpoint = config.get('mcpEndpoint', 'http://localhost:8080/mcp');
-  const useMsalAuth = config.get('useMsalAuth', false);
-
-  mcpOutputChannel.appendLine('Darbot Browser MCP Hosted server registered via McpServerDefinitionProvider.');
-  mcpOutputChannel.appendLine(`MCP Endpoint: ${mcpEndpoint}`);
-  mcpOutputChannel.appendLine(`Authentication: ${useMsalAuth ? 'MSAL (Microsoft Entra ID)' : 'Anonymous/None'}`);
-  mcpOutputChannel.appendLine('The server will appear in GitHub Copilot agent mode tools list.');
+function logConfiguration(): void {
+  const cfg = readConfig();
+  mcpOutputChannel.appendLine('--- Darbot Browser MCP Hosted ---');
+  mcpOutputChannel.appendLine(`Extension version : ${EXTENSION_VERSION}`);
+  mcpOutputChannel.appendLine(`Server URL        : ${cfg.serverUrl}`);
+  mcpOutputChannel.appendLine(`MCP endpoint      : ${cfg.mcpEndpoint}`);
+  mcpOutputChannel.appendLine(`Authentication    : ${cfg.useMsalAuth ? 'MSAL (Microsoft Entra ID)' : 'Anonymous'}`);
+  mcpOutputChannel.appendLine(`Auto-start container: ${cfg.autoStartContainer} (name=${cfg.containerName})`);
+  if (process.env.SERVER_BASE_URL?.trim())
+    mcpOutputChannel.appendLine(`(SERVER_BASE_URL env override active)`);
 }
 
-async function connectToHosted() {
-  if (isHostedConnected) {
-    void vscode.window.showInformationMessage('Already connected to Browser MCP Hosted Server');
+async function signIn(): Promise<void> {
+  const cfg = readConfig();
+  if (!cfg.useMsalAuth) {
+    await vscode.window.showWarningMessage('useMsalAuth is disabled. Enable it in settings to sign in.');
     return;
   }
+  const token = await getMicrosoftAuthToken(true);
+  if (token)
+    await vscode.window.showInformationMessage(`Signed in as ${cachedAuthSession?.account.label ?? 'unknown'}.`);
+  else
+    await vscode.window.showErrorMessage('Microsoft sign-in failed. See the output channel for details.');
+}
 
-  const config = vscode.workspace.getConfiguration('darbot-browser-mcp-hosted');
-  const serverUrl = config.get('serverUrl', 'http://localhost:8080');
-  const enableHealthChecks = config.get('enableHealthChecks', true);
-  const healthCheckIntervalMs = config.get('healthCheckInterval', 30000);
-  const autoStartContainer = config.get('autoStartContainer', true);
-  const containerName = config.get('containerName', 'darbot-browser-hosted');
-
-  mcpOutputChannel.appendLine(`Connecting to hosted server: ${serverUrl}`);
+async function connectToHosted(): Promise<void> {
+  if (isHostedConnected) {
+    await vscode.window.showInformationMessage('Already connected to Darbot Browser MCP Hosted.');
+    return;
+  }
+  const cfg = readConfig();
+  mcpOutputChannel.appendLine(`Connecting to hosted server at ${cfg.serverUrl}…`);
 
   try {
-    let healthResult = await performHealthCheck(serverUrl);
-    
-    // If health check fails and auto-start is enabled, try to start the container
-    if (!healthResult.success && autoStartContainer) {
-      mcpOutputChannel.appendLine(`Server not responding. Attempting to start Docker container '${containerName}'...`);
-      updateStatusBarItem(false, 'Starting...');
-      
-      const startResult = await startDockerContainer(containerName);
+    let health = await performHealthCheck(cfg);
+
+    if (!health.success && cfg.autoStartContainer) {
+      mcpOutputChannel.appendLine(`Server unreachable. Attempting to start Docker container "${cfg.containerName}".`);
+      updateStatusBarItem(false, 'Starting…');
+      const startResult = await startDockerContainer(cfg.containerName);
       if (startResult.success) {
-        mcpOutputChannel.appendLine(`Container started. Waiting for server to be ready...`);
-        // Wait a bit for the server to initialize
-        await new Promise(resolve => setTimeout(resolve, 3000));
-        healthResult = await performHealthCheck(serverUrl);
-        
-        // Retry a few times if still not ready
+        await waitFor(3000);
+        health = await performHealthCheck(cfg);
         let retries = 5;
-        while (!healthResult.success && retries > 0) {
-          mcpOutputChannel.appendLine(`Server not ready yet, retrying... (${retries} attempts left)`);
-          await new Promise(resolve => setTimeout(resolve, 2000));
-          healthResult = await performHealthCheck(serverUrl);
+        while (!health.success && retries > 0) {
+          mcpOutputChannel.appendLine(`Server not ready yet, retrying (${retries} left)…`);
+          await waitFor(2000);
+          health = await performHealthCheck(cfg);
           retries--;
         }
       } else {
-        mcpOutputChannel.appendLine(`Failed to start container: ${startResult.error}`);
+        mcpOutputChannel.appendLine(`Container start failed: ${startResult.error}`);
       }
     }
-    
-    if (healthResult.success) {
-      isHostedConnected = true;
-      updateStatusBarItem(true);
-      mcpOutputChannel.appendLine('Connected to Browser MCP Hosted Server successfully.');
-      mcpOutputChannel.appendLine(`Server URL: ${serverUrl}`);
-      mcpOutputChannel.appendLine(`Server Version: ${healthResult.version}`);
-      mcpOutputChannel.appendLine(`Server Status: ${healthResult.status}`);
-      mcpOutputChannel.show(true);
 
-      if (enableHealthChecks) {
-        healthCheckInterval = setInterval(async () => {
-          const check = await performHealthCheck(serverUrl);
-          if (!check.success) {
-            mcpOutputChannel.appendLine(`Health check failed: ${check.error}`);
-          }
-        }, healthCheckIntervalMs);
-      }
+    if (!health.success)
+      throw new Error(health.error ?? 'Health check failed');
 
-      void vscode.window.showInformationMessage(`Connected to Browser MCP Hosted Server (v${healthResult.version})`);
-    } else {
-      throw new Error(healthResult.error);
+    isHostedConnected = true;
+    updateStatusBarItem(true);
+    mcpOutputChannel.appendLine(`Connected. Server version ${health.version ?? 'unknown'}, status ${health.status ?? 'unknown'}.`);
+    mcpOutputChannel.show(true);
+
+    if (cfg.enableHealthChecks) {
+      healthCheckTimer = setInterval(async () => {
+        const check = await performHealthCheck(cfg);
+        if (!check.success)
+          mcpOutputChannel.appendLine(`Health check failed: ${check.error}`);
+      }, cfg.healthCheckInterval);
     }
-  } catch (error) {
-    mcpOutputChannel.appendLine(`Connection failed: ${error}`);
-    void vscode.window.showErrorMessage(`Failed to connect to hosted server: ${error}`);
+
+    await vscode.window.showInformationMessage(`Connected to Darbot Browser MCP Hosted (v${health.version ?? '?'}).`);
+  } catch (err) {
+    const message = formatError(err);
+    mcpOutputChannel.appendLine(`Connection failed: ${message}`);
+    await vscode.window.showErrorMessage(`Failed to connect to hosted server: ${message}`);
     updateStatusBarItem(false);
   }
 }
 
-async function performHealthCheck(serverUrl: string): Promise<{success: boolean; status?: string; version?: string; error?: string}> {
-  try {
-    const https = await import('https');
-    const http = await import('http');
-    const protocol = serverUrl.startsWith('https') ? https : http;
-
-    return new Promise((resolve) => {
-      const req = protocol.get(`${serverUrl}/health`, { timeout: 10000 }, res => {
-        let data = '';
-        res.on('data', chunk => { data += chunk; });
-        res.on('end', () => {
-          if (res.statusCode === 200 || res.statusCode === 503) {
-            try {
-              const json = JSON.parse(data);
-              resolve({ success: true, status: json.status, version: json.version });
-            } catch {
-              resolve({ success: true, status: 'unknown', version: 'unknown' });
-            }
-          } else {
-            resolve({ success: false, error: `HTTP ${res.statusCode}` });
-          }
-        });
-      });
-      
-      req.on('error', err => {
-        resolve({ success: false, error: err.message });
-      });
-      
-      req.on('timeout', () => {
-        req.destroy();
-        resolve({ success: false, error: 'Connection timeout' });
-      });
-    });
-  } catch (error) {
-    return { success: false, error: String(error) };
-  }
-}
-
-/**
- * Start a Docker container by name
- */
-async function startDockerContainer(containerName: string): Promise<{success: boolean; error?: string}> {
-  const { exec } = await import('child_process');
-  
-  return new Promise((resolve) => {
-    // First try to start existing container
-    exec(`docker start ${containerName}`, (error, stdout, stderr) => {
-      if (error) {
-        // Container might not exist, check if we should create it
-        mcpOutputChannel.appendLine(`docker start failed: ${stderr || error.message}`);
-        
-        // Try to check if container exists but is in a bad state
-        exec(`docker ps -a --filter "name=${containerName}" --format "{{.Status}}"`, (checkError, checkStdout) => {
-          if (checkStdout && checkStdout.trim()) {
-            // Container exists but couldn't start
-            resolve({ success: false, error: `Container exists but failed to start: ${stderr || error.message}` });
-          } else {
-            // Container doesn't exist - provide helpful message
-            resolve({ success: false, error: `Container '${containerName}' not found. Run: docker run -d --name ${containerName} -p 8080:8080 -e ALLOW_ANONYMOUS_ACCESS=true darbot-browser-hosted` });
-          }
-        });
-      } else {
-        mcpOutputChannel.appendLine(`Container '${containerName}' started successfully`);
-        resolve({ success: true });
-      }
-    });
-  });
-}
-
-function disconnectFromHosted() {
+function disconnectFromHosted(): void {
   if (!isHostedConnected) {
-    void vscode.window.showInformationMessage('Not connected to Browser MCP Hosted Server');
+    void vscode.window.showInformationMessage('Not connected to Darbot Browser MCP Hosted.');
     return;
   }
-
-  if (healthCheckInterval) {
-    clearInterval(healthCheckInterval);
-    healthCheckInterval = null;
+  if (healthCheckTimer) {
+    clearInterval(healthCheckTimer);
+    healthCheckTimer = null;
   }
-
   isHostedConnected = false;
   updateStatusBarItem(false);
-  mcpOutputChannel.appendLine('Disconnected from Browser MCP Hosted Server');
-  void vscode.window.showInformationMessage('Disconnected from Browser MCP Hosted Server');
+  mcpOutputChannel.appendLine('Disconnected from hosted server.');
+  void vscode.window.showInformationMessage('Disconnected from Darbot Browser MCP Hosted.');
 }
 
-async function testConnection() {
-  const config = vscode.workspace.getConfiguration('darbot-browser-mcp-hosted');
-  const serverUrl = config.get('serverUrl', 'http://localhost:8080');
-
-  mcpOutputChannel.appendLine(`Testing connection to: ${serverUrl}/health`);
-  
-  const result = await performHealthCheck(serverUrl);
-  
+async function testConnection(): Promise<void> {
+  const cfg = readConfig();
+  mcpOutputChannel.appendLine(`Testing connection to ${cfg.serverUrl}/health…`);
+  const result = await performHealthCheck(cfg);
   if (result.success) {
-    mcpOutputChannel.appendLine(`Connection test successful!`);
-    mcpOutputChannel.appendLine(`  Status: ${result.status}`);
-    mcpOutputChannel.appendLine(`  Version: ${result.version}`);
-    void vscode.window.showInformationMessage(`Hosted server is healthy (v${result.version}) at ${serverUrl}`);
+    mcpOutputChannel.appendLine(`OK — status ${result.status ?? 'unknown'}, version ${result.version ?? 'unknown'}.`);
+    await vscode.window.showInformationMessage(`Hosted server healthy (v${result.version ?? '?'}) at ${cfg.serverUrl}`);
   } else {
-    mcpOutputChannel.appendLine(`Connection test failed: ${result.error}`);
-    void vscode.window.showErrorMessage(`Failed to connect to hosted server: ${result.error}`);
+    mcpOutputChannel.appendLine(`FAIL — ${result.error}`);
+    await vscode.window.showErrorMessage(`Hosted server probe failed: ${result.error}`);
   }
 }
 
-function showStatus() {
-  const status = isHostedConnected ? 'Connected' : 'Disconnected';
-  const config = vscode.workspace.getConfiguration('darbot-browser-mcp-hosted');
-  const serverUrl = config.get('serverUrl', 'http://localhost:8080');
-  const mcpEndpoint = config.get('mcpEndpoint', 'http://localhost:8080/mcp');
-  const useMsalAuth = config.get('useMsalAuth', false);
+function showStatus(): void {
+  const cfg = readConfig();
   const hasSession = cachedAuthSession !== null;
-
-  mcpOutputChannel.appendLine(`--- Status Check ---`);
-  mcpOutputChannel.appendLine(`Connection: ${status}`);
-  mcpOutputChannel.appendLine(`Server URL: ${serverUrl}`);
-  mcpOutputChannel.appendLine(`MCP Endpoint: ${mcpEndpoint}`);
-  mcpOutputChannel.appendLine(`Authentication: ${useMsalAuth ? (hasSession ? `MSAL (${cachedAuthSession?.account.label})` : 'MSAL (not authenticated)') : 'Anonymous'}`);
+  mcpOutputChannel.appendLine('--- Status ---');
+  mcpOutputChannel.appendLine(`Connection      : ${isHostedConnected ? 'Connected' : 'Disconnected'}`);
+  mcpOutputChannel.appendLine(`Server URL      : ${cfg.serverUrl}`);
+  mcpOutputChannel.appendLine(`MCP endpoint    : ${cfg.mcpEndpoint}`);
+  mcpOutputChannel.appendLine(`Authentication  : ${cfg.useMsalAuth ? (hasSession ? `MSAL (${cachedAuthSession?.account.label})` : 'MSAL (not signed in)') : 'Anonymous'}`);
   mcpOutputChannel.show();
 
-  vscode.window.showInformationMessage(
-      `Browser MCP Hosted: ${status}`,
-      ...(isHostedConnected ? ['Disconnect', 'Test Connection'] : ['Connect', 'Test Connection']),
-  ).then((selection: string | undefined) => {
-    if (selection === 'Connect') {
+  const actions = isHostedConnected ? ['Disconnect', 'Test Connection'] : ['Connect', 'Test Connection'];
+  void vscode.window.showInformationMessage(
+    `Darbot Browser MCP Hosted: ${isHostedConnected ? 'Connected' : 'Disconnected'}`,
+    ...actions,
+  ).then(selection => {
+    if (selection === 'Connect')
       void connectToHosted();
-    } else if (selection === 'Disconnect') {
+    else if (selection === 'Disconnect')
       disconnectFromHosted();
-    } else if (selection === 'Test Connection') {
+    else if (selection === 'Test Connection')
       void testConnection();
-    }
   });
 }
 
-function updateStatusBarItem(isConnected: boolean, customStatus?: string) {
-  if (statusBarItem) {
-    if (customStatus) {
-      statusBarItem.text = `$(server) MCP Hosted: ${customStatus}`;
-      statusBarItem.backgroundColor = new vscode.ThemeColor('statusBarItem.warningBackground');
-    } else {
-      statusBarItem.text = isConnected ? '$(server) MCP Hosted: Connected' : '$(server) MCP Hosted: Disconnected';
-      statusBarItem.backgroundColor = isConnected
-        ? new vscode.ThemeColor('statusBarItem.prominentBackground')
-        : undefined;
-    }
+function updateStatusBarItem(isConnected: boolean, customStatus?: string): void {
+  if (!statusBarItem) return;
+  if (customStatus) {
+    statusBarItem.text = `$(server) MCP Hosted: ${customStatus}`;
+    statusBarItem.backgroundColor = new vscode.ThemeColor('statusBarItem.warningBackground');
+  } else {
+    statusBarItem.text = isConnected
+      ? '$(server) MCP Hosted: Connected'
+      : '$(server) MCP Hosted: Disconnected';
+    statusBarItem.backgroundColor = isConnected
+      ? new vscode.ThemeColor('statusBarItem.prominentBackground')
+      : undefined;
   }
+}
+
+function performHealthCheck(cfg: HostedConfig): Promise<HealthResult> {
+  const protocol = cfg.serverUrl.startsWith('https') ? https : http;
+  return new Promise(resolve => {
+    const req = protocol.get(`${cfg.serverUrl.replace(/\/+$/, '')}/health`, { timeout: cfg.connectionTimeout }, res => {
+      let data = '';
+      res.on('data', chunk => { data += chunk; });
+      res.on('end', () => {
+        if (res.statusCode === 200 || res.statusCode === 503) {
+          try {
+            const json = JSON.parse(data) as { status?: string; version?: string };
+            resolve({ success: true, status: json.status, version: json.version });
+          } catch {
+            resolve({ success: true, status: 'unknown', version: 'unknown' });
+          }
+        } else {
+          resolve({ success: false, error: `HTTP ${res.statusCode}` });
+        }
+      });
+    });
+    req.on('error', err => resolve({ success: false, error: err.message }));
+    req.on('timeout', () => {
+      req.destroy();
+      resolve({ success: false, error: `Timeout after ${cfg.connectionTimeout}ms` });
+    });
+  });
+}
+
+function startDockerContainer(containerName: string): Promise<{ success: boolean; error?: string }> {
+  return new Promise(resolve => {
+    exec(`docker start ${containerName}`, (error, _stdout, stderr) => {
+      if (!error) {
+        mcpOutputChannel.appendLine(`Container "${containerName}" started.`);
+        resolve({ success: true });
+        return;
+      }
+      mcpOutputChannel.appendLine(`docker start failed: ${stderr.trim() || error.message}`);
+      exec(`docker ps -a --filter "name=${containerName}" --format "{{.Status}}"`, (checkErr, checkStdout) => {
+        if (checkErr) {
+          resolve({ success: false, error: `Failed to inspect Docker: ${checkErr.message}` });
+          return;
+        }
+        if (checkStdout && checkStdout.trim()) {
+          resolve({ success: false, error: `Container exists but failed to start: ${stderr.trim() || error.message}` });
+        } else {
+          resolve({
+            success: false,
+            error: `Container "${containerName}" not found. Run: docker run -d --name ${containerName} -p 8080:8080 -e ALLOW_ANONYMOUS_ACCESS=true darbot-browser-hosted`,
+          });
+        }
+      });
+    });
+  });
+}
+
+function waitFor(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }

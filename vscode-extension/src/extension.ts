@@ -1,5 +1,6 @@
 /**
- * Copyright (c) 2024 DarbotLabs
+ * Copyright (c) DarbotLabs.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,289 +16,334 @@
 
 import * as vscode from 'vscode';
 import { spawn, ChildProcess } from 'child_process';
+import * as path from 'path';
+import * as fs from 'fs/promises';
 
-let mcpServerProcess: ChildProcess | null = null;
-let statusBarItem: vscode.StatusBarItem;
-let mcpOutputChannel: vscode.OutputChannel;
+const EXTENSION_ID = 'darbot-browser-mcp';
+const CONFIG_SECTION = 'darbot-browser-mcp';
+const OUTPUT_CHANNEL_NAME = 'Darbot Browser MCP';
+
+interface ServerConfig {
+  serverPath: string;
+  autoStart: boolean;
+  autoConfigureMCP: boolean;
+  logLevel: 'error' | 'warn' | 'info' | 'debug';
+  browser: 'msedge' | 'chrome' | 'firefox' | 'webkit';
+  headless: boolean;
+  noSandbox: boolean;
+  bridgeStatusUrl: string;
+}
+
+function readConfig(): ServerConfig {
+  const cfg = vscode.workspace.getConfiguration(CONFIG_SECTION);
+  return {
+    serverPath: cfg.get<string>('serverPath', 'npx @darbotlabs/darbot-browser-mcp@latest'),
+    autoStart: cfg.get<boolean>('autoStart', false),
+    autoConfigureMCP: cfg.get<boolean>('autoConfigureMCP', true),
+    logLevel: cfg.get<'error' | 'warn' | 'info' | 'debug'>('logLevel', 'info'),
+    browser: cfg.get<'msedge' | 'chrome' | 'firefox' | 'webkit'>('browser', 'msedge'),
+    headless: cfg.get<boolean>('headless', false),
+    noSandbox: cfg.get<boolean>('noSandbox', true),
+    bridgeStatusUrl: cfg.get<string>('bridgeStatusUrl', 'http://localhost:9223/health'),
+  };
+}
+
+function buildServerArgs(config: ServerConfig): string[] {
+  const args: string[] = [];
+  if (config.browser !== 'msedge')
+    args.push('--browser', config.browser);
+  if (config.headless)
+    args.push('--headless');
+  if (config.noSandbox)
+    args.push('--no-sandbox');
+  if (config.logLevel !== 'info')
+    args.push('--log-level', config.logLevel);
+  return args;
+}
 
 /**
- * MCP Server Definition Provider for GitHub Copilot agent mode
- * This class provides the server configuration for VS Code's MCP infrastructure
+ * Locate a workspace-local `cli.js` so contributors hacking on the MCP server
+ * itself can drive the extension against their checked-out copy without
+ * shipping a new package version. Returns `null` when not found.
+ */
+async function findLocalCli(): Promise<string | null> {
+  const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+  if (!workspaceFolder)
+    return null;
+  const candidate = path.join(workspaceFolder, 'cli.js');
+  try {
+    await fs.access(candidate);
+    return candidate;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * MCP Server Definition Provider for VS Code's chat / agent mode.
+ *
+ * The provider returns a server definition that VS Code itself will spawn
+ * and own — we don't need a separate child process for the agent mode path.
  */
 class DarbotBrowserMCPProvider implements vscode.McpServerDefinitionProvider {
-  async provideMcpServerDefinitions(): Promise<vscode.McpServerDefinition[]> {
-    const config = vscode.workspace.getConfiguration('darbot-browser-mcp');
-    const browser = config.get('browser', 'msedge');
-    const headless = config.get('headless', false);
-    const noSandbox = config.get('noSandbox', true);
-    const logLevel = config.get('logLevel', 'info');
+  constructor(private readonly output: vscode.OutputChannel) {}
 
-    // Check if workspace contains cli.js (local dev)
-    const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
-    let useLocalCli = false;
-    let localCliPath = '';
-    
-    if (workspaceFolder) {
-      const path = await import('path');
-      const fs = await import('fs');
-      localCliPath = path.join(workspaceFolder, 'cli.js');
-      try {
-        await fs.promises.access(localCliPath);
-        useLocalCli = true;
-      } catch {
-        // cli.js not found, use npx
-      }
+  async provideMcpServerDefinitions(): Promise<vscode.McpServerDefinition[]> {
+    const config = readConfig();
+    const localCli = await findLocalCli();
+
+    let command: string;
+    let args: string[];
+
+    if (localCli) {
+      command = 'node';
+      args = [localCli];
+      this.output.appendLine(`MCP provider: using local cli.js at ${localCli}`);
+    } else {
+      const parts = config.serverPath.trim().split(/\s+/);
+      command = parts[0];
+      args = parts.slice(1);
+      this.output.appendLine(`MCP provider: using configured serverPath '${config.serverPath}'`);
     }
 
-    // Build args array
-    const args: string[] = useLocalCli 
-      ? [localCliPath] 
-      : ['@darbotlabs/darbot-browser-mcp@latest'];
-
-    // Add browser configuration options
-    if (browser !== 'msedge')
-      args.push('--browser', browser as string);
-
-    if (headless)
-      args.push('--headless');
-
-    if (noSandbox)
-      args.push('--no-sandbox');
-
-    if (logLevel !== 'info')
-      args.push('--log-level', logLevel as string);
-
+    args.push(...buildServerArgs(config));
 
     return [{
       label: 'Darbot Browser MCP',
-      command: useLocalCli ? 'node' : 'npx',
+      command,
       args,
       env: {
-        // Ensure NODE_ENV is set for proper operation
-        NODE_ENV: process.env.NODE_ENV || 'production'
-      }
-    }];
+        NODE_ENV: process.env.NODE_ENV ?? 'production',
+      },
+    } as vscode.McpServerDefinition];
   }
 }
 
-export function activate(context: vscode.ExtensionContext) {
-  // Create output channel for logging
-  mcpOutputChannel = vscode.window.createOutputChannel('Darbot Browser MCP');
+let mcpServerProcess: ChildProcess | null = null;
+let statusBarItem: vscode.StatusBarItem | undefined;
+let mcpOutputChannel: vscode.OutputChannel;
+
+export function activate(context: vscode.ExtensionContext): void {
+  mcpOutputChannel = vscode.window.createOutputChannel(OUTPUT_CHANNEL_NAME);
   context.subscriptions.push(mcpOutputChannel);
 
-  // Create status bar item
   statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
   statusBarItem.text = '$(browser) MCP: Stopped';
-  statusBarItem.tooltip = 'Browser MCP Server Status';
-  statusBarItem.command = 'darbot-browser-mcp.showStatus';
+  statusBarItem.tooltip = 'Darbot Browser MCP server status — click for actions';
+  statusBarItem.command = `${EXTENSION_ID}.showStatus`;
   statusBarItem.show();
   context.subscriptions.push(statusBarItem);
 
-  // Register MCP Server Definition Provider for GitHub Copilot agent mode
-  try {
-    const mcpProvider = new DarbotBrowserMCPProvider();
-    // Try to register the MCP provider - this may not be available in all VS Code versions
-    const lmApi = (vscode as any).lm;
-    if (lmApi && typeof lmApi.registerMcpServerDefinitionProvider === 'function') {
-      const mcpProviderDisposable = lmApi.registerMcpServerDefinitionProvider('darbot-browser-mcp', mcpProvider);
-      context.subscriptions.push(mcpProviderDisposable);
-      mcpOutputChannel.appendLine('MCP Server Definition Provider registered for GitHub Copilot agent mode.');
-    } else {
-      mcpOutputChannel.appendLine('MCP Server Definition Provider API not available in this VS Code version. Using fallback configuration.');
-    }
-  } catch (error) {
-    mcpOutputChannel.appendLine(`Failed to register MCP Server Definition Provider: ${error}. Using fallback configuration.`);
-  }
+  registerMcpProvider(context);
+  registerCommands(context);
 
-  // Register commands
-  const startServerCommand = vscode.commands.registerCommand('darbot-browser-mcp.startServer', startServer);
-  const stopServerCommand = vscode.commands.registerCommand('darbot-browser-mcp.stopServer', stopServer);
-  const restartServerCommand = vscode.commands.registerCommand('darbot-browser-mcp.restartServer', restartServer);
-  const showStatusCommand = vscode.commands.registerCommand('darbot-browser-mcp.showStatus', showStatus);
+  void maybePromptForMcpGallery();
 
-  context.subscriptions.push(startServerCommand, stopServerCommand, restartServerCommand, showStatusCommand);
-
-  // Auto-configure MCP server on first activation
-  void configureMCPServer();
-
-  // Auto-start if configured
-  const config = vscode.workspace.getConfiguration('darbot-browser-mcp');
-  if (config.get('autoStart', false))
+  const config = readConfig();
+  if (config.autoStart)
     void startServer();
 }
 
-export function deactivate() {
+export function deactivate(): void {
   if (mcpServerProcess) {
     mcpServerProcess.kill();
     mcpServerProcess = null;
   }
-  if (statusBarItem)
-    statusBarItem.dispose();
-  if (mcpOutputChannel)
-    mcpOutputChannel.dispose();
+  statusBarItem?.dispose();
+  mcpOutputChannel?.dispose();
 }
 
-async function configureMCPServer() {
-  // The MCP server is registered via McpServerDefinitionProvider API in activate()
-  // VS Code 1.96+ handles MCP server registration automatically when the provider is registered
-  // No need to manually write to chat.mcp.servers or chat.mcp.enabled settings
-  
-  const config = vscode.workspace.getConfiguration('darbot-browser-mcp');
-  const browser = config.get('browser', 'msedge');
-  const headless = config.get('headless', false);
-  const noSandbox = config.get('noSandbox', true);
-
-  mcpOutputChannel.appendLine('Darbot Browser MCP server registered via McpServerDefinitionProvider.');
-  mcpOutputChannel.appendLine(`Configuration: Browser: ${browser}, Headless: ${headless}, No Sandbox: ${noSandbox}`);
-  mcpOutputChannel.appendLine('The server will appear in GitHub Copilot agent mode tools list.');
+function registerMcpProvider(context: vscode.ExtensionContext): void {
+  try {
+    const provider = new DarbotBrowserMCPProvider(mcpOutputChannel);
+    const lmApi = (vscode as unknown as { lm?: { registerMcpServerDefinitionProvider?: typeof vscode.lm.registerMcpServerDefinitionProvider } }).lm;
+    if (lmApi && typeof lmApi.registerMcpServerDefinitionProvider === 'function') {
+      const disposable = lmApi.registerMcpServerDefinitionProvider(EXTENSION_ID, provider);
+      context.subscriptions.push(disposable);
+      mcpOutputChannel.appendLine('Registered MCP Server Definition Provider via vscode.lm.');
+    } else {
+      mcpOutputChannel.appendLine('vscode.lm.registerMcpServerDefinitionProvider is unavailable; relying on the user-managed MCP configuration.');
+    }
+  } catch (error) {
+    mcpOutputChannel.appendLine(`Failed to register MCP Server Definition Provider: ${formatError(error)}`);
+  }
 }
 
-async function startServer() {
-  if (mcpServerProcess) {
-    void vscode.window.showInformationMessage('Browser MCP Server is already running');
+function registerCommands(context: vscode.ExtensionContext): void {
+  context.subscriptions.push(
+      vscode.commands.registerCommand(`${EXTENSION_ID}.startServer`, startServer),
+      vscode.commands.registerCommand(`${EXTENSION_ID}.stopServer`, stopServer),
+      vscode.commands.registerCommand(`${EXTENSION_ID}.restartServer`, restartServer),
+      vscode.commands.registerCommand(`${EXTENSION_ID}.showStatus`, showStatus),
+      vscode.commands.registerCommand(`${EXTENSION_ID}.openBridgeStatus`, openBridgeStatus),
+  );
+}
+
+/**
+ * On first activation, check whether VS Code's MCP Gallery is enabled. If
+ * not, offer to flip the setting so the user gets the server in agent-mode
+ * without manual configuration. Respects the autoConfigureMCP opt-out.
+ */
+async function maybePromptForMcpGallery(): Promise<void> {
+  const config = readConfig();
+  if (!config.autoConfigureMCP) {
+    mcpOutputChannel.appendLine('Auto-configuration disabled (darbot-browser-mcp.autoConfigureMCP=false).');
     return;
   }
 
-  const config = vscode.workspace.getConfiguration('darbot-browser-mcp');
-  const serverPath = config.get('serverPath', 'npx @darbotlabs/darbot-browser-mcp@latest');
-  const logLevel = config.get('logLevel', 'info');
-  const browser = config.get('browser', 'msedge');
-  const headless = config.get('headless', false);
-  const noSandbox = config.get('noSandbox', true);
+  try {
+    const galleryConfig = vscode.workspace.getConfiguration('chat.mcp.gallery');
+    if (galleryConfig.get<boolean>('enabled', false)) {
+      mcpOutputChannel.appendLine('VS Code MCP Gallery already enabled.');
+      return;
+    }
+
+    const choice = await vscode.window.showInformationMessage(
+        'Darbot Browser MCP works best with the VS Code MCP Gallery enabled. Enable it now?',
+        'Enable',
+        'Open Settings',
+        'Not now',
+    );
+
+    if (choice === 'Enable') {
+      await galleryConfig.update('enabled', true, vscode.ConfigurationTarget.Global);
+      mcpOutputChannel.appendLine('Enabled chat.mcp.gallery.enabled. A VS Code reload is required.');
+      const reload = await vscode.window.showInformationMessage(
+          'MCP Gallery enabled. Reload VS Code now to activate Darbot Browser MCP?',
+          'Reload',
+          'Later',
+      );
+      if (reload === 'Reload')
+        await vscode.commands.executeCommand('workbench.action.reloadWindow');
+    } else if (choice === 'Open Settings') {
+      await vscode.commands.executeCommand('workbench.action.openSettings', 'chat.mcp.gallery.enabled');
+    }
+  } catch (error) {
+    mcpOutputChannel.appendLine(`MCP Gallery check skipped: ${formatError(error)}`);
+  }
+}
+
+async function startServer(): Promise<void> {
+  if (mcpServerProcess) {
+    void vscode.window.showInformationMessage('Browser MCP Server is already running.');
+    return;
+  }
+
+  const config = readConfig();
+  const localCli = await findLocalCli();
+
+  let command: string;
+  let args: string[];
+  if (localCli) {
+    command = 'node';
+    args = [localCli];
+  } else {
+    const parts = config.serverPath.trim().split(/\s+/);
+    command = parts[0];
+    args = parts.slice(1);
+  }
+  args.push(...buildServerArgs(config));
+
+  const configDetails = `browser=${config.browser} headless=${config.headless} noSandbox=${config.noSandbox} logLevel=${config.logLevel}`;
+  mcpOutputChannel.appendLine(`Starting Browser MCP Server: ${command} ${args.join(' ')} (${configDetails})`);
 
   try {
-    // Parse the command
-    const parts = serverPath.split(' ');
-    const command = parts[0];
-    const args = parts.slice(1);
+    const child = spawn(command, args, { stdio: 'pipe', shell: true });
 
-    // Add browser configuration options
-    if (browser !== 'msedge')
-      args.push('--browser', browser);
-    if (headless)
-      args.push('--headless');
-    if (noSandbox)
-      args.push('--no-sandbox');
+    let intentionallyStopped = false;
+    const originalKill = child.kill.bind(child);
+    child.kill = (...killArgs: Parameters<typeof originalKill>) => {
+      intentionallyStopped = true;
+      return originalKill(...killArgs);
+    };
 
-    // Add log level if specified
-    if (logLevel !== 'info')
-      args.push('--log-level', logLevel);
-
-    // Display configuration to user
-    const configDetails = `Browser: ${browser}, Headless: ${headless}, No Sandbox: ${noSandbox}`;
-    // Log configuration for debugging
-    // eslint-disable-next-line no-console
-    console.debug(configDetails); // Log to debugging output
-
-    mcpServerProcess = spawn(command, args, {
-      stdio: 'pipe',
-      shell: true,
-    });
-
-    mcpServerProcess.on('error', error => {
+    child.on('error', (error: Error) => {
       void vscode.window.showErrorMessage(`Failed to start Browser MCP Server: ${error.message}`);
       mcpServerProcess = null;
       updateStatusBarItem(false);
     });
 
-    // Track if we intentionally stopped the server
-    let intentionallyStopped = false;
-    const originalKill = mcpServerProcess.kill.bind(mcpServerProcess);
-    mcpServerProcess.kill = (...args: Parameters<typeof originalKill>) => {
-      intentionallyStopped = true;
-      return originalKill(...args);
-    };
-
-    mcpServerProcess.on('exit', (code, signal) => {
-      // Only show error if server crashed unexpectedly (not killed intentionally)
-      if (!intentionallyStopped && code !== 0 && code !== null) {
-        void vscode.window.showErrorMessage(`Browser MCP Server exited unexpectedly with code ${code}`);
-      } else if (!intentionallyStopped && signal) {
-        // Process was killed by a signal (not by us)
-        void vscode.window.showWarningMessage(`Browser MCP Server was terminated by signal ${signal}`);
-      }
+    child.on('exit', (code, signal) => {
+      if (!intentionallyStopped && code !== 0 && code !== null)
+        void vscode.window.showErrorMessage(`Browser MCP Server exited unexpectedly with code ${code}.`);
+      else if (!intentionallyStopped && signal)
+        void vscode.window.showWarningMessage(`Browser MCP Server was terminated by signal ${signal}.`);
       mcpServerProcess = null;
       updateStatusBarItem(false);
     });
 
-    mcpServerProcess.stdout?.on('data', data => {
-      // Log server output for debugging
-      void data; // Suppress unused variable warning
-    });
+    child.stdout?.on('data', chunk => mcpOutputChannel.append(chunk.toString()));
+    child.stderr?.on('data', chunk => mcpOutputChannel.append(chunk.toString()));
 
-    mcpServerProcess.stderr?.on('data', data => {
-      // Log server errors for debugging
-      void data; // Suppress unused variable warning
-    });
-
+    mcpServerProcess = child;
     updateStatusBarItem(true);
-    mcpOutputChannel.appendLine('Browser MCP Server started successfully.');
-    mcpOutputChannel.appendLine(`Configuration Details: ${configDetails}`);
     mcpOutputChannel.show(true);
-    void vscode.window.showInformationMessage('Browser MCP Server started successfully. Check the "Browser MCP" output channel for details.');
+    void vscode.window.showInformationMessage('Browser MCP Server started.');
   } catch (error) {
-    void vscode.window.showErrorMessage(`Failed to start Browser MCP Server: ${error}`);
+    void vscode.window.showErrorMessage(`Failed to start Browser MCP Server: ${formatError(error)}`);
     updateStatusBarItem(false);
   }
 }
 
-function stopServer() {
+function stopServer(): void {
   if (!mcpServerProcess) {
-    void vscode.window.showInformationMessage('Browser MCP Server is not running');
+    void vscode.window.showInformationMessage('Browser MCP Server is not running.');
     return;
   }
-
   mcpServerProcess.kill();
   mcpServerProcess = null;
   updateStatusBarItem(false);
-  void vscode.window.showInformationMessage('Browser MCP Server stopped');
+  void vscode.window.showInformationMessage('Browser MCP Server stopped.');
 }
 
-async function restartServer() {
+async function restartServer(): Promise<void> {
   if (mcpServerProcess) {
     stopServer();
-    // Wait a moment for the process to fully stop
     await new Promise(resolve => setTimeout(resolve, 1000));
   }
   await startServer();
 }
 
-function showStatus() {
+function showStatus(): void {
   const isRunning = mcpServerProcess !== null;
-  const status = isRunning ? 'Running' : 'Stopped';
-  const config = vscode.workspace.getConfiguration('darbot-browser-mcp');
-  const serverPath = config.get('serverPath', 'npx @darbotlabs/darbot-browser-mcp@latest');
-  const browser = config.get('browser', 'msedge');
-  const headless = config.get('headless', false);
-  const noSandbox = config.get('noSandbox', true);
-
-  // Clean, multi-line status message
-  const statusMessage = [
-    `Darbot Browser Status: ${status}`,
-    serverPath,
-    `Browser: ${browser}`,
-    `Headless: ${headless}`,
-    `No Sandbox: ${noSandbox}`,
-  ].join('\n');
-
-  vscode.window.showInformationMessage(
-      statusMessage,
-      ...(isRunning ? ['Stop Server', 'Restart Server'] : ['Start Server']),
-  ).then(selection => {
-    if (selection === 'Start Server')
-      void startServer();
-    else if (selection === 'Stop Server')
-      stopServer();
-    else if (selection === 'Restart Server')
-      void restartServer();
+  const config = readConfig();
+  const lines = [
+    `Darbot Browser MCP: ${isRunning ? 'Running' : 'Stopped'}`,
+    `serverPath: ${config.serverPath}`,
+    `browser: ${config.browser}`,
+    `headless: ${config.headless}`,
+    `noSandbox: ${config.noSandbox}`,
+    `logLevel: ${config.logLevel}`,
+  ];
+  const actions = isRunning ? ['Stop', 'Restart', 'Open Bridge'] : ['Start', 'Open Bridge'];
+  void vscode.window.showInformationMessage(lines.join('\n'), ...actions).then(choice => {
+    if (choice === 'Start') void startServer();
+    else if (choice === 'Stop') stopServer();
+    else if (choice === 'Restart') void restartServer();
+    else if (choice === 'Open Bridge') void openBridgeStatus();
   });
 }
 
-function updateStatusBarItem(isRunning: boolean) {
-  if (statusBarItem) {
-    statusBarItem.text = isRunning ? '$(browser) MCP: Running' : '$(browser) MCP: Stopped';
-    statusBarItem.backgroundColor = isRunning
-      ? new vscode.ThemeColor('statusBarItem.prominentBackground')
-      : undefined;
+async function openBridgeStatus(): Promise<void> {
+  const { bridgeStatusUrl } = readConfig();
+  try {
+    await vscode.env.openExternal(vscode.Uri.parse(bridgeStatusUrl));
+  } catch (error) {
+    void vscode.window.showErrorMessage(`Could not open bridge status URL ${bridgeStatusUrl}: ${formatError(error)}`);
   }
+}
+
+function updateStatusBarItem(isRunning: boolean): void {
+  if (!statusBarItem)
+    return;
+  statusBarItem.text = isRunning ? '$(browser) MCP: Running' : '$(browser) MCP: Stopped';
+  statusBarItem.backgroundColor = isRunning
+    ? new vscode.ThemeColor('statusBarItem.prominentBackground')
+    : undefined;
+}
+
+function formatError(error: unknown): string {
+  if (error instanceof Error)
+    return error.message;
+  return String(error);
 }

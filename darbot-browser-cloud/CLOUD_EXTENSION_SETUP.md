@@ -1,144 +1,108 @@
-# Cloud VS Code Extension Setup
+# Darbot Browser MCP Cloud — End-User Setup
 
-## Overview
-Darbot Browser VS Code extension to connect to Azure cloud deployment instead of local server.
+A two-page setup guide for engineers who want VS Code to talk to an
+already-deployed Darbot Browser MCP Cloud instance on Azure App Service.
 
-### 1. **package.json** - Cloud Configuration
-- **Name**: `darbot-browser-mcp-cloud` (cloud-specific)
-- **Display Name**: "Darbot Browser MCP Cloud"
-- **Version**: 0.1.0 (initial cloud release)
-- **Commands Updated**:
-  - `connectServer` - Connect to cloud server
-  - `disconnectServer` - Disconnect from cloud
-  - `showStatus` - Show cloud connection status
-  - `testConnection` - Test Azure health endpoint
+For the deployment side — provisioning the App Service, ACR, Key Vault,
+Storage, etc. — see [`CLOUD_CONFIG_SUMMARY.md`](./CLOUD_CONFIG_SUMMARY.md)
+and the templates under [`azure/`](../azure/).
 
-- **Configuration Properties**:
-  - `serverUrl`: Default to `https://<your-app>.azurewebsites.net`
-  - `sseEndpoint`: Default to `https://<your-app>.azurewebsites.net/mcp` (Streamable HTTP)
-  - `autoConnect`: Auto-connect on startup (default: true)
-  - `authToken`: Optional authentication token
-  - `connectionTimeout`: Connection timeout (default: 30000ms)
-  - `enableHealthChecks`: Periodic health monitoring (default: true)
-  - `healthCheckInterval`: Health check frequency (default: 60000ms)
+## 1. Prerequisites
 
-### 2. **README.md** - Cloud Documentation
-- Updated features to highlight cloud infrastructure
-- Changed installation instructions to reference Azure deployment
-- Added enterprise configuration section for authentication
-- Updated badges to show Azure deployment status
+| Requirement                                 | Why                                             |
+| ------------------------------------------- | ----------------------------------------------- |
+| VS Code 1.96 or newer                        | MCP server definition provider API.             |
+| `chat.mcp.gallery.enabled = true`            | Enables MCP servers in the chat / agent UI.     |
+| Microsoft account signed into VS Code        | The extension uses VS Code's built-in Microsoft authentication provider. |
+| A deployed cloud server URL                  | `https://<your-app>.azurewebsites.net`.         |
+| (Enterprise) Entra ID app + consent         | Grants the user `User.Read` and any custom API scopes. |
 
-### 3. **extension.ts** - Cloud Connection Logic
+## 2. Install the extension
 
-#### Key Changes:
-1. **Configuration Namespace**: Changed from `darbot-browser-mcp` to `darbot-browser-mcp-cloud`
-2. **MCP Provider**: Returns cloud connection config using HTTP transport
-3. **Server Connection**: Uses `npx @darbotlabs/darbot-browser-mcp@latest --transport http --url <azure-url>`
-4. **Status Bar**: Shows "MCP Cloud: Connected/Disconnected" instead of "Running/Stopped"
-5. **Commands**: Updated to cloud terminology (connect/disconnect vs start/stop)
-
-#### New Functions:
-- **`testConnection()`**: Tests Azure health endpoint at `/health`
-  - Performs HTTPS GET request
-  - Shows success/failure message
-  - Logs results to output channel
-
-#### Updated Functions:
-- **`provideMcpServerDefinitions()`**: Returns cloud server configuration
-- **`configureMCPServer()`**: Auto-configures cloud MCP settings
-- **`startServer()`**: Connects to cloud via HTTP transport
-- **`stopServer()`**: Disconnects from cloud
-- **`showStatus()`**: Displays cloud connection info
-- **`updateStatusBarItem()`**: Shows cloud connection state
-
-## Architecture
-
-### Connection Flow
-```
-VS Code Extension
-    v
-npx @darbotlabs/darbot-browser-mcp@latest
-    --transport http
-    --url https://<your-app>.azurewebsites.net
-    --auth-token <optional>
-    v
-Azure App Service (<your-app>.azurewebsites.net)
-    v
-MCP Server (Streamable HTTP Transport)
-    v
-Browser Automation Tools (52 tools) — see [`docs/readme_index.md`](../docs/readme_index.md)
+```text
+ext install darbotlabs.darbot-browser-mcp-cloud
 ```
 
-### Environment Variables Set
-- `NODE_ENV`: production
-- `DARBOT_CLOUD_URL`: Azure server URL
-- `DARBOT_SSE_ENDPOINT`: SSE endpoint for real-time communication
+(or Command Palette → *Extensions: Install Extensions* → search
+*Darbot Browser MCP Cloud*).
 
-## Testing Steps
+## 3. Configure the endpoint
 
-1. **Install Dependencies**:
-   ```powershell
-   cd darbot-browser-cloud\vscode-extension-cloud
-   npm install
-   ```
+Open settings (`Ctrl+,`) and set:
 
-2. **Build Extension**:
-   ```powershell
-   npm run compile
-   ```
-
-3. **Package Extension** (optional):
-   ```powershell
-   npm install -g @vscode/vsce
-   vsce package
-   ```
-
-4. **Install in VS Code**:
-   - Open VS Code
-   - Extensions -> ... -> Install from VSIX
-   - Select generated `.vsix` file
-
-5. **Test Connection**:
-   - Command Palette -> "Darbot Browser Cloud: Test Connection"
-   - Should show success message with server status
-   - Check output channel for details
-
-6. **Connect to Cloud**:
-   - Command Palette -> "Darbot Browser Cloud: Connect to Cloud Server"
-   - Status bar should show "MCP Cloud: Connected"
-
-7. **Test with GitHub Copilot**:
-   - Open GitHub Copilot Chat
-   - Try: "Take a screenshot of example.com"
-   - Should execute on cloud server
-
-## Configuration Examples
-
-### Basic (Public Deployment)
-```json
+```jsonc
 {
+  // Required. Base URL of your App Service deployment.
   "darbot-browser-mcp-cloud.serverUrl": "https://<your-app>.azurewebsites.net",
-  "darbot-browser-mcp-cloud.autoConnect": true
+
+  // Optional. Defaults to `<serverUrl>/mcp` when blank.
+  "darbot-browser-mcp-cloud.sseEndpoint": "",
+
+  // Optional. Periodic health checks while connected.
+  "darbot-browser-mcp-cloud.enableHealthChecks": true,
+  "darbot-browser-mcp-cloud.healthCheckInterval": 60000,
+  "darbot-browser-mcp-cloud.connectionTimeout": 30000,
+
+  // Optional. Scopes requested when fetching the Entra ID token.
+  "darbot-browser-mcp-cloud.scopes": [
+    "openid",
+    "profile",
+    "email",
+    "User.Read"
+  ]
 }
 ```
 
-### Enterprise (With Authentication)
-```json
-{
-  "darbot-browser-mcp-cloud.serverUrl": "https://your-private-deployment.azurewebsites.net",
-  "darbot-browser-mcp-cloud.authToken": "your-token-here",
-  "darbot-browser-mcp-cloud.connectionTimeout": 60000,
-  "darbot-browser-mcp-cloud.enableHealthChecks": true
-}
+The **`SERVER_BASE_URL` environment variable** takes precedence over the
+`serverUrl` setting at runtime. Use it to flip an entire VS Code window
+between staging and production without editing settings.
+
+## 4. First connection
+
+1. `Ctrl+Shift+P` → **Darbot Browser Cloud: Sign in with Microsoft**
+   (optional — done automatically on first request if you skip it).
+2. `Ctrl+Shift+P` → **Darbot Browser Cloud: Test Cloud Connection**.
+   You should see *"Cloud server is reachable (v<n>)"*.
+3. `Ctrl+Shift+P` → **Darbot Browser Cloud: Connect to Cloud Server**.
+   The status bar flips to `$(cloud) MCP Cloud: Connected`.
+4. Open Copilot Chat → **agent mode**. The 52 Darbot tools appear under
+   *Darbot Browser MCP Cloud*.
+
+## 5. Commands
+
+| Command palette entry                              | Purpose                                                                       |
+| -------------------------------------------------- | ----------------------------------------------------------------------------- |
+| Darbot Browser Cloud: **Sign in with Microsoft**   | Force-create an authenticated session even if one was not cached.             |
+| Darbot Browser Cloud: **Connect to Cloud Server**  | Run a health check + start periodic monitoring.                               |
+| Darbot Browser Cloud: **Disconnect from Cloud Server** | Stop periodic monitoring.                                                  |
+| Darbot Browser Cloud: **Test Cloud Connection**    | One-shot health probe with friendly toast.                                     |
+| Darbot Browser Cloud: **Show Cloud Server Status** | Inline status + quick actions.                                                 |
+
+## 6. Authentication model
+
+```
+VS Code → vscode.authentication.getSession('microsoft', scopes)
+        → built-in Microsoft account provider
+        → Entra ID access token
+        → attached as `Authorization: Bearer <token>` on every MCP request
 ```
 
+The extension never opens its own browser window for OAuth; the user is
+already signed in via VS Code's settings. Tokens are cached in memory
+for the lifetime of the window and refreshed silently when expired.
 
-## Azure Resources Connected
+## 7. Troubleshooting
 
-- **App Service**: `<your-app>.azurewebsites.net`
-- **Health Endpoint**: `https://<your-app>.azurewebsites.net/health`
-- **MCP Endpoint**: `https://<your-app>.azurewebsites.net/mcp`
-- **SSE Endpoint**: `https://<your-app>.azurewebsites.net/sse`
-- **Container Registry**: `<your-registry>.azurecr.io`
-- **Resource Group**: `<your-resource-group>`
-- **Location**: Configure based on your requirements
+| Symptom                                                                | Action                                                                                                          |
+| ---------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| *"Set darbot-browser-mcp-cloud.serverUrl before connecting"* warning   | Configure the setting, or `set SERVER_BASE_URL=https://…` and restart VS Code.                                  |
+| Health probe returns `HTTP 401`                                        | Tenant or scope mismatch. Run *Sign in with Microsoft* and ensure the user has consented to the configured app. |
+| Status bar stays *Disconnected* but agent-mode tools work              | Expected. The status bar reflects the explicit *Connect* command, while agent mode runs through the MCP provider. |
+| `HTTP 503` health response                                             | Server reachable but unhealthy. Check App Insights logs and `/health` payload for the failed subsystem.          |
+| `Timeout after 30000ms`                                                | App Service cold-start or networking issue. Raise `darbot-browser-mcp-cloud.connectionTimeout` if needed.        |
+
+## 8. Related documents
+
+- [`CLOUD_CONFIG_SUMMARY.md`](./CLOUD_CONFIG_SUMMARY.md) — deployment topology template.
+- [`SECURITY_AUDIT.md`](./SECURITY_AUDIT.md) — security baseline for the cloud deployment.
+- [`vscode-extension-cloud/README.md`](./vscode-extension-cloud/README.md) — marketplace landing page.
