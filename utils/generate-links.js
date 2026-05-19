@@ -1,29 +1,70 @@
-/**
- * Copyright (c) DarbotLabs.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+#!/usr/bin/env node
+// @ts-check
 
-/**
- * Generates VS Code MCP install URLs for the Darbot Browser MCP package.
- * Usage: node utils/generate-links.js
- * Output: URL that can be used to install via VS Code marketplace redirect
- */
+const DEFAULT_PACKAGE = '@darbotlabs/darbot-browser-mcp@latest';
 
-const config = JSON.stringify({ name: 'darbot-browser', command: 'npx', args: ['@darbotlabs/darbot-browser-mcp@latest'] });
-const urlForWebsites = `vscode:mcp/install?${encodeURIComponent(config)}`;
-// Github markdown does not allow linking to `vscode:` directly, so use redirect:
-const urlForGithub = `https://insiders.vscode.dev/redirect?url=${encodeURIComponent(urlForWebsites)}`;
+function usage() {
+  console.log(`Usage: node utils/generate-links.js [options]
 
-console.log('VS Code MCP Install URL:');
-console.log(urlForGithub);
+Generates VS Code MCP install links for Darbot Browser MCP.
+
+Options:
+  --name <name>       MCP server name. Default: darbot-browser
+  --package <spec>    npm package spec. Default: ${DEFAULT_PACKAGE}
+  --raw               Print only the redirect URL.
+  --dry-run           Print the JSON config without generating links.
+  -h, --help          Show this help.`);
+}
+
+const args = process.argv.slice(2);
+let name = 'darbot-browser';
+let packageSpec = DEFAULT_PACKAGE;
+let raw = false;
+let dryRun = false;
+
+for (let i = 0; i < args.length; i++) {
+  switch (args[i]) {
+    case '--name':
+      name = args[++i] ?? '';
+      break;
+    case '--package':
+      packageSpec = args[++i] ?? '';
+      break;
+    case '--raw':
+      raw = true;
+      break;
+    case '--dry-run':
+      dryRun = true;
+      break;
+    case '-h':
+    case '--help':
+      usage();
+      process.exit(0);
+    default:
+      console.error(`Unknown option: ${args[i]}`);
+      usage();
+      process.exit(2);
+  }
+}
+
+if (!name || !packageSpec) {
+  console.error('--name and --package must be non-empty.');
+  process.exit(2);
+}
+
+const config = { name, command: 'npx', args: [packageSpec] };
+if (dryRun) {
+  console.log(JSON.stringify(config, null, 2));
+  process.exit(0);
+}
+
+const vscodeUrl = `vscode:mcp/install?${encodeURIComponent(JSON.stringify(config))}`;
+const redirectUrl = `https://insiders.vscode.dev/redirect?url=${encodeURIComponent(vscodeUrl)}`;
+if (raw) {
+  console.log(redirectUrl);
+} else {
+  console.log('VS Code MCP install URL:');
+  console.log(redirectUrl);
+  console.log('\nDirect vscode: URL:');
+  console.log(vscodeUrl);
+}

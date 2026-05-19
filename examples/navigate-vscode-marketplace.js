@@ -1,48 +1,37 @@
 #!/usr/bin/env node
+// @ts-check
 /**
- * Darbot Browser MCP - Navigate to VS Code Marketplace Extension
- * 
- * Opens the Darbot Browser MCP extension page on VS Code Marketplace.
- * 
- * Usage: node navigate-vscode-marketplace.js
+ * Demonstrates opening the Darbot Browser MCP VS Code Marketplace listing.
+ * Run from the repository root:
+ *   node examples/navigate-vscode-marketplace.js [url]
  */
 
-import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
+import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
+
+const DEFAULT_URL = 'https://marketplace.visualstudio.com/items?itemName=darbotlabs.darbot-browser-mcp';
 
 async function main() {
-  const client = new Client({ name: 'darbot-marketplace', version: '1.3.0' });
-  
-  // Connect to Darbot Browser MCP
+  const url = process.argv[2] ?? DEFAULT_URL;
+  const client = new Client({ name: 'darbot-navigate-marketplace', version: '2.0.0' });
   const transport = new StdioClientTransport({
     command: 'npx',
-    args: ['@darbotlabs/darbot-browser-mcp@latest', '--browser', 'msedge'],
+    args: ['-y', '@darbotlabs/darbot-browser-mcp@latest', '--browser', 'msedge'],
   });
-  
-  await client.connect(transport);
-  console.log('Connected');
-  
-  // Navigate to VS Code Marketplace
-  await client.callTool({
-    name: 'browser_navigate',
-    arguments: { url: 'https://marketplace.visualstudio.com/items?itemName=darbotlabs.darbot-browser-mcp' }
-  });
-  console.log('Opened VS Code Marketplace extension page');
-  
-  // Take a screenshot
-  await client.callTool({
-    name: 'browser_take_screenshot',
-    arguments: {}
-  });
-  console.log('Screenshot taken');
-  
-  // Cleanup
-  await client.callTool({ name: 'browser_close' });
-  await client.close();
-  console.log('Done');
+
+  try {
+    await client.connect(transport);
+    await client.callTool({ name: 'browser_navigate', arguments: { url } });
+    const snapshot = await client.callTool({ name: 'browser_snapshot', arguments: {} });
+    const text = snapshot.content?.find((item) => item.type === 'text')?.text ?? '';
+    console.log(text.slice(0, 500));
+  } finally {
+    try { await client.callTool({ name: 'browser_close', arguments: {} }); } catch {}
+    await client.close();
+  }
 }
 
-main().catch(err => {
-  console.error('Error:', err.message);
+main().catch((error) => {
+  console.error(error instanceof Error ? error.message : error);
   process.exit(1);
 });
