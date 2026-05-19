@@ -14,11 +14,38 @@
  * limitations under the License.
  */
 
+/**
+ * Diagnostics tools: filtered console messages and Navigation Timing metrics.
+ *
+ * These tools are intentionally `readOnly` — they only query state from the
+ * already-active page. Both fail explicitly with `currentTabOrDie()` if no
+ * page is open, propagating a clear "no current tab" error to the caller.
+ */
+
 import { z } from 'zod';
 import { defineTool } from './tool.js';
 
+const consoleFilteredSchema = z.object({
+  type: z
+      .enum(['log', 'error', 'warning', 'info', 'debug', 'all'])
+      .optional()
+      .default('all')
+      .describe('Console message severity to retrieve. Use "all" to return every message.'),
+  limit: z
+      .number()
+      .int()
+      .positive()
+      .optional()
+      .default(100)
+      .describe('Maximum number of messages to return (most recent first). Defaults to 100.'),
+});
+
 /**
- * Enhanced console with filtering - builds on existing console tool
+ * Retrieve console messages from the active page, optionally filtered by
+ * severity and capped at a maximum count.
+ *
+ * @example
+ * await browser_console_filtered({ type: 'error', limit: 20 });
  */
 const consoleFiltered = defineTool({
   capability: 'core',
@@ -26,28 +53,24 @@ const consoleFiltered = defineTool({
   schema: {
     name: 'browser_console_filtered',
     title: 'Autonomous filtered console',
-    description: 'Autonomously retrieve console messages filtered by type (log, error, warning, info, debug). Useful for focused debugging.',
-    inputSchema: z.object({
-      type: z.enum(['log', 'error', 'warning', 'info', 'debug', 'all']).optional().default('all').describe('Type of console messages to retrieve'),
-      limit: z.number().optional().default(100).describe('Maximum number of messages to return'),
-    }),
+    description: 'Retrieve console messages from the current page, filtered by type (log, error, warning, info, debug) and capped at a maximum count. Returns the most recent messages first.',
+    inputSchema: consoleFilteredSchema,
     type: 'readOnly',
   },
 
   handle: async (context, params) => {
     const tab = context.currentTabOrDie();
     const messages = tab.consoleMessages();
-    
-    let filtered = messages;
-    if (params.type && params.type !== 'all') {
-      filtered = messages.filter(msg => msg.type === params.type);
-    }
-    
-    // Apply limit
-    filtered = filtered.slice(-params.limit!);
-    
-    const log = filtered.length > 0
-      ? filtered.map(msg => `[${(msg.type || 'unknown').toUpperCase()}] ${msg.text}`).join('\n')
+
+    const filtered = (params.type && params.type !== 'all')
+      ? messages.filter(msg => msg.type === params.type)
+      : messages;
+
+    // Keep only the tail so the limit applies to the most recent messages.
+    const limited = filtered.slice(-params.limit!);
+
+    const log = limited.length > 0
+      ? limited.map(msg => `[${(msg.type || 'unknown').toUpperCase()}] ${msg.text}`).join('\n')
       : `No ${params.type === 'all' ? '' : params.type + ' '}console messages found.`;
 
     return {
@@ -64,7 +87,13 @@ const consoleFiltered = defineTool({
 });
 
 /**
- * Performance metrics tool - get performance timing information
+ * Capture Navigation Timing and Performance metrics for the active page.
+ *
+ * Returns a human-readable breakdown of core load timings, network latency,
+ * DOM parsing, and navigation type/redirect count.
+ *
+ * @example
+ * await browser_performance_metrics({});
  */
 const performanceMetrics = defineTool({
   capability: 'core',
@@ -72,8 +101,8 @@ const performanceMetrics = defineTool({
   schema: {
     name: 'browser_performance_metrics',
     title: 'Autonomous performance analysis',
-    description: 'Autonomously retrieve performance metrics including page load times, DOM content loaded, and other timing data.',
-    inputSchema: z.object({}),
+    description: 'Retrieve performance metrics for the current page including load timings, DOM content loaded, network latency, and navigation type.',
+    inputSchema: z.object({}).describe('No input parameters.'),
     type: 'readOnly',
   },
 
@@ -89,22 +118,22 @@ const performanceMetrics = defineTool({
       const metrics = await tab.page.evaluate(() => {
         const timing = performance.timing;
         const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
-        
+
         return {
           // Core Web Vitals related
           domContentLoaded: timing.domContentLoadedEventEnd - timing.navigationStart,
           loadComplete: timing.loadEventEnd - timing.navigationStart,
           domInteractive: timing.domInteractive - timing.navigationStart,
-          
+
           // Network timing
           dnsLookup: timing.domainLookupEnd - timing.domainLookupStart,
           tcpConnection: timing.connectEnd - timing.connectStart,
           serverResponse: timing.responseEnd - timing.requestStart,
-          
+
           // Additional metrics
           firstByte: timing.responseStart - timing.navigationStart,
           domParsing: timing.domComplete - timing.domLoading,
-          
+
           // Navigation type
           navigationType: navigation?.type || 'unknown',
           redirectCount: navigation?.redirectCount || 0,
@@ -114,7 +143,7 @@ const performanceMetrics = defineTool({
       const output = [
         '=== Performance Metrics ===',
         '',
-        'Core Timings:',
+        '📊 Core Timings:',
         `  • DOM Content Loaded: ${metrics.domContentLoaded}ms`,
         `  • Load Complete: ${metrics.loadComplete}ms`,
         `  • DOM Interactive: ${metrics.domInteractive}ms`,

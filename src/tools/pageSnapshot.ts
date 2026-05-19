@@ -17,11 +17,40 @@
 import * as playwright from 'playwright';
 import { callOnPageNoTrace } from './utils.js';
 
-type SnapshotResult = string | { full: string };
+/**
+ * Shape of `_snapshotForAI()` results across Playwright versions.
+ *
+ * Older Playwright builds returned a bare `string`. Newer builds return an
+ * object whose payload property has shifted across releases (`full`, `text`,
+ * or `snapshot`). We accept all three and fall through to `JSON.stringify`
+ * so a future internal schema change doesn't crash callers.
+ */
+type SnapshotResult =
+  | string
+  | { full: string }
+  | { text: string }
+  | { snapshot: string }
+  | Record<string, unknown>;
 
 type PageEx = playwright.Page & {
   _snapshotForAI: () => Promise<SnapshotResult>;
 };
+
+function extractSnapshotText(result: SnapshotResult): string {
+  if (typeof result === 'string')
+    return result;
+  if (result && typeof result === 'object') {
+    const obj = result as Record<string, unknown>;
+    if (typeof obj.full === 'string')
+      return obj.full;
+    if (typeof obj.text === 'string')
+      return obj.text;
+    if (typeof obj.snapshot === 'string')
+      return obj.snapshot;
+    return JSON.stringify(result, null, 2);
+  }
+  return String(result);
+}
 
 export class PageSnapshot {
   private _page: playwright.Page;
@@ -43,19 +72,7 @@ export class PageSnapshot {
 
   private async _build() {
     const snapshotResult = await callOnPageNoTrace(this._page, page => (page as PageEx)._snapshotForAI());
-    // Handle both old (string) and new (object with full property) Playwright snapshot formats
-    let snapshot: string;
-    if (typeof snapshotResult === 'string') {
-      snapshot = snapshotResult;
-    } else if (snapshotResult && typeof snapshotResult === 'object') {
-      // Try different known property names for the snapshot text
-      snapshot = (snapshotResult as any).full 
-        ?? (snapshotResult as any).text 
-        ?? (snapshotResult as any).snapshot
-        ?? JSON.stringify(snapshotResult, null, 2);
-    } else {
-      snapshot = String(snapshotResult);
-    }
+    const snapshot = extractSnapshotText(snapshotResult);
     this._text = [
       `- Page Snapshot`,
       '```yaml',

@@ -14,36 +14,64 @@
  * limitations under the License.
  */
 
+/**
+ * Storage state tools — IndexedDB support from Playwright 1.51+.
+ *
+ * Tools for inspecting and mutating browser storage:
+ * - Persist storage state (cookies, localStorage, optionally IndexedDB) to disk
+ * - List, set, and clear cookies
+ * - Read and write localStorage entries
+ *
+ * Every tool acquires the active tab via `context.currentTabOrDie()`, which
+ * raises an explicit error if no page is available.
+ */
+
 import { z } from 'zod';
 import { defineTool } from './tool.js';
 import { outputFile } from '../config.js';
 
-/**
- * Storage state tools - IndexedDB support from Playwright 1.51+
- * Allows saving and restoring browser state including:
- * - Cookies
- * - Local storage
- * - IndexedDB (for apps like Firebase Auth)
- */
+import type { BrowserContext } from 'playwright';
 
+type AddCookieParam = Parameters<BrowserContext['addCookies']>[0][number];
+type ClearCookieFilter = NonNullable<Parameters<BrowserContext['clearCookies']>[0]>;
+type StorageStateOptions = NonNullable<Parameters<BrowserContext['storageState']>[0]>;
+
+const saveStorageStateSchema = z.object({
+  filename: z
+      .string()
+      .optional()
+      .describe('Destination file name. Defaults to `storage-state-{ISO timestamp}.json` inside the configured output directory.'),
+  includeIndexedDB: z
+      .boolean()
+      .optional()
+      .default(false)
+      .describe('When true, also serialize IndexedDB contents (Playwright 1.51+). Required for apps like Firebase Auth.'),
+});
+
+/**
+ * Persist the active browser context's storage state to disk.
+ *
+ * @example
+ * await browser_save_storage_state({ filename: 'auth.json', includeIndexedDB: true });
+ */
 const saveStorageState = defineTool({
   capability: 'core',
 
   schema: {
     name: 'browser_save_storage_state',
     title: 'Autonomous storage state saving',
-    description: 'Autonomously save browser storage state (cookies, localStorage, and optionally IndexedDB) to a file. Useful for persisting authentication and session state.',
-    inputSchema: z.object({
-      filename: z.string().optional().describe('File name to save storage state to. Defaults to storage-state-{timestamp}.json'),
-      includeIndexedDB: z.boolean().optional().default(false).describe('Whether to include IndexedDB contents (useful for Firebase Auth and similar apps)'),
-    }),
+    description: 'Save the active browser context\'s storage state (cookies, localStorage, and optionally IndexedDB) to a JSON file for later reuse.',
+    inputSchema: saveStorageStateSchema,
     type: 'readOnly',
   },
 
   handle: async (context, params) => {
     const tab = context.currentTabOrDie();
     const browserContext = tab.page.context();
-    const fileName = await outputFile(context.config, params.filename ?? `storage-state-${new Date().toISOString().replace(/[:.]/g, '-')}.json`);
+    const fileName = await outputFile(
+        context.config,
+        params.filename ?? `storage-state-${new Date().toISOString().replace(/[:.]/g, '-')}.json`
+    );
 
     const code = [
       `// Save storage state${params.includeIndexedDB ? ' (including IndexedDB)' : ''} to ${fileName}`,
@@ -51,10 +79,9 @@ const saveStorageState = defineTool({
     ];
 
     const action = async () => {
-      const options: any = { path: fileName };
-      if (params.includeIndexedDB) {
+      const options: StorageStateOptions = { path: fileName };
+      if (params.includeIndexedDB)
         options.indexedDB = true;
-      }
       await browserContext.storageState(options);
       return {
         content: [{ type: 'text' as const, text: `Storage state saved to: ${fileName}` }]
@@ -70,8 +97,18 @@ const saveStorageState = defineTool({
   },
 });
 
+const getCookiesSchema = z.object({
+  urls: z
+      .array(z.string().url())
+      .optional()
+      .describe('Optional list of absolute URLs to filter cookies by. When omitted, returns every cookie in the context.'),
+});
+
 /**
- * Get cookies with filtering
+ * Retrieve cookies from the active browser context, optionally filtered by URL.
+ *
+ * @example
+ * await browser_get_cookies({ urls: ['https://example.com'] });
  */
 const getCookies = defineTool({
   capability: 'core',
@@ -79,10 +116,8 @@ const getCookies = defineTool({
   schema: {
     name: 'browser_get_cookies',
     title: 'Autonomous cookie retrieval',
-    description: 'Autonomously retrieve browser cookies, optionally filtered by URL or domain.',
-    inputSchema: z.object({
-      urls: z.array(z.string()).optional().describe('URLs to get cookies for. If not specified, returns all cookies.'),
-    }),
+    description: 'Retrieve browser cookies for the active context, optionally filtered to a set of URLs.',
+    inputSchema: getCookiesSchema,
     type: 'readOnly',
   },
 
@@ -90,21 +125,21 @@ const getCookies = defineTool({
     const tab = context.currentTabOrDie();
     const browserContext = tab.page.context();
 
-    const code = params.urls 
+    const code = params.urls
       ? [
-          `// Get cookies for specified URLs`,
-          `const cookies = await context.cookies(${JSON.stringify(params.urls)});`,
-        ]
+        `// Get cookies for specified URLs`,
+        `const cookies = await context.cookies(${JSON.stringify(params.urls)});`,
+      ]
       : [
-          `// Get all cookies`,
-          `const cookies = await context.cookies();`,
-        ];
+        `// Get all cookies`,
+        `const cookies = await context.cookies();`,
+      ];
 
     const action = async () => {
-      const cookies = params.urls 
+      const cookies = params.urls
         ? await browserContext.cookies(params.urls)
         : await browserContext.cookies();
-      
+
       if (cookies.length === 0) {
         return {
           content: [{ type: 'text' as const, text: 'No cookies found.' }]
@@ -136,8 +171,23 @@ const getCookies = defineTool({
   },
 });
 
+const setCookieSchema = z.object({
+  name: z.string().min(1).describe('Cookie name.'),
+  value: z.string().describe('Cookie value.'),
+  url: z.string().url().optional().describe('Absolute URL the cookie applies to. Either `url` or both `domain` and `path` are required.'),
+  domain: z.string().optional().describe('Cookie domain (e.g. `.example.com`). Required when `url` is omitted.'),
+  path: z.string().optional().default('/').describe('Cookie path. Defaults to `/`.'),
+  expires: z.number().int().optional().describe('Unix epoch seconds for cookie expiry. Omit for a session cookie.'),
+  httpOnly: z.boolean().optional().default(false).describe('Mark cookie as HTTP-only (not exposed to JavaScript).'),
+  secure: z.boolean().optional().default(false).describe('Require HTTPS for cookie transmission.'),
+  sameSite: z.enum(['Strict', 'Lax', 'None']).optional().describe('SameSite attribute controlling cross-site cookie behavior.'),
+});
+
 /**
- * Set cookies
+ * Add a cookie to the active browser context.
+ *
+ * @example
+ * await browser_set_cookie({ name: 'session', value: 'abc', url: 'https://example.com' });
  */
 const setCookie = defineTool({
   capability: 'core',
@@ -145,18 +195,8 @@ const setCookie = defineTool({
   schema: {
     name: 'browser_set_cookie',
     title: 'Autonomous cookie setting',
-    description: 'Autonomously set a browser cookie.',
-    inputSchema: z.object({
-      name: z.string().describe('Cookie name'),
-      value: z.string().describe('Cookie value'),
-      url: z.string().optional().describe('URL to associate the cookie with (either url or domain+path required)'),
-      domain: z.string().optional().describe('Cookie domain'),
-      path: z.string().optional().default('/').describe('Cookie path'),
-      expires: z.number().optional().describe('Unix timestamp when the cookie expires'),
-      httpOnly: z.boolean().optional().default(false).describe('Whether the cookie is HTTP-only'),
-      secure: z.boolean().optional().default(false).describe('Whether the cookie requires HTTPS'),
-      sameSite: z.enum(['Strict', 'Lax', 'None']).optional().describe('SameSite attribute'),
-    }),
+    description: 'Add a single cookie to the active browser context. Either `url`, or both `domain` and `path`, must be provided.',
+    inputSchema: setCookieSchema,
     type: 'destructive',
   },
 
@@ -164,18 +204,27 @@ const setCookie = defineTool({
     const tab = context.currentTabOrDie();
     const browserContext = tab.page.context();
 
-    const cookie: any = {
+    // Build a strongly-typed Playwright cookie payload, omitting absent fields
+    // so we don't override Playwright's defaults with `undefined`.
+    const cookie: AddCookieParam = {
       name: params.name,
       value: params.value,
     };
-    
-    if (params.url) cookie.url = params.url;
-    if (params.domain) cookie.domain = params.domain;
-    if (params.path) cookie.path = params.path;
-    if (params.expires) cookie.expires = params.expires;
-    if (params.httpOnly) cookie.httpOnly = params.httpOnly;
-    if (params.secure) cookie.secure = params.secure;
-    if (params.sameSite) cookie.sameSite = params.sameSite;
+
+    if (params.url !== undefined)
+      cookie.url = params.url;
+    if (params.domain !== undefined)
+      cookie.domain = params.domain;
+    if (params.path !== undefined)
+      cookie.path = params.path;
+    if (params.expires !== undefined)
+      cookie.expires = params.expires;
+    if (params.httpOnly !== undefined)
+      cookie.httpOnly = params.httpOnly;
+    if (params.secure !== undefined)
+      cookie.secure = params.secure;
+    if (params.sameSite !== undefined)
+      cookie.sameSite = params.sameSite;
 
     const code = [
       `// Set cookie: ${params.name}`,
@@ -198,8 +247,18 @@ const setCookie = defineTool({
   },
 });
 
+const clearCookiesSchema = z.object({
+  name: z.string().optional().describe('Only clear cookies with this exact name.'),
+  domain: z.string().optional().describe('Only clear cookies for this domain.'),
+  path: z.string().optional().describe('Only clear cookies with this path.'),
+});
+
 /**
- * Clear cookies with optional filtering
+ * Clear cookies in the active browser context, optionally filtered by
+ * name, domain, or path. With no filters, clears every cookie.
+ *
+ * @example
+ * await browser_clear_cookies({ domain: '.example.com' });
  */
 const clearCookies = defineTool({
   capability: 'core',
@@ -207,12 +266,8 @@ const clearCookies = defineTool({
   schema: {
     name: 'browser_clear_cookies',
     title: 'Autonomous cookie clearing',
-    description: 'Autonomously clear browser cookies, optionally filtered by name, domain, or path.',
-    inputSchema: z.object({
-      name: z.string().optional().describe('Only clear cookies with this name'),
-      domain: z.string().optional().describe('Only clear cookies for this domain'),
-      path: z.string().optional().describe('Only clear cookies with this path'),
-    }),
+    description: 'Clear browser cookies in the active context, optionally filtered by name, domain, or path. With no filters, clears all cookies.',
+    inputSchema: clearCookiesSchema,
     type: 'destructive',
   },
 
@@ -220,26 +275,29 @@ const clearCookies = defineTool({
     const tab = context.currentTabOrDie();
     const browserContext = tab.page.context();
 
-    const hasFilter = params.name || params.domain || params.path;
-    const filterDesc = hasFilter 
-      ? `(${[
-          params.name ? `name: ${params.name}` : '',
-          params.domain ? `domain: ${params.domain}` : '',
-          params.path ? `path: ${params.path}` : '',
-        ].filter(Boolean).join(', ')})`
+    const filter: ClearCookieFilter = {};
+    if (params.name !== undefined)
+      filter.name = params.name;
+    if (params.domain !== undefined)
+      filter.domain = params.domain;
+    if (params.path !== undefined)
+      filter.path = params.path;
+
+    const hasFilter = Object.keys(filter).length > 0;
+    const filterDesc = hasFilter
+      ? `(${Object.entries(filter).map(([k, v]) => `${k}: ${v}`).join(', ')})`
       : '(all)';
 
     const code = [
       `// Clear cookies ${filterDesc}`,
-      `await context.clearCookies(${hasFilter ? JSON.stringify(params) : ''});`,
+      `await context.clearCookies(${hasFilter ? JSON.stringify(filter) : ''});`,
     ];
 
     const action = async () => {
-      if (hasFilter) {
-        await browserContext.clearCookies(params as any);
-      } else {
+      if (hasFilter)
+        await browserContext.clearCookies(filter);
+      else
         await browserContext.clearCookies();
-      }
       return {
         content: [{ type: 'text' as const, text: `Cookies cleared ${filterDesc}` }]
       };
@@ -255,7 +313,10 @@ const clearCookies = defineTool({
 });
 
 /**
- * Local storage operations
+ * Retrieve every localStorage entry for the active page.
+ *
+ * @example
+ * await browser_get_local_storage({});
  */
 const getLocalStorage = defineTool({
   capability: 'core',
@@ -263,8 +324,8 @@ const getLocalStorage = defineTool({
   schema: {
     name: 'browser_get_local_storage',
     title: 'Autonomous localStorage retrieval',
-    description: 'Autonomously retrieve all localStorage items for the current page.',
-    inputSchema: z.object({}),
+    description: 'Retrieve all localStorage entries for the current page. Values longer than 100 chars are truncated in the human-readable output.',
+    inputSchema: z.object({}).describe('No input parameters.'),
     type: 'readOnly',
   },
 
@@ -281,9 +342,8 @@ const getLocalStorage = defineTool({
         const items: Record<string, string> = {};
         for (let i = 0; i < localStorage.length; i++) {
           const key = localStorage.key(i);
-          if (key) {
+          if (key)
             items[key] = localStorage.getItem(key) || '';
-          }
         }
         return items;
       });
@@ -315,8 +375,16 @@ const getLocalStorage = defineTool({
   },
 });
 
+const setLocalStorageSchema = z.object({
+  key: z.string().min(1).describe('localStorage key to write.'),
+  value: z.string().describe('Value to associate with the key. Pass a JSON-encoded string for structured data.'),
+});
+
 /**
- * Set localStorage item
+ * Set a localStorage entry for the active page.
+ *
+ * @example
+ * await browser_set_local_storage({ key: 'theme', value: 'dark' });
  */
 const setLocalStorage = defineTool({
   capability: 'core',
@@ -324,11 +392,8 @@ const setLocalStorage = defineTool({
   schema: {
     name: 'browser_set_local_storage',
     title: 'Autonomous localStorage setting',
-    description: 'Autonomously set a localStorage item for the current page.',
-    inputSchema: z.object({
-      key: z.string().describe('Storage key'),
-      value: z.string().describe('Storage value'),
-    }),
+    description: 'Set a localStorage entry on the current page. Overwrites any existing value for the key.',
+    inputSchema: setLocalStorageSchema,
     type: 'destructive',
   },
 
