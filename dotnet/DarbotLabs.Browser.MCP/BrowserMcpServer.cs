@@ -1,122 +1,126 @@
-/**
- * Copyright (c) 2024 DarbotLabs
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright (c) 2025 darbotlabs
+// Licensed under the Apache License, Version 2.0.
 
+using System.Diagnostics;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.DependencyInjection;
-using System.Diagnostics;
-using System.Text.Json;
 
 namespace DarbotLabs.Browser.MCP;
 
 /// <summary>
-/// Browser MCP Server host for .NET applications
+/// Hosts the Darbot Browser MCP Node.js server as a managed .NET hosted service.
 /// </summary>
-public class BrowserMcpServer : IHostedService, IDisposable
+public sealed class BrowserMcpServer : IHostedService, IDisposable
 {
     private readonly ILogger<BrowserMcpServer> _logger;
-    private Process? _serverProcess;
     private readonly BrowserMcpOptions _options;
+    private Process? _serverProcess;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="BrowserMcpServer"/> class.
+    /// </summary>
+    /// <param name="logger">Logger used for process lifecycle and output messages.</param>
+    /// <param name="options">Optional server launch options.</param>
     public BrowserMcpServer(ILogger<BrowserMcpServer> logger, BrowserMcpOptions? options = null)
     {
         _logger = logger;
         _options = options ?? new BrowserMcpOptions();
     }
 
-    public async Task StartAsync(CancellationToken cancellationToken)
+    /// <summary>
+    /// Starts the Darbot Browser MCP server process.
+    /// </summary>
+    /// <param name="cancellationToken">Token that cancels server startup.</param>
+    /// <returns>A task that completes after the process has been started.</returns>
+    public Task StartAsync(CancellationToken cancellationToken)
     {
-        try
+        if (_serverProcess is { HasExited: false })
         {
-            _logger.LogInformation("Starting Browser MCP Server...");
-
-            var startInfo = new ProcessStartInfo
-            {
-                FileName = _options.NodePath,
-                Arguments = $"-e \"require('@darbotlabs/darbot-browser-mcp')\"",
-                UseShellExecute = false,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                RedirectStandardInput = true,
-                CreateNoWindow = true
-            };
-
-            // Add environment variables if specified
-            foreach (var env in _options.Environment)
-            {
-                startInfo.Environment[env.Key] = env.Value;
-            }
-
-            _serverProcess = Process.Start(startInfo);
-
-            if (_serverProcess == null)
-            {
-                throw new InvalidOperationException("Failed to start Browser MCP Server process");
-            }
-
-            _logger.LogInformation("Browser MCP Server started with PID: {ProcessId}", _serverProcess.Id);
-
-            // Handle output
-            _serverProcess.OutputDataReceived += (sender, e) =>
-            {
-                if (!string.IsNullOrEmpty(e.Data))
-                {
-                    _logger.LogInformation("Server Output: {Data}", e.Data);
-                }
-            };
-
-            _serverProcess.ErrorDataReceived += (sender, e) =>
-            {
-                if (!string.IsNullOrEmpty(e.Data))
-                {
-                    _logger.LogError("Server Error: {Data}", e.Data);
-                }
-            };
-
-            _serverProcess.BeginOutputReadLine();
-            _serverProcess.BeginErrorReadLine();
-
-            await Task.CompletedTask;
+            _logger.LogDebug("Darbot Browser MCP Server is already running with PID {ProcessId}.", _serverProcess.Id);
+            return Task.CompletedTask;
         }
-        catch (Exception ex)
+
+        _logger.LogInformation("Starting Darbot Browser MCP Server {PackageSpec}...", _options.PackageSpec);
+
+        var startInfo = new ProcessStartInfo
         {
-            _logger.LogError(ex, "Failed to start Browser MCP Server");
-            throw;
+            FileName = _options.NodePath,
+            Arguments = _options.BuildArguments(),
+            UseShellExecute = false,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            RedirectStandardInput = true,
+            CreateNoWindow = true
+        };
+
+        startInfo.Environment["LOG_LEVEL"] = _options.LogLevel;
+        foreach (var env in _options.Environment)
+        {
+            startInfo.Environment[env.Key] = env.Value;
         }
+
+        _serverProcess = Process.Start(startInfo)
+            ?? throw new InvalidOperationException("Failed to start the Darbot Browser MCP Server process.");
+
+        _serverProcess.OutputDataReceived += (_, eventArgs) =>
+        {
+            if (!string.IsNullOrWhiteSpace(eventArgs.Data))
+            {
+                _logger.LogInformation("Darbot Browser MCP: {Data}", eventArgs.Data);
+            }
+        };
+
+        _serverProcess.ErrorDataReceived += (_, eventArgs) =>
+        {
+            if (!string.IsNullOrWhiteSpace(eventArgs.Data))
+            {
+                _logger.LogWarning("Darbot Browser MCP: {Data}", eventArgs.Data);
+            }
+        };
+
+        _serverProcess.BeginOutputReadLine();
+        _serverProcess.BeginErrorReadLine();
+
+        _logger.LogInformation("Darbot Browser MCP Server started with PID {ProcessId}.", _serverProcess.Id);
+        return Task.CompletedTask;
     }
 
+    /// <summary>
+    /// Stops the Darbot Browser MCP server process.
+    /// </summary>
+    /// <param name="cancellationToken">Token that cancels waiting for shutdown.</param>
+    /// <returns>A task that completes after the process exits.</returns>
     public async Task StopAsync(CancellationToken cancellationToken)
     {
+        if (_serverProcess is null)
+        {
+            return;
+        }
+
         try
         {
-            _logger.LogInformation("Stopping Browser MCP Server...");
-
-            if (_serverProcess != null && !_serverProcess.HasExited)
+            if (!_serverProcess.HasExited)
             {
-                _serverProcess.Kill();
-                await _serverProcess.WaitForExitAsync(cancellationToken);
+                _logger.LogInformation("Stopping Darbot Browser MCP Server with PID {ProcessId}...", _serverProcess.Id);
+                _serverProcess.Kill(entireProcessTree: true);
+                await _serverProcess.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
             }
-
-            _logger.LogInformation("Browser MCP Server stopped");
         }
-        catch (Exception ex)
+        catch (InvalidOperationException ex)
         {
-            _logger.LogError(ex, "Error stopping Browser MCP Server");
+            _logger.LogDebug(ex, "Darbot Browser MCP Server process had already exited.");
+        }
+        finally
+        {
+            _serverProcess.Dispose();
+            _serverProcess = null;
         }
     }
 
+    /// <summary>
+    /// Releases resources held by the server process wrapper.
+    /// </summary>
     public void Dispose()
     {
         _serverProcess?.Dispose();
@@ -124,40 +128,67 @@ public class BrowserMcpServer : IHostedService, IDisposable
 }
 
 /// <summary>
-/// Configuration options for Browser MCP Server
+/// Configuration options used to launch the Darbot Browser MCP server.
 /// </summary>
-public class BrowserMcpOptions
+public sealed class BrowserMcpOptions
 {
     /// <summary>
-    /// Path to Node.js executable
+    /// Gets or sets the executable used to launch the package. The default uses npx for NuGet consumers.
     /// </summary>
-    public string NodePath { get; set; } = "node";
+    public string NodePath { get; set; } = "npx";
 
     /// <summary>
-    /// Environment variables to pass to the server process
+    /// Gets or sets the npm package name for the MCP server.
     /// </summary>
-    public Dictionary<string, string> Environment { get; set; } = new();
+    public string PackageName { get; set; } = "@darbotlabs/darbot-browser-mcp";
 
     /// <summary>
-    /// Server port (optional)
+    /// Gets or sets the npm package version pinned by the .NET wrapper.
     /// </summary>
-    public int? Port { get; set; }
+    public string PackageVersion { get; set; } = "2.0.0";
 
     /// <summary>
-    /// Log level for the server
+    /// Gets the fully-qualified npm package spec used when launching through npx.
+    /// </summary>
+    public string PackageSpec => $"{PackageName}@{PackageVersion}";
+
+    /// <summary>
+    /// Gets environment variables passed to the MCP server process.
+    /// </summary>
+    public IDictionary<string, string> Environment { get; } = new Dictionary<string, string>();
+
+    /// <summary>
+    /// Gets or sets the browser automation log level.
     /// </summary>
     public string LogLevel { get; set; } = "info";
+
+    /// <summary>
+    /// Builds the command-line arguments for the configured launcher.
+    /// </summary>
+    /// <returns>Arguments that launch the pinned Darbot Browser MCP package.</returns>
+    public string BuildArguments()
+    {
+        var launcher = Path.GetFileNameWithoutExtension(NodePath);
+        return string.Equals(launcher, "npx", StringComparison.OrdinalIgnoreCase)
+            ? $"-y {PackageSpec}"
+            : $"--input-type=module -e \"import('{PackageName}')\"";
+    }
 }
 
 /// <summary>
-/// Extension methods for adding Browser MCP Server to IServiceCollection
+/// Extension methods for registering the Darbot Browser MCP server with dependency injection.
 /// </summary>
 public static class BrowserMcpServiceCollectionExtensions
 {
     /// <summary>
-    /// Add Browser MCP Server as a hosted service
+    /// Adds the Darbot Browser MCP server as a hosted service.
     /// </summary>
-    public static IServiceCollection AddBrowserMcpServer(this IServiceCollection services, Action<BrowserMcpOptions>? configureOptions = null)
+    /// <param name="services">The service collection to update.</param>
+    /// <param name="configureOptions">Optional callback for configuring server launch options.</param>
+    /// <returns>The same service collection for fluent chaining.</returns>
+    public static IServiceCollection AddBrowserMcpServer(
+        this IServiceCollection services,
+        Action<BrowserMcpOptions>? configureOptions = null)
     {
         var options = new BrowserMcpOptions();
         configureOptions?.Invoke(options);
@@ -168,3 +199,4 @@ public static class BrowserMcpServiceCollectionExtensions
         return services;
     }
 }
+

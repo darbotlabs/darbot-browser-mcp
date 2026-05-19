@@ -1,34 +1,51 @@
-﻿using DarbotLabs.Browser.MCP;
-using Microsoft.Extensions.Hosting;
+using DarbotLabs.Browser.MCP;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-Console.WriteLine("Starting Darbot Browser MCP Server...");
+Console.WriteLine("Darbot Browser MCP NuGet smoke test starting...");
 
-var builder = Host.CreateApplicationBuilder(args);
-
-// Configure logging
-builder.Services.AddLogging(logging =>
+try
 {
-    logging.AddConsole();
-    logging.SetMinimumLevel(LogLevel.Information);
-});
+    var builder = Host.CreateApplicationBuilder(args);
 
-// Add Browser MCP Server
-builder.Services.AddBrowserMcpServer(options =>
+    builder.Services.AddLogging(logging =>
+    {
+        logging.AddConsole();
+        logging.SetMinimumLevel(LogLevel.Warning);
+    });
+
+    // NuGet consumers install DarbotLabs.Browser.MCP and register the hosted MCP server.
+    builder.Services.AddBrowserMcpServer(options =>
+    {
+        options.PackageVersion = "2.0.0";
+        options.LogLevel = "info";
+        options.Environment["BROWSER"] = "msedge";
+        options.Environment["VIEWPORT_SIZE"] = "1920,1080";
+    });
+
+    using var host = builder.Build();
+    var options = host.Services.GetRequiredService<BrowserMcpOptions>();
+    var hostedService = host.Services.GetServices<IHostedService>().OfType<BrowserMcpServer>().SingleOrDefault();
+
+    if (hostedService is null)
+    {
+        Console.Error.WriteLine("Smoke test failed: BrowserMcpServer was not registered.");
+        return 1;
+    }
+
+    if (options.PackageSpec != "@darbotlabs/darbot-browser-mcp@2.0.0")
+    {
+        Console.Error.WriteLine($"Smoke test failed: unexpected package spec '{options.PackageSpec}'.");
+        return 1;
+    }
+
+    await Task.Yield();
+    Console.WriteLine("Smoke test passed. DarbotLabs.Browser.MCP is ready to host the MCP server.");
+    return 0;
+}
+catch (Exception ex)
 {
-    options.LogLevel = "info";
-    options.Environment["BROWSER"] = "msedge";
-    options.Environment["VIEWPORT_SIZE"] = "1920,1080";
-});
-
-var host = builder.Build();
-
-Console.WriteLine(" Starting the Browser MCP Server host...");
-await host.StartAsync();
-
-Console.WriteLine(" Server is running! Press Ctrl+C to stop...");
-Console.WriteLine("📍 Use this with VS Code Copilot Chat: @darbot-browser-mcp navigate to https://copilotstudio.microsoft.com");
-
-// Keep the application running
-await host.WaitForShutdownAsync();
+    Console.Error.WriteLine($"Smoke test failed: {ex}");
+    return 1;
+}

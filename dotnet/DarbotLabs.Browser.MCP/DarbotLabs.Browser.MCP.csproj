@@ -1,28 +1,31 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <PackageId>DarbotLabs.Browser.MCP</PackageId>
-    <Version>1.3.0</Version>
-    <Authors>DarbotLabs</Authors>
-    <Company>DarbotLabs</Company>
-    <Product>Darbot Browser MCP - Autonomous Browser Companion</Product>
-    <Description>Your Autonomous Browser Companion - 52 AI-driven autonomous browser tools for Model Context Protocol (MCP) servers. Provides intelligent autonomous browser capabilities for MCP-enabled applications with work profile support and VS Code GitHub Copilot agent mode integration.</Description>
-    <Copyright>Copyright 2025 DarbotLabs</Copyright>
+    <Version>2.0.0</Version>
+    <PackageVersion>2.0.0</PackageVersion>
+    <Authors>darbotlabs</Authors>
+    <Company>darbotlabs</Company>
+    <Product>Darbot Browser MCP</Product>
+    <Description>Darbot Browser - framework for 52 AI-driven browser tools with session state support and VS Code GitHub Copilot agent mode integration</Description>
+    <Copyright>Copyright 2025 darbotlabs</Copyright>
     <PackageProjectUrl>https://github.com/darbotlabs/darbot-browser-mcp</PackageProjectUrl>
-    <PackageIcon>icon-128.png</PackageIcon>
-    <PackageLicense>Apache-2.0</PackageLicense>
-    <PackageTags>mcp browser autonomous darbot testing web-automation model-context-protocol ai copilot github-copilot vscode agent-mode work-profiles</PackageTags>
-    <RepositoryUrl>https://github.com/darbotlabs/darbot-browser-mcp</RepositoryUrl>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageTags>mcp browser automation playwright vscode copilot azure entra</PackageTags>
+    <RepositoryUrl>https://github.com/darbotlabs/darbot-browser-mcp.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.8" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.8" />
+    <PackageReference Include="System.Text.Json" Version="10.0.8" />
   </ItemGroup>
 
   <ItemGroup>
@@ -32,10 +35,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\..\README.md" Pack="true" PackagePath="\"/>
-    <None Include="..\..\docs\DarbotGuide.md" Pack="true" PackagePath="docs\"/>
-    <None Include="..\..\docs\vscode\VSCODE_INSTALLATION.md" Pack="true" PackagePath="docs\"/>
-    <None Include="..\..\extension\icons\icon-128.png" Pack="true" PackagePath="\"/>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+    <None Include="..\..\LICENSE" Pack="true" PackagePath="\" />
+    <None Include="..\..\docs\DarbotGuide.md" Pack="true" PackagePath="docs\" />
+    <None Include="..\..\docs\vscode\VSCODE_INSTALLATION.md" Pack="true" PackagePath="docs\" />
+    <None Include="icon.png" Pack="true" PackagePath="\" />
   </ItemGroup>
 
 </Project>
+
