@@ -82,7 +82,7 @@ The tool "browser_file_upload" can only be used when there is related modal stat
       },
     });
 
-    expect(response).toContainTextContent('- [File chooser]: can be handled by the \"browser_file_upload\" tool');
+    expect(response).toContainTextContent('- [File chooser]: can be handled by the "browser_file_upload" tool');
   }
 
   {

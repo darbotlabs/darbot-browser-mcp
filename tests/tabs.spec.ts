@@ -34,7 +34,7 @@ test('list initial tabs', async ({ client }) => {
     name: 'browser_tab_list',
   });
   // Edge may show edge://force-signin/ or about:blank depending on configuration
-  expect(result).toHaveTextContent(/### Open tabs\n- 1: \(current\) \[\] \((about:blank|edge:\/\/[^\)]+)\)/);
+  expect(result).toHaveTextContent(/### Open tabs\n- 1: \(current\) \[\] \((about:blank|edge:\/\/[^)]+)\)/);
 });
 
 test('list first tab', async ({ client }) => {
@@ -43,7 +43,7 @@ test('list first tab', async ({ client }) => {
     name: 'browser_tab_list',
   });
   // Edge may show edge://force-signin/ or about:blank as first tab
-  expect(result).toHaveTextContent(/### Open tabs\n- 1: \[\] \((about:blank|edge:\/\/[^\)]+)\)\n- 2: \(current\) \[Tab one\]/);
+  expect(result).toHaveTextContent(/### Open tabs\n- 1: \[\] \((about:blank|edge:\/\/[^)]+)\)\n- 2: \(current\) \[Tab one\]/);
 });
 
 test('create new tab', async ({ client }) => {
@@ -51,14 +51,14 @@ test('create new tab', async ({ client }) => {
   // Edge may show edge://force-signin/ or about:blank as first tab
   expect(result1).toHaveTextContent(/- Ran Playwright code:/);
   expect(result1).toHaveTextContent(/### Open tabs/);
-  expect(result1).toHaveTextContent(/- 1: \[\] \((about:blank|edge:\/\/[^\)]+)\)/);
+  expect(result1).toHaveTextContent(/- 1: \[\] \((about:blank|edge:\/\/[^)]+)\)/);
   expect(result1).toHaveTextContent(/- 2: \(current\) \[Tab one\]/);
   expect(result1).toHaveTextContent(/### Current tab/);
   expect(result1).toHaveTextContent(/- Page URL: data:text\/html/);
   expect(result1).toHaveTextContent(/- Page Title: Tab one/);
 
   const result2 = await createTab(client, 'Tab two', 'Body two');
-  expect(result2).toHaveTextContent(/- 1: \[\] \((about:blank|edge:\/\/[^\)]+)\)/);
+  expect(result2).toHaveTextContent(/- 1: \[\] \((about:blank|edge:\/\/[^)]+)\)/);
   expect(result2).toHaveTextContent(/- 2: \[Tab one\]/);
   expect(result2).toHaveTextContent(/- 3: \(current\) \[Tab two\]/);
 });
@@ -75,7 +75,7 @@ test('select tab', async ({ client }) => {
   // Edge may show edge://force-signin/ or about:blank as first tab
   expect(result).toHaveTextContent(/- Ran Playwright code:/);
   expect(result).toHaveTextContent(/### Open tabs/);
-  expect(result).toHaveTextContent(/- 1: \[\] \((about:blank|edge:\/\/[^\)]+)\)/);
+  expect(result).toHaveTextContent(/- 1: \[\] \((about:blank|edge:\/\/[^)]+)\)/);
   expect(result).toHaveTextContent(/- 2: \(current\) \[Tab one\]/);
   expect(result).toHaveTextContent(/- 3: \[Tab two\]/);
   expect(result).toHaveTextContent(/### Current tab/);
@@ -94,7 +94,7 @@ test('close tab', async ({ client }) => {
   // Edge may show edge://force-signin/ or about:blank as first tab
   expect(result).toHaveTextContent(/- Ran Playwright code:/);
   expect(result).toHaveTextContent(/### Open tabs/);
-  expect(result).toHaveTextContent(/- 1: \[\] \((about:blank|edge:\/\/[^\)]+)\)/);
+  expect(result).toHaveTextContent(/- 1: \[\] \((about:blank|edge:\/\/[^)]+)\)/);
   expect(result).toHaveTextContent(/- 2: \(current\) \[Tab one\]/);
   expect(result).toHaveTextContent(/### Current tab/);
   expect(result).toHaveTextContent(/- Page Title: Tab one/);

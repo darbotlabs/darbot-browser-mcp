@@ -27,7 +27,7 @@ test('save as pdf unavailable', async ({ startClient, server }) => {
 
   expect(await client.callTool({
     name: 'browser_pdf_save',
-  })).toHaveTextContent(/Tool \"browser_pdf_save\" not found/);
+  })).toHaveTextContent(/Tool "browser_pdf_save" not found/);
 });
 
 test('save as pdf', async ({ startClient, mcpBrowser, mcpHeadless, server }, testInfo) => {

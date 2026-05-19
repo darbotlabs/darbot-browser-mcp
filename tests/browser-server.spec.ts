@@ -24,7 +24,7 @@ import type { ChildProcess } from 'child_process';
 const __filename = url.fileURLToPath(import.meta.url);
 
 const test = baseTest.extend<{ agentEndpoint: (options?: { args?: string[] }) => Promise<{ url: URL, stdout: () => string }> }>({
-  agentEndpoint: async ({}, use) => {
+  agentEndpoint: async (_, use) => {
     let cp: ChildProcess | undefined;
     await use(async (options?: { args?: string[] }) => {
       if (cp)
