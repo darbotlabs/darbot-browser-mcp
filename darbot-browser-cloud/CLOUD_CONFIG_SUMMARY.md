@@ -121,7 +121,7 @@ Microsoft auth provider — there is no custom OAuth dance in client code.
 - [ ] `curl https://<your-app>.azurewebsites.net/health` returns `200 {status:"healthy", version:"<v>"}`.
 - [ ] `curl -H "Authorization: Bearer <token>" https://<your-app>.azurewebsites.net/mcp` upgrades to Streamable HTTP.
 - [ ] VS Code Cloud extension → *Test Cloud Connection* succeeds.
-- [ ] VS Code → agent mode → *darbot* tools appear (52 tools when both
+- [ ] VS Code → agent mode → *darbot* tools appear (59 tools when both
   snapshot and vision sets are exposed).
 - [ ] App Insights receives traces and `auditLog` events on every tool call.
 - [ ] Sessions/profile work after a restart (persisted in Blob storage).

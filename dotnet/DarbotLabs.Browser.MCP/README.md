@@ -1,6 +1,6 @@
 # DarbotLabs.Browser.MCP NuGet package
 
-`DarbotLabs.Browser.MCP` is the .NET hosting wrapper for Darbot Browser MCP, a Model Context Protocol server that exposes 52 browser automation tools with session state support and VS Code GitHub Copilot agent mode integration.
+`DarbotLabs.Browser.MCP` is the .NET hosting wrapper for Darbot Browser MCP, a Model Context Protocol server that exposes 59 browser automation tools with session state support and VS Code GitHub Copilot agent mode integration.
 
 ## Install
 

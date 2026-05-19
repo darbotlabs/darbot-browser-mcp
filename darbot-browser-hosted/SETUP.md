@@ -126,7 +126,7 @@ code .
 
 - [ ] `curl <serverUrl>/health` returns `{status:"healthy", version:"2.0.0", …}`.
 - [ ] Status bar shows `$(server) MCP Hosted: Connected`.
-- [ ] Copilot Chat → agent mode → *Darbot Browser MCP Hosted* lists 52 tools.
+- [ ] Copilot Chat → agent mode → *Darbot Browser MCP Hosted* lists 59 tools.
 - [ ] (MSAL) `Authorization: Bearer …` is visible in the container logs.
 - [ ] (Tunnel) Connecting from a second machine works after sharing the tunnel.
 

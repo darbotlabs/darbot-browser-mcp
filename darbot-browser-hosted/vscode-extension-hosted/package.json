@@ -1,7 +1,7 @@
 {
   "name": "darbot-browser-mcp-hosted",
   "displayName": "Darbot Browser MCP Hosted",
-  "description": "On-premises Docker-hosted autonomous browser for VS Code. 52 AI-driven browser tools via local Docker container with optional MSAL authentication and Dev Tunnel support for secure remote access.",
+  "description": "On-premises Docker-hosted autonomous browser for VS Code. 59 AI-driven browser tools via local Docker container with optional MSAL authentication and Dev Tunnel support for secure remote access.",
   "version": "2.0.0",
   "publisher": "darbotlabs",
   "engines": {

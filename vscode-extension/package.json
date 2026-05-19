@@ -1,7 +1,7 @@
 {
   "name": "darbot-browser-mcp",
   "displayName": "Darbot Browser MCP",
-  "description": "Your autonomous browser companion for VS Code. 52 AI-driven browser tools exposed to GitHub Copilot agent mode via the Model Context Protocol, with Microsoft Edge work-profile support.",
+  "description": "Your autonomous browser companion for VS Code. 59 AI-driven browser tools exposed to GitHub Copilot agent mode via the Model Context Protocol, with Microsoft Edge work-profile support.",
   "version": "2.0.0",
   "publisher": "darbotlabs",
   "engines": {

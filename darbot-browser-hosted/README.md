@@ -36,7 +36,7 @@ For client-side configuration, see
 
 ### Browser automation
 
-- 52 autonomous Darbot tools, mirroring the cloud edition (snapshot +
+- 59 autonomous Darbot tools, mirroring the cloud edition (snapshot +
   optional vision tool set).
 - Scroll, clock, emulation, and storage helpers.
 - Profile / session management via persistent storage volume.

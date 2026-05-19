@@ -2,6 +2,11 @@
 #
 # Lines listed later take precedence. See:
 # https://docs.github.com/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+#
+# NOTE: the `@darbotlabs/maintainers` team is the default placeholder. Replace
+# it with the real org team handles once they are provisioned in GitHub. If a
+# subscope (e.g. /src/, /azure/) develops a dedicated team, point that line at
+# the more specific handle so it overrides the default.
 
 # Default: maintainers team reviews everything not otherwise claimed
 *                                       @darbotlabs/maintainers
