@@ -81,42 +81,42 @@ class BrowserServer {
 
   private async _newBrowser(request: LaunchBrowserRequest): Promise<BrowserInfo> {
     const cdpPort = await findFreePort();
-      // Playwright 1.60+ no longer honors launchOptions.cdpPort for a listening
-      // CDP endpoint. Pass Chromium's remote-debugging-port explicitly.
-      const launchOptions: playwright.LaunchOptions = {
-        ...request.launchOptions,
-        args: [
-          ...(request.launchOptions.args ?? []),
-          `--remote-debugging-port=${cdpPort}`,
-          '--remote-debugging-address=127.0.0.1',
-        ],
-      };
-      const info: BrowserInfo = {
-        browserType: request.browserType,
-        userDataDir: request.userDataDir,
-        cdpPort,
-        launchOptions,
-        contextOptions: request.contextOptions,
-      };
+    // Playwright 1.60+ no longer honors launchOptions.cdpPort for a listening
+    // CDP endpoint. Pass Chromium's remote-debugging-port explicitly.
+    const launchOptions: playwright.LaunchOptions = {
+      ...request.launchOptions,
+      args: [
+        ...(request.launchOptions.args ?? []),
+        `--remote-debugging-port=${cdpPort}`,
+        '--remote-debugging-address=127.0.0.1',
+      ],
+    };
+    const info: BrowserInfo = {
+      browserType: request.browserType,
+      userDataDir: request.userDataDir,
+      cdpPort,
+      launchOptions,
+      contextOptions: request.contextOptions,
+    };
 
-      const browserType = playwright[request.browserType as 'chromium' | 'firefox' | 'webkit'];
-      const { browser, error } = await browserType.launchPersistentContext(request.userDataDir, {
-        ...launchOptions,
-        ...request.contextOptions,
-        handleSIGINT: false,
-        handleSIGTERM: false,
-      }).then(context => {
-        return { browser: context.browser()!, error: undefined };
-      }).catch(error => {
-        return { browser: undefined, error: error.message };
-      });
+    const browserType = playwright[request.browserType as 'chromium' | 'firefox' | 'webkit'];
+    const { browser, error } = await browserType.launchPersistentContext(request.userDataDir, {
+      ...launchOptions,
+      ...request.contextOptions,
+      handleSIGINT: false,
+      handleSIGTERM: false,
+    }).then(context => {
+      return { browser: context.browser()!, error: undefined };
+    }).catch(error => {
+      return { browser: undefined, error: error.message };
+    });
     this._setEntries([...this._entries, {
       ...(browser !== undefined && { browser }),
       info: {
         browserType: request.browserType,
         userDataDir: request.userDataDir,
         cdpPort,
-          launchOptions,
+        launchOptions,
         contextOptions: request.contextOptions,
         ...(error !== undefined && { error }),
       },

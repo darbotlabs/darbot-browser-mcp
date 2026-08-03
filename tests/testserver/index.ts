@@ -41,67 +41,67 @@ export class TestServer {
   readonly HELLO_WORLD: string;
 
   static async create(port: number): Promise<TestServer> {
-      return await TestServer._listenWithFallback(port);
-    }
+    return await TestServer._listenWithFallback(port);
+  }
 
-    static async createHTTPS(port: number): Promise<TestServer> {
-      const sslOptions = {
-        key: await fs.promises.readFile(path.join(path.dirname(__filename), 'key.pem')),
-        cert: await fs.promises.readFile(path.join(path.dirname(__filename), 'cert.pem')),
-        passphrase: 'aaaa',
-      };
-      return await TestServer._listenWithFallback(port, sslOptions);
-    }
+  static async createHTTPS(port: number): Promise<TestServer> {
+    const sslOptions = {
+      key: await fs.promises.readFile(path.join(path.dirname(__filename), 'key.pem')),
+      cert: await fs.promises.readFile(path.join(path.dirname(__filename), 'cert.pem')),
+      passphrase: 'aaaa',
+    };
+    return await TestServer._listenWithFallback(port, sslOptions);
+  }
 
-    /**
+  /**
      * Bind preferred port, then walk upward on EADDRINUSE so leftover workers from
      * a prior aborted suite do not fail the whole worker fixture.
      */
-    private static async _listenWithFallback(preferredPort: number, sslOptions?: object): Promise<TestServer> {
-      let lastError: unknown;
-      for (let offset = 0; offset < 40; offset++) {
-        const port = preferredPort + offset;
-        const server = new TestServer(port, sslOptions);
-        try {
-          await new Promise<void>((resolve, reject) => {
-            const onError = (error: NodeJS.ErrnoException) => {
-              server._server.off('listening', onListening);
-              reject(error);
-            };
-            const onListening = () => {
-              server._server.off('error', onError);
-              resolve();
-            };
-            server._server.once('error', onError);
-            server._server.once('listening', onListening);
-          });
-          return server;
-        } catch (error: any) {
-          lastError = error;
-          server._server.close();
-          if (error?.code !== 'EADDRINUSE')
-            throw error;
-        }
+  private static async _listenWithFallback(preferredPort: number, sslOptions?: object): Promise<TestServer> {
+    let lastError: unknown;
+    for (let offset = 0; offset < 40; offset++) {
+      const port = preferredPort + offset;
+      const server = new TestServer(port, sslOptions);
+      try {
+        await new Promise<void>((resolve, reject) => {
+          const onError = (error: NodeJS.ErrnoException) => {
+            server._server.off('listening', onListening);
+            reject(error);
+          };
+          const onListening = () => {
+            server._server.off('error', onError);
+            resolve();
+          };
+          server._server.once('error', onError);
+          server._server.once('listening', onListening);
+        });
+        return server;
+      } catch (error: any) {
+        lastError = error;
+        server._server.close();
+        if (error?.code !== 'EADDRINUSE')
+          throw error;
       }
-      throw lastError ?? new Error(`Unable to bind test server near port ${preferredPort}`);
     }
+    throw lastError ?? new Error(`Unable to bind test server near port ${preferredPort}`);
+  }
 
-    constructor(port: number, sslOptions?: object) {
-      if (sslOptions)
-        this._server = https.createServer(sslOptions, this._onRequest.bind(this));
-      else
-        this._server = http.createServer(this._onRequest.bind(this));
-      this._server.listen(port);
-      this.debugServer = debug('pw:testserver');
+  constructor(port: number, sslOptions?: object) {
+    if (sslOptions)
+      this._server = https.createServer(sslOptions, this._onRequest.bind(this));
+    else
+      this._server = http.createServer(this._onRequest.bind(this));
+    this._server.listen(port);
+    this.debugServer = debug('pw:testserver');
 
-      const cross_origin = '127.0.0.1';
-      const same_origin = 'localhost';
-      const protocol = sslOptions ? 'https' : 'http';
-      this.PORT = port;
-      this.PREFIX = `${protocol}://${same_origin}:${port}/`;
-      this.CROSS_PROCESS_PREFIX = `${protocol}://${cross_origin}:${port}/`;
-      this.HELLO_WORLD = `${this.PREFIX}hello-world`;
-    }
+    const cross_origin = '127.0.0.1';
+    const same_origin = 'localhost';
+    const protocol = sslOptions ? 'https' : 'http';
+    this.PORT = port;
+    this.PREFIX = `${protocol}://${same_origin}:${port}/`;
+    this.CROSS_PROCESS_PREFIX = `${protocol}://${cross_origin}:${port}/`;
+    this.HELLO_WORLD = `${this.PREFIX}hello-world`;
+  }
 
   setCSP(path: string, csp: string) {
     this._csp.set(path, csp);
