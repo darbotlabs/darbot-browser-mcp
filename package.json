@@ -87,7 +87,7 @@
   "dependencies": {
     "@azure/identity": "^4.13.1",
     "@azure/keyvault-secrets": "^4.11.2",
-    "@azure/msal-node": "^5.2.1",
+    "@azure/msal-node": "^5.4.3",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "commander": "^14.0.3",
     "debug": "^4.4.3",
@@ -119,4 +119,3 @@
     "typescript": "^5.9.3"
   }
 }
-
