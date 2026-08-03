@@ -64,7 +64,7 @@ export class TestServer {
       const server = new TestServer(port, sslOptions);
       try {
         await new Promise<void>((resolve, reject) => {
-          const onError = (error: NodeJS.ErrnoException) => {
+          const onError = (error: Error & { code?: string }) => {
             server._server.off('listening', onListening);
             reject(error);
           };
