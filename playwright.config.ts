@@ -47,9 +47,14 @@ export default defineConfig<TestOptions>({
   projects: [
     { name: 'msedge', use: { ...devices['Desktop Edge'], mcpBrowser: 'msedge' } },
     { name: 'chromium', use: { ...devices['Desktop Chrome'], mcpBrowser: 'chromium' } },
-    {
+    // Only added when explicitly testing the published Docker image (docker
+    // run darbot-browser-mcp:latest via tests/fixtures.ts createTransport).
+    // Without this gate the project silently fell back to spawning a plain
+    // local chromium server identical to the `chromium` project above -
+    // doubling test time/resource contention while never exercising Docker.
+    ...process.env.MCP_IN_DOCKER ? [{
       name: 'chromium-docker',
-      use: { ...devices['Desktop Chrome'], mcpBrowser: 'chromium' },
-    },
+      use: { ...devices['Desktop Chrome'], mcpBrowser: 'chromium', mcpMode: 'docker' as const },
+    }] : [],
   ],
 });
