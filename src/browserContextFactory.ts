@@ -282,7 +282,9 @@ export class BrowserServerContextFactory extends BaseContextFactory {
     const info = await response.json() as BrowserInfo;
     if (info.error)
       throw new Error(info.error);
-    return await playwright.chromium.connectOverCDP(`http://localhost:${info.cdpPort}/`);
+    // Prefer IPv4 loopback: on Windows `localhost` often resolves to ::1 first while
+    // Chromium's CDP endpoint is bound to 127.0.0.1, causing ECONNREFUSED.
+    return await playwright.chromium.connectOverCDP(`http://127.0.0.1:${info.cdpPort}/`);
   }
 
   protected override async _doCreateContext(browser: playwright.Browser): Promise<playwright.BrowserContext> {
@@ -299,12 +301,26 @@ export class BrowserServerContextFactory extends BaseContextFactory {
   }
 }
 
+/**
+ * Ensure Chromium-family launches expose a CDP endpoint. Playwright 1.60+
+ * ignores the old `launchOptions.cdpPort` knob; pass remote-debugging flags.
+ */
 async function injectCdpPort(browserConfig: FullConfig['browser']) {
-  if (browserConfig.browserName === 'chromium')
-    (browserConfig.launchOptions as any).cdpPort = await findFreePort();
+  if (browserConfig.browserName !== 'chromium')
+    return;
+  const launchOptions = browserConfig.launchOptions as playwright.LaunchOptions & { cdpPort?: number };
+  if (launchOptions.args?.some(a => String(a).includes('remote-debugging-port')))
+    return;
+  const cdpPort = await findFreePort();
+  launchOptions.cdpPort = cdpPort;
+  launchOptions.args = [
+    ...(launchOptions.args ?? []),
+    `--remote-debugging-port=${cdpPort}`,
+    '--remote-debugging-address=127.0.0.1',
+  ];
 }
 
-async function findFreePort() {
+async function findFreePort(): Promise<number> {
   return new Promise((resolve, reject) => {
     const server = net.createServer();
     server.listen(0, () => {

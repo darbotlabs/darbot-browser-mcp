@@ -20,7 +20,7 @@ import * as https from 'https';
 
 const EXTENSION_ID = 'darbot-browser-mcp-cloud';
 const CONFIG_SECTION = 'darbot-browser-mcp-cloud';
-const EXTENSION_VERSION = '2.0.0';
+const EXTENSION_VERSION = '2.1.1';
 const AUTH_PROVIDER = 'microsoft';
 
 interface CloudConfig {

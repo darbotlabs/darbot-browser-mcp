@@ -123,10 +123,22 @@ program
 
 
       if (config.saveTrace) {
-        const traceServer = await playwrightServer.startTraceViewerServer();
-        const urlPrefix = traceServer.urlPrefix('human-readable');
-        const url = urlPrefix + '/trace/index.html?trace=' + config.browser.launchOptions.tracesDir + '/trace.json';
-        programDebug('Trace viewer listening on %s', url);
+        // Playwright 1.60+ requires allowedFileRoots (and optional host/port).
+        // Starting the viewer is best-effort — session traces still write via
+        // browserContext.tracing even if the viewer HTTP server fails.
+        try {
+          const tracesDir = config.browser.launchOptions.tracesDir;
+          const roots = [config.outputDir, tracesDir].filter((p): p is string => !!p);
+          const traceServer = await playwrightServer.startTraceViewerServer({
+            allowedFileRoots: () => roots,
+          });
+          const urlPrefix = traceServer.urlPrefix('human-readable');
+          const tracePath = (tracesDir ?? config.outputDir) + '/trace.json';
+          const url = urlPrefix + '/trace/index.html?trace=' + tracePath;
+          programDebug('Trace viewer listening on %s', url);
+        } catch (error) {
+          programDebug('Trace viewer server failed to start (traces still saved): %O', error);
+        }
       }
     });
 

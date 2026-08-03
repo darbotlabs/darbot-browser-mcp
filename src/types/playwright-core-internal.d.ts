@@ -34,13 +34,18 @@ declare module 'playwright-core/lib/coreBundle' {
    * Only the members we actively consume are declared here. Extend as needed.
    */
   export const server: {
-    /**
-     * Starts a local HTTP server that serves the Playwright Trace Viewer UI.
-     * Returns a handle that exposes a `urlPrefix(format)` helper for building
-     * deep links into the trace viewer.
-     */
-    startTraceViewerServer(): Promise<{
-      urlPrefix(format: 'human-readable' | 'precise'): string;
-    }>;
-  };
-}
+      /**
+       * Starts a local HTTP server that serves the Playwright Trace Viewer UI.
+       * Playwright 1.60+ requires `allowedFileRoots` to authorize /file serving.
+       */
+      startTraceViewerServer(options: {
+        allowedFileRoots: () => string[];
+        host?: string;
+        port?: number;
+        transport?: unknown;
+        isServer?: boolean;
+      }): Promise<{
+        urlPrefix(format: 'human-readable' | 'precise'): string;
+      }>;
+    };
+  }

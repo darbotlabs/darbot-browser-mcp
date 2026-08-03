@@ -67,7 +67,7 @@ test('executable path', async ({ startClient, server }) => {
   expect(response).toContainTextContent(`executable doesn't exist`);
 });
 
-test('persistent context', async ({ startClient, server }) => {
+test('persistent context', async ({ startClient, server }, testInfo) => {
   server.setContent('/', `
     <body>
     </body>
@@ -77,20 +77,30 @@ test('persistent context', async ({ startClient, server }) => {
     </script>
   `, 'text/html');
 
-  const { client } = await startClient();
+  // Dedicated profile dir so parallel workers / residual Edge locks cannot
+  // silently open a different empty profile between the two client sessions.
+  const userDataDir = testInfo.outputPath('persistent-profile');
+  const clientArgs = [`--user-data-dir=${userDataDir}`];
+
+  const { client } = await startClient({ args: clientArgs });
   const response = await client.callTool({
     name: 'browser_navigate',
     arguments: { url: server.PREFIX },
   });
   expect(response).toContainTextContent(`Storage: NO`);
 
-  await new Promise(resolve => setTimeout(resolve, 3000));
-
+  // Force a second navigation so Chromium/Edge flushes localStorage before close.
+  await client.callTool({
+    name: 'browser_navigate',
+    arguments: { url: server.PREFIX },
+  });
   await client.callTool({
     name: 'browser_close',
   });
+  // Allow the channel process (especially msedge) to release the profile lock.
+  await new Promise(resolve => setTimeout(resolve, 1500));
 
-  const { client: client2 } = await startClient();
+  const { client: client2 } = await startClient({ args: clientArgs });
   const response2 = await client2.callTool({
     name: 'browser_navigate',
     arguments: { url: server.PREFIX },
