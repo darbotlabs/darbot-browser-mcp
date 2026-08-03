@@ -1,5 +1,8 @@
 # Darbot Browser MCP - On-Premises Hosted Edition
 # Multi-stage Docker build with MSAL auth and dev tunnel support
+#
+# Hosted edition defaults to node:23-bookworm-slim. Root product image uses
+# node:20-bookworm-slim. Both satisfy package engines node>=20.
 
 # Build stage
 FROM node:23-bookworm-slim AS builder

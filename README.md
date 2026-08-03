@@ -10,15 +10,17 @@
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
 [![GitHub stars](https://img.shields.io/github/stars/darbotlabs/darbot-browser-mcp?style=social)](https://github.com/darbotlabs/darbot-browser-mcp/stargazers)
 
-## v2.0.0 highlights
+## v2.1.1 highlights
 
+- **Best-of reconcile matrix:** GitHub canonical runtime (Playwright 1.60 hardening, webdriver suppress, persistent-context fast-fail) plus ADO/fleet enterprise surfaces (auth, Azure bicep, PP connector, NuGet, extensions) on one version line.
+- Registration-truth **59** MCP tools (54 accessibility-first default + 5 vision-mode screen tools), including `browser_evaluate` and `browser_discover_profiles`.
 - Bridge auto-detection for Chrome/Edge extension relays on ports `9223`-`9225`.
-- `browser_evaluate` for controlled JavaScript execution in the page context.
-- Hosted extension and Azure-first deployment path for enterprise MCP endpoints.
+- Hosted + cloud VS Code extensions and Azure-first deployment path for enterprise MCP endpoints.
 - OAuth with Microsoft Entra ID, explicit `SERVER_BASE_URL`, API key, tunnel, and managed identity auth.
-- Health and readiness endpoints: `/health`, `/ready`, `/live`.
-- OpenAPI generation for Copilot Studio and Power Platform.
-- Rebuilt documentation under [`docs/`](docs/README.md).
+- Health probes with K8s-style aliases: `/health|/healthz`, `/ready|/readyz`, `/live|/livez`.
+- OpenAPI generation for Copilot Studio and Power Platform (full tool-aligned connector actions).
+- Unified product versions at **2.1.1** (npm, VS Code, bridge, hosted, cloud client, NuGet).
+- Documentation under [`docs/`](docs/README.md).
 
 ## Quick install
 
@@ -59,7 +61,7 @@ Typical tool flow: `browser_navigate` → `browser_snapshot` → `browser_evalua
 
 ## Feature matrix
 
-Current registered default tool surface: **54 accessibility-first tools** from `src/tools.ts`, plus **5 vision-mode screen tools** when `--vision` is enabled.
+Current registration-truth tool surface from `src/tools.ts`: **59** unique tools — **54** accessibility-first tools in default snapshot mode, plus **5** vision-mode screen tools when `--vision` is enabled.
 
 | Category | Examples |
 | --- | --- |
@@ -79,12 +81,12 @@ See the complete [tool catalog](docs/reference/tools.md).
 ```mermaid
 flowchart LR
   Client[MCP client] -->|stdio or HTTP| Server[Darbot Browser MCP]
-  Server --> Tools[54 registered tools]
+  Server --> Tools[59 registered tools]
   Tools --> Browser[Playwright browser]
   Server -->|bridge auto-detect| Bridge[CDP relay :9223-9225]
   Bridge --> Extension[Chrome/Edge extension]
   Extension --> Tab[Existing user tab]
-  Server --> API[/health /ready /openapi.json]
+  Server --> API[/healthz /readyz /livez /mcp /openapi.json]
 ```
 
 Read the [architecture overview](docs/architecture/overview.md) and [bridge protocol](docs/architecture/bridge-protocol.md).

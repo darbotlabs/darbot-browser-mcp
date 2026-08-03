@@ -5,10 +5,10 @@
 ## Install
 
 ```powershell
-dotnet add package DarbotLabs.Browser.MCP --version 2.0.0
+dotnet add package DarbotLabs.Browser.MCP --version 2.1.1
 ```
 
-The wrapper launches the pinned npm server package `@darbotlabs/darbot-browser-mcp@2.0.0` through `npx` by default.
+The wrapper launches the pinned npm server package `@darbotlabs/darbot-browser-mcp@2.1.1` through `npx` by default.
 
 ## Minimal usage
 
@@ -25,3 +25,4 @@ builder.Services.AddBrowserMcpServer(options =>
 
 await builder.Build().RunAsync();
 ```
+

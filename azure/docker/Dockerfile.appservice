@@ -1,4 +1,6 @@
 # syntax=docker/dockerfile:1.7
+# Azure App Service image may use Node 23 slim while root CLI image uses Node 20.
+# Engines remain node>=20. Override: --build-arg NODE_VERSION=20-bookworm-slim
 ARG NODE_VERSION=23-bookworm-slim
 ARG PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 

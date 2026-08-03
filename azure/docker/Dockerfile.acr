@@ -1,3 +1,6 @@
+# Azure ACR image may track a newer Node LTS/Current slim base than the root
+# Dockerfile (node:20-bookworm-slim). Engines remain node>=20; override at build:
+#   docker build --build-arg NODE_VERSION=20-bookworm-slim ...
 ARG NODE_VERSION=23-bookworm-slim
 ARG PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 

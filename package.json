@@ -1,6 +1,6 @@
 {
   "name": "@darbotlabs/darbot-browser-mcp",
-  "version": "2.0.0",
+  "version": "2.1.1",
   "description": "Darbot Browser MCP — framework of 59 AI-driven autonomous browser tools with session state support and VS Code GitHub Copilot agent mode integration",
   "type": "module",
   "repository": {
@@ -119,3 +119,4 @@
     "typescript": "^5.9.3"
   }
 }
+

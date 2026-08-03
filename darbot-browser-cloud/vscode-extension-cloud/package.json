@@ -2,7 +2,7 @@
   "name": "darbot-browser-mcp-cloud",
   "displayName": "Darbot Browser MCP Cloud",
   "description": "Cloud-connected autonomous browser for VS Code. 59 AI-driven browser tools delivered from an Azure-hosted deployment with Microsoft Entra ID single sign-on via VS Code's built-in authentication.",
-  "version": "2.0.0",
+  "version": "2.1.1",
   "publisher": "darbotlabs",
   "engines": {
     "vscode": "^1.96.0",
@@ -136,4 +136,5 @@
     "typescript": "^5.9.3"
   }
 }
+
 

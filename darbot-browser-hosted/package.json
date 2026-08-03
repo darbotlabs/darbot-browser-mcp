@@ -1,6 +1,6 @@
 {
   "name": "@darbotlabs/darbot-browser-mcp-hosted",
-  "version": "2.0.0",
+  "version": "2.1.1",
   "description": "Darbot Browser MCP - On-Premises Hosted Edition with optional MSAL authentication and Dev Tunnel support",
   "type": "module",
   "main": "../index.js",
@@ -67,3 +67,4 @@
     "node": ">=20"
   }
 }
+

@@ -74,7 +74,7 @@ Use `--dry-run` to render and validate connector files without calling Power Pla
 
 ## Tool coverage
 
-The v2.0.0 connector includes individual operations for the current Darbot Browser MCP tool registry plus generic list/execute operations. At reconciliation time the `src-tools-auth` worktree exposed 59 concrete tools; the older 52-tool claim is stale and should be resolved during fleet integration if the registry changes again.
+The **v2.1.1** connector includes individual operations for the registration-truth **59**-tool Darbot Browser MCP registry plus generic list/execute operations.
 
 ## Troubleshooting
 
@@ -82,3 +82,4 @@ The v2.0.0 connector includes individual operations for the current Darbot Brows
 - OAuth consent failures: verify redirect URL `https://global.consent.azure-apim.net/redirect` and resource scopes.
 - Connector action failures: call `/health`, then `GET /api/v1/tools` on the hosted service.
 - Browser timeouts: verify the host has enough CPU/memory and that Edge/Playwright dependencies are installed.
+

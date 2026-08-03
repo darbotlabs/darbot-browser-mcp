@@ -1,48 +1,63 @@
 # Release tracker
 
-This tracker records forward-looking v2.x release milestones; historical v1.x notes moved to `docs/legacy/release-tracker-archive.md`.
+This tracker records forward-looking release milestones after the v2.0.0 reconciliation line.
 
 You'll learn:
 
-- What remains for v2.0.0 release readiness.
-- Which v2.x milestones are planned after reconciliation.
-- Where historical release notes now live.
+- What remains for **v2.1.1** enhance-release readiness.
+- Which later v2.x milestones are planned.
+- Where historical notes live.
 
-## v2.0.0 release readiness
+## v2.1.1 enhance release readiness
 
 | Area | Status | Notes |
 | --- | --- | --- |
-| Source reconciliation | In progress | Fleet branches reconcile ADO donor content into GitHub canonical. |
-| Documentation | In progress | v2 docs are reorganized under `docs/` with root README, changelog, and contributor docs. |
-| Build and dependencies | In progress | Dependency and workflow updates are owned by the build/CI reconciliation scope. |
-| Tool surface | In progress | Current docs describe the final registered tool surface from `src/tools.ts`. |
-| Extensions | In progress | VS Code, hosted, cloud, and browser extension version alignment is owned by the extensions scope. |
-| NuGet | In progress | .NET package versioning is owned by the dotnet/nuget scope. |
-| Azure and Power Platform | In progress | Infra and scripts are reconciled by their owning scopes. |
+| Version matrix | Done | npm, VSIX, bridge, hosted, cloud, NuGet at **2.1.1**. |
+| Best-of lineage merge | Done | Reconcile runtime + fleet packaging + ADO enterprise auth retained. |
+| Documentation | Done | README/CHANGELOG/RELEASE_TRACKER/API docs aligned to 2.1.1 and 59-tool truth. |
+| Dependencies | Held | Caret ranges on PW ^1.60 / MCP SDK ^1.29 / Zod ^4 / Express 5 / Azure identity stack; registry TLS blocked live `npm outdated` this session. |
+| Tool surface | Done | Registration-truth **59** tools verified. |
+| Extensions | Done | Local/hosted/cloud VSIX versions → 2.1.1. |
+| NuGet | Done | net8 package + default pin → 2.1.1; pack doc paths fixed. |
+| Azure and Power Platform | Done | Connector swagger/changelog 2.1.1; Docker engine matrix documented. |
 
-## v2.0.0 validation checklist
+## v2.1.1 validation checklist
 
-- [ ] CI build passes on the integration branch.
-- [ ] `npm test` passes on the integration branch.
+- [x] Local `npm run typecheck`, `npm run build`, and `npm run lint` pass on `v2.1.1-uprev`.
+- [ ] CI build passes on `v2.1.1-uprev` (or release tag) in GitHub Actions.
+- [ ] `npm test` / Playwright suite green in CI (full browser install).
 - [ ] VS Code extension package installs and discovers the server.
-- [ ] `/health`, `/ready`, `/live`, and `/openapi.json` respond in HTTP mode.
+- [x] Health aliases registered in code: `/health|/healthz`, `/ready|/readyz`, `/live|/livez` (+ `/openapi.json` generator present).
+- [ ] Live HTTP probe of health/OpenAPI in a running container/App Service.
 - [ ] Bridge auto-detection finds a connected extension on `9223`-`9225`.
-- [ ] Copilot Studio and Power Platform docs match final deployment scripts.
-- [ ] npm, VS Code, NuGet, hosted extension, and ADO mirror workflows publish from the release tag.
+- [x] Copilot Studio and Power Platform docs/swagger match connector **2.1.1**.
+- [ ] npm, VS Code, NuGet, hosted extension, cloud client, and ADO mirror workflows publish from the release tag.
+- [x] No product package remains on **1.3.0**; historical 2.0.0 notes only in changelog/migration.
+
+## Runtime support matrix (2.1.1)
+
+| Runtime | Support |
+| --- | --- |
+| Node.js | `>=20` (root/CLI); Azure/hosted images may use Node 23 bookworm-slim |
+| Playwright | `^1.60` line |
+| .NET | `net8.0` (`DarbotLabs.Browser.MCP`) |
+| VS Code | `^1.96.0` engines on VSIX packages |
+| MCP | Streamable HTTP `/mcp` + legacy SSE `/sse` via `@modelcontextprotocol/sdk` |
 
 ## v2.x roadmap
 
 | Milestone | Theme | Candidate work |
 | --- | --- | --- |
-| `2.0.x` | Stabilization | Patch OAuth metadata, bridge diagnostics, package metadata, and docs errata. |
-| `2.1.0` | Enterprise operations | Harden audit logging, session quotas, Key Vault integration, and deployment templates. |
-| `2.2.0` | Connector experience | Improve OpenAPI action curation, Power Platform connector ergonomics, and Copilot Studio examples. |
-| `2.3.0` | Autonomous crawling | Expand memory connector support, crawl reports, and safety policy controls. |
+| `2.1.1` | Enhance / unify | Version parity, claims fix, dep/forge alignment, best-of matrix. |
+| `2.1.x` | Stabilization | OAuth metadata, bridge diagnostics, package metadata errata. |
+| `2.2.0` | Connector experience | OpenAPI action curation, PP ergonomics, Copilot Studio examples. |
+| `2.3.0` | Autonomous crawling | Memory connectors, crawl reports, optional ML scoring (new design — do not revive dead orphans). |
 
 ## Historical archive
 
-See `docs/legacy/release-tracker-archive.md` for the v1.3.0 tracker and earlier packaging notes.
+- v2.0.0 reconciliation notes: prior CHANGELOG section and fleet audit.
+- v1.3.0 and earlier: `docs/legacy/release-tracker-archive.md`.
 
 ---
 
-_Last updated: 2026-05-18 (v2.0.0)_
+_Last updated: 2026-08-03 (v2.1.1)_

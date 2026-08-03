@@ -1,6 +1,6 @@
 {
   "name": "@darbotlabs/darbot-browser",
-  "version": "1.3.0",
+  "version": "2.1.1",
   "description": "Cloud-native browser automation client for Darbot Browser MCP - Connect to Azure-hosted intelligent browser automation service",
   "type": "module",
   "repository": {
@@ -73,3 +73,4 @@
     "typescript": "^5.8.2"
   }
 }
+

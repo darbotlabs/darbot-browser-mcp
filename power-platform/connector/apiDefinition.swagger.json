@@ -1,9 +1,9 @@
 {
   "swagger": "2.0",
   "info": {
-    "version": "2.0.0",
+    "version": "2.1.1",
     "title": "Darbot Browser MCP",
-    "description": "Browser automation for Microsoft Power Platform and Copilot Studio. Provides 63 current Darbot Browser MCP tools plus generic list and execute operations.",
+    "description": "Browser automation for Microsoft Power Platform and Copilot Studio. Provides registration-truth 59 Darbot Browser MCP tools plus generic list and execute operations (66 OpenAPI paths).",
     "contact": {
       "name": "Darbot Labs Support",
       "url": "https://github.com/darbotlabs/darbot-browser-mcp",

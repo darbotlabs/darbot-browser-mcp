@@ -15,8 +15,11 @@ You'll learn:
 | `/mcp` | `POST`, session-aware MCP methods | Streamable HTTP MCP transport | Enforced when auth is enabled |
 | `/sse` | `GET`, `POST` | Legacy SSE MCP transport | Enforced when auth is enabled |
 | `/health` | `GET` | JSON health with memory, uptime, and runtime checks | Public by default |
+| `/healthz` | `GET` | K8s-style alias for `/health` | Public by default |
 | `/ready` | `GET` | Readiness probe returning `OK` | Public by default |
+| `/readyz` | `GET` | K8s-style alias for `/ready` | Public by default |
 | `/live` | `GET` | Liveness probe returning `Alive` | Public by default |
+| `/livez` | `GET` | K8s-style alias for `/live` | Public by default |
 | `/openapi.json` | `GET` | OpenAPI 3.0 document | Public by default |
 | `/swagger.json` | `GET` | Alias for OpenAPI document | Public by default |
 | `/bridge` | `GET` | Browser extension bridge status when bridge mode is active | Local bridge diagnostic |
@@ -39,7 +42,7 @@ Initialize and send MCP messages with `POST /mcp`. The server returns and tracks
 {
   "status": "healthy",
   "timestamp": "2026-05-18T00:00:00.000Z",
-  "version": "2.0.0",
+  "version": "2.1.1",
   "checks": [
     { "name": "memory", "status": "pass", "duration": 1 },
     { "name": "uptime", "status": "pass", "duration": 0 },
@@ -48,13 +51,15 @@ Initialize and send MCP messages with `POST /mcp`. The server returns and tracks
 }
 ```
 
+Prefer `/healthz`, `/readyz`, and `/livez` for Kubernetes-style probes; the non-`z` routes remain for compatibility.
+
 ## OpenAPI
 
-`/openapi.json` is generated from the registered tool schemas and includes security schemes for Entra ID bearer tokens and `X-API-Key`. Use it for Copilot Studio and Power Platform connector discovery.
+`/openapi.json` is generated from the registered tool schemas and includes security schemes for Entra ID bearer tokens and `X-API-Key`. Use it for Copilot Studio and Power Platform connector discovery. The Power Platform custom connector swagger tracks the same registry (v2.1.1, 66 paths including meta list/execute ops).
 
 ## Authentication
 
 When any auth method is enabled, `/mcp` and `/sse` require a successful authenticator result. Supported methods are documented in [Authentication](../architecture/auth.md).
 ---
 
-_Last updated: 2026-05-18 (v2.0.0)_
+_Last updated: 2026-08-03 (v2.1.1)_

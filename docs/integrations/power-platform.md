@@ -16,6 +16,8 @@ Use the hosted OpenAPI document:
 https://<app>.azurewebsites.net/openapi.json
 ```
 
+Or import the checked-in custom connector definition at `power-platform/connector/apiDefinition.swagger.json` (**v2.1.1**, 66 paths covering the registration-truth **59**-tool registry plus list/execute helpers).
+
 The generated connector can expose a curated subset of browser actions, such as navigation, click, type, screenshot, snapshot, health, and session-state operations.
 
 ## Deploy sequence
@@ -57,4 +59,4 @@ Keep connector actions small and auditable. A good action maps to one MCP tool c
 - Log connector invocations and correlate them with Darbot server request logs.
 ---
 
-_Last updated: 2026-05-18 (v2.0.0)_
+_Last updated: 2026-08-03 (v2.1.1)_

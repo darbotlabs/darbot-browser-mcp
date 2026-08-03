@@ -6,13 +6,13 @@
     <Nullable>enable</Nullable>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <PackageId>DarbotLabs.Browser.MCP</PackageId>
-    <Version>2.0.0</Version>
-    <PackageVersion>2.0.0</PackageVersion>
+    <Version>2.1.1</Version>
+    <PackageVersion>2.1.1</PackageVersion>
     <Authors>darbotlabs</Authors>
     <Company>darbotlabs</Company>
     <Product>Darbot Browser MCP</Product>
-    <Description>Darbot Browser - framework for 52 AI-driven browser tools with session state support and VS Code GitHub Copilot agent mode integration</Description>
-    <Copyright>Copyright 2025 darbotlabs</Copyright>
+    <Description>Darbot Browser MCP — framework of 59 AI-driven autonomous browser tools with session state support and VS Code GitHub Copilot agent mode integration</Description>
+    <Copyright>Copyright 2026 darbotlabs</Copyright>
     <PackageProjectUrl>https://github.com/darbotlabs/darbot-browser-mcp</PackageProjectUrl>
     <PackageIcon>icon.png</PackageIcon>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
@@ -37,8 +37,9 @@
   <ItemGroup>
     <None Include="README.md" Pack="true" PackagePath="\" />
     <None Include="..\..\LICENSE" Pack="true" PackagePath="\" />
-    <None Include="..\..\docs\DarbotGuide.md" Pack="true" PackagePath="docs\" />
-    <None Include="..\..\docs\vscode\VSCODE_INSTALLATION.md" Pack="true" PackagePath="docs\" />
+    <None Include="..\..\docs\README.md" Pack="true" PackagePath="docs\" />
+    <None Include="..\..\docs\integrations\vscode-extension.md" Pack="true" PackagePath="docs\" />
+    <None Include="..\..\docs\getting-started\installation.md" Pack="true" PackagePath="docs\" />
     <None Include="icon.png" Pack="true" PackagePath="\" />
   </ItemGroup>
 

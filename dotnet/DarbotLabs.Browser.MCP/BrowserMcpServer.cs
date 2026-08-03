@@ -145,7 +145,7 @@ public sealed class BrowserMcpOptions
     /// <summary>
     /// Gets or sets the npm package version pinned by the .NET wrapper.
     /// </summary>
-    public string PackageVersion { get; set; } = "2.0.0";
+    public string PackageVersion { get; set; } = "2.1.1";
 
     /// <summary>
     /// Gets the fully-qualified npm package spec used when launching through npx.

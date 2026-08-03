@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Darbot Browser MCP Bridge",
-  "version": "2.0.0",
+  "version": "2.1.1",
   "description": "Share browser tabs with the Darbot Browser MCP server over a Chrome DevTools Protocol (CDP) WebSocket bridge for AI-driven browser automation.",
 
   "minimum_chrome_version": "116",
@@ -43,3 +43,4 @@
     "extension_pages": "script-src 'self'; object-src 'self'"
   }
 }
+
