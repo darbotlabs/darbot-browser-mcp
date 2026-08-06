@@ -11,7 +11,7 @@ param(
     [string]$RegionCode = $env:AZURE_REGION_CODE,
     [string]$ParametersFile = $env:PARAMETERS_FILE,
     [string]$ContainerRepository = $(if ($env:CONTAINER_REPOSITORY) { $env:CONTAINER_REPOSITORY } else { 'darbot-browser-mcp' }),
-    [string]$ContainerTag = $(if ($env:CONTAINER_TAG) { $env:CONTAINER_TAG } else { '2.0.0' }),
+    [string]$ContainerTag = $(if ($env:CONTAINER_TAG) { $env:CONTAINER_TAG } else { '2.1.1' }),
     [string]$AppServiceSku = $(if ($env:APP_SERVICE_SKU) { $env:APP_SERVICE_SKU } else { 'B1' }),
     [string]$ContainerRegistrySku = $(if ($env:CONTAINER_REGISTRY_SKU) { $env:CONTAINER_REGISTRY_SKU } else { 'Basic' }),
     [string]$EntraClientId = $env:ENTRA_CLIENT_ID,

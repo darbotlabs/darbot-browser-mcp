@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures.js';
 import { MemoryManager } from '../src/memory.js';
 
 test.describe('Memory System', () => {
@@ -104,5 +104,28 @@ test.describe('Autonomous Tools', () => {
 
     const invalidResult = schema.safeParse(invalidParams);
     expect(invalidResult.success).toBe(false);
+  });
+
+  test('should crawl linked pages through the live orchestrator', async ({ client, server }) => {
+    server.setContent('/', '<a href="/page-a">Page A</a>', 'text/html');
+    server.setContent('/page-a', '<h1>Reached page A</h1>', 'text/html');
+
+    const result = await client.callTool({
+      name: 'browser_start_autonomous_crawl',
+      arguments: {
+        startUrl: server.PREFIX,
+        maxDepth: 2,
+        maxPages: 2,
+        timeoutMs: 30000,
+        strategy: 'bfs',
+        generateReport: false,
+        takeScreenshots: false,
+        memoryEnabled: false,
+      },
+    });
+
+    expect(result).toContainTextContent('Autonomous crawling completed');
+    expect(result).toContainTextContent('- Pages visited: 2');
+    expect(result).toContainTextContent('- Strategy: bfs');
   });
 });

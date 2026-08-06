@@ -16,24 +16,33 @@
 
 import { z } from 'zod';
 import { defineTool } from './tool.js';
-import type { OrchestratorConfig } from '../orchestrator.js';
+import { CrawlOrchestrator, type OrchestratorConfig } from '../orchestrator.js';
+import type { MemoryConfig } from '../memory.js';
+
+/** Process-wide memory defaults applied to new crawl sessions. */
+let sharedMemoryConfig: MemoryConfig = {
+  enabled: true,
+  connector: 'local',
+};
 
 /**
- * Start autonomous crawling session
+ * Start autonomous crawling session — runs the live BFS/DFS/focused planner
+ * via CrawlOrchestrator against the current browser context.
  */
 export const browserStartAutonomousCrawl = defineTool({
   capability: 'core',
   schema: {
     name: 'browser_start_autonomous_crawl',
     title: 'Start Autonomous Crawling',
-    description: 'Start autonomous crawling session with BFS strategy, memory, and reporting',
+    description: 'Start autonomous crawling session with BFS/DFS/focused planner, memory, guardrails, and reporting. Drives the real browser via CrawlOrchestrator.',
     inputSchema: z.object({
       startUrl: z.string().url().describe('Starting URL for autonomous crawling'),
-      goal: z.string().optional().describe('Goal description for the crawling session'),
+      goal: z.string().optional().describe('Goal description for the crawling session (influences focused planner scoring)'),
       maxDepth: z.number().int().min(1).max(10).default(3).describe('Maximum crawl depth'),
       maxPages: z.number().int().min(1).max(100).default(50).describe('Maximum pages to visit'),
       timeoutMs: z.number().int().min(30000).max(600000).default(300000).describe('Session timeout in milliseconds'),
       allowedDomains: z.array(z.string()).optional().describe('List of allowed domains (restricts crawling)'),
+      strategy: z.enum(['bfs', 'dfs', 'focused']).default('bfs').describe('Planner traversal strategy'),
       generateReport: z.boolean().default(true).describe('Generate HTML report at the end'),
       takeScreenshots: z.boolean().default(true).describe('Take screenshots during crawling'),
       memoryEnabled: z.boolean().default(true).describe('Enable memory system for state tracking'),
@@ -42,6 +51,8 @@ export const browserStartAutonomousCrawl = defineTool({
     type: 'destructive'
   },
   handle: async (context, params) => {
+    await context.ensureTab();
+
     const config: OrchestratorConfig = {
       startUrl: params.startUrl,
       ...(params.goal !== undefined && { goal: params.goal }),
@@ -53,59 +64,75 @@ export const browserStartAutonomousCrawl = defineTool({
       takeScreenshots: params.takeScreenshots,
       verbose: params.verbose,
       memory: {
+        ...sharedMemoryConfig,
         enabled: params.memoryEnabled,
-        connector: 'local' // Default to local for now
-      }
+      },
+      planner: {
+        strategy: params.strategy,
+        maxDepth: params.maxDepth,
+        maxPages: params.maxPages,
+        timeout: params.timeoutMs,
+        ...(params.allowedDomains !== undefined && { allowedDomains: params.allowedDomains }),
+        ...(params.goal !== undefined && { goalDescription: params.goal }),
+      },
     };
 
     const sessionId = config.sessionId || `crawl_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
+    config.sessionId = sessionId;
 
-    const resultText = `Autonomous crawling configured: ${sessionId}
+    const orchestrator = new CrawlOrchestrator(context, config);
 
-**Configuration:**
-- Start URL: ${config.startUrl}
-- Goal: ${config.goal || 'Autonomous exploration'}
-- Max Depth: ${config.maxDepth}
-- Max Pages: ${config.maxPages}
-- Timeout: ${config.timeoutMs! / 1000}s
-- Memory Enabled: ${params.memoryEnabled}
-- Screenshots: ${params.takeScreenshots}
-- Report Generation: ${params.generateReport}
+    const timeoutMs = params.timeoutMs;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const session = await Promise.race([
+      orchestrator.startCrawling().finally(() => {
+        if (timer)
+          clearTimeout(timer);
+      }),
+      new Promise<never>((_, reject) => {
+        timer = setTimeout(() => {
+          void orchestrator.stopCrawling();
+          reject(new Error(`Autonomous crawl timed out after ${timeoutMs}ms`));
+        }, timeoutMs);
+      }),
+    ]);
 
-**Note:** Full autonomous crawling infrastructure includes:
-- BFS planner with intelligent action selection
-- Memory system for state tracking and deduplication  
-- Guardrail system for safe operation
-- HTML report generation with screenshots
-- Integration points for darbot-memory-mcp
-
-Use individual browser tools for controlled navigation and testing.`;
+    const reportPath = session.stats.reportPath;
+    const resultText = [
+      `Autonomous crawling ${session.status}: ${session.sessionId}`,
+      '',
+      '**Results:**',
+      `- Start URL: ${params.startUrl}`,
+      `- Goal: ${params.goal || 'Autonomous exploration'}`,
+      `- Strategy: ${params.strategy}`,
+      `- Status: ${session.status}`,
+      `- Pages visited: ${session.stats.pagesVisited}`,
+      `- Actions performed: ${session.stats.actionsPerformed}`,
+      `- Errors: ${session.stats.errorsEncountered}`,
+      reportPath ? `- Report: ${reportPath}` : '- Report: (not generated)',
+      `- Duration: ${(((session.endTime || Date.now()) - session.startTime) / 1000).toFixed(1)}s`,
+    ].join('\n');
 
     return {
-      code: [`// Configured autonomous crawling session: ${sessionId}`],
-      captureSnapshot: false,
+      code: [
+        `// Autonomous crawl ${session.sessionId}`,
+        `// strategy=${params.strategy} pages=${session.stats.pagesVisited} status=${session.status}`,
+      ],
+      captureSnapshot: true,
       waitForNetwork: false,
       resultOverride: {
-        content: [
-          {
-            type: 'text',
-            text: resultText
-          }
-        ]
-      }
+        content: [{ type: 'text', text: resultText }],
+      },
     };
   }
 });
 
-/**
- * Configure memory system
- */
 export const browserConfigureMemory = defineTool({
   capability: 'core',
   schema: {
     name: 'browser_configure_memory',
     title: 'Configure Memory System',
-    description: 'Configure memory system for autonomous crawling (local or darbot-memory-mcp)',
+    description: 'Configure memory system for autonomous crawling (local or darbot-memory-mcp). Settings apply to the next crawl session.',
     inputSchema: z.object({
       enabled: z.boolean().default(true).describe('Enable or disable memory system'),
       connector: z.enum(['local', 'darbot-memory-mcp']).default('local').describe('Memory connector type'),
@@ -115,38 +142,32 @@ export const browserConfigureMemory = defineTool({
     }),
     type: 'destructive'
   },
-  handle: async (context, params) => {
-    const config = {
+  handle: async (_context, params) => {
+    sharedMemoryConfig = {
       enabled: params.enabled,
       connector: params.connector,
-      storagePath: params.storagePath,
-      maxStates: params.maxStates
+      ...(params.storagePath !== undefined && { storagePath: params.storagePath }),
+      maxStates: params.maxStates,
     };
 
-    const resultText = `DarbotLabsMemory system configured:
-
-**Configuration:**
-- Enabled: ${config.enabled}
-- Connector: ${config.connector}
-- Storage Path: ${config.storagePath || 'Default (.darbot/memory)'}
-- Max States: ${config.maxStates}
-
-${config.connector === 'darbot-memory-mcp' ?
-    ' Darbot Memory MCP connector is ready to use' : ' Local memory directory is ready to use'}
-
-This configuration will be used for new crawling sessions. The memory system includes:
-- State hash generation for deduplication
-- Screenshot storage and linking
-- Link extraction and queuing for BFS traversal
-- Configurable storage backends (local files or MCP connector)`;
+    const resultText = [
+      'Memory system configured for subsequent crawl sessions:',
+      '',
+      '**Configuration:**',
+      `- Enabled: ${sharedMemoryConfig.enabled}`,
+      `- Connector: ${sharedMemoryConfig.connector}`,
+      `- Storage Path: ${params.storagePath || 'Default (.darbot/memory)'}`,
+      `- Max States: ${params.maxStates}`,
+      params.endpoint ? `- Endpoint (noted): ${params.endpoint}` : '',
+    ].filter(Boolean).join('\n');
 
     return {
-      code: [`// Configured memory system: ${config.connector}`],
+      code: [`// Configured memory system: ${sharedMemoryConfig.connector}`],
       captureSnapshot: false,
       waitForNetwork: false,
       resultOverride: {
-        content: [{ type: 'text', text: resultText }]
-      }
+        content: [{ type: 'text', text: resultText }],
+      },
     };
   }
 });

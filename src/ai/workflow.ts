@@ -104,8 +104,11 @@ export class WorkflowEngine {
     'conditional_click': 'browser_click',
     'type': 'browser_type',
     'wait_for': 'browser_wait_for',
-    'screenshot': 'browser_screenshot',
+    'screenshot': 'browser_take_screenshot',
+    'take_screenshot': 'browser_take_screenshot',
     'snapshot': 'browser_snapshot',
+    'evaluate': 'browser_evaluate',
+    'press_key': 'browser_press_key',
     'detect_login_form': 'browser_snapshot',
     'analyze_readme': 'browser_snapshot',
     'analyze_issues': 'browser_snapshot',
@@ -246,7 +249,7 @@ export class WorkflowEngine {
         const resolvedStep = this._resolveStepParameters(step, parameters);
 
         try {
-          const result = await this._executeStep(context, resolvedStep);
+          const result = await this._executeStep(context, resolvedStep, parameters);
           execution.results.push(result);
 
           if (step.validation && !step.validation(result))
@@ -264,7 +267,7 @@ export class WorkflowEngine {
             const retries = step.retryCount ?? 0;
             for (let retry = 0; retry < retries; retry++) {
               try {
-                execution.results.push(await this._executeStep(context, resolvedStep));
+                execution.results.push(await this._executeStep(context, resolvedStep, parameters));
                 break;
               } catch (retryError) {
                 if (retry === retries - 1)
@@ -309,35 +312,17 @@ export class WorkflowEngine {
    * Returns a structured `WorkflowStepResult` for both success and failure
    * paths; callers should branch on `success`.
    */
-  private async _executeStep(context: Context, step: WorkflowStep): Promise<WorkflowStepResult> {
+  private async _executeStep(
+    context: Context,
+    step: WorkflowStep,
+    workflowParameters: WorkflowParameters,
+  ): Promise<WorkflowStepResult> {
     const startTime = Date.now();
     const toolName = this._actionToToolMap[step.action] ?? `browser_${step.action}`;
 
-    const tool = context.tools.find(t => t.schema.name === toolName);
-    if (!tool) {
-      return {
-        action: step.action,
-        toolName,
-        success: false,
-        error: `Tool '${toolName}' not found for action '${step.action}'`,
-        timestamp: startTime,
-        duration: Date.now() - startTime,
-      };
-    }
-
-    const toolParams: Record<string, unknown> = {};
-    if (typeof step.parameters.url === 'string')
-      toolParams.url = step.parameters.url;
-    if (typeof step.parameters.element === 'string')
-      toolParams.element = step.parameters.element;
-    if (typeof step.parameters.text === 'string')
-      toolParams.text = step.parameters.text;
-    if (typeof step.parameters.target === 'string')
-      toolParams.text = step.parameters.target; // wait_for takes its target via the 'text' param
-
     if (step.action === 'conditional_click' && typeof step.parameters.condition === 'function') {
       const conditionFn = step.parameters.condition;
-      if (!conditionFn(step.parameters)) {
+      if (!conditionFn(workflowParameters)) {
         return {
           action: step.action,
           toolName,
@@ -350,7 +335,90 @@ export class WorkflowEngine {
       }
     }
 
+    // Element-description actions without aria-ref must use the locator helpers
+    // (browser_click/type require snapshot refs). Prefer shared AI actions.
     try {
+      const { executeClick, executeType, executeNavigate, executeWaitFor, runTool } = await import('./actions.js');
+
+      const finish = (action: string, success: boolean, detail?: string, error?: string): WorkflowStepResult => ({
+        action,
+        toolName,
+        success,
+        timestamp: startTime,
+        duration: Date.now() - startTime,
+        ...(detail !== undefined && { result: detail }),
+        ...(error !== undefined && { error }),
+      });
+
+      if (step.action === 'navigate' && typeof step.parameters.url === 'string') {
+        const nav = await executeNavigate(context, { url: step.parameters.url });
+        return finish(step.action, nav.success, nav.detail, nav.error);
+      }
+
+      if ((step.action === 'click' || step.action === 'conditional_click') && typeof step.parameters.element === 'string' && typeof step.parameters.ref !== 'string') {
+        const click = await executeClick(context, { element: step.parameters.element });
+        return finish(step.action, click.success, click.detail, click.error);
+      }
+
+      if (step.action === 'type' && typeof step.parameters.element === 'string' && typeof step.parameters.ref !== 'string') {
+        const typed = await executeType(context, {
+          element: step.parameters.element,
+          text: typeof step.parameters.text === 'string' ? step.parameters.text : '',
+        });
+        return finish(step.action, typed.success, typed.detail, typed.error);
+      }
+
+      if (step.action === 'wait_for') {
+        const waitParams: { target?: string; text?: string; time?: number } = {};
+        if (typeof step.parameters.target === 'string')
+          waitParams.target = step.parameters.target;
+        if (typeof step.parameters.text === 'string')
+          waitParams.text = step.parameters.text;
+        if (typeof step.parameters.time === 'number')
+          waitParams.time = step.parameters.time;
+        const waited = await executeWaitFor(context, waitParams);
+        return finish(step.action, waited.success, waited.detail, waited.error);
+      }
+
+      // Analysis / snapshot-style steps and any remaining mapped tools.
+      const toolParams: Record<string, unknown> = {};
+      if (typeof step.parameters.url === 'string')
+        toolParams.url = step.parameters.url;
+      if (typeof step.parameters.element === 'string')
+        toolParams.element = step.parameters.element;
+      if (typeof step.parameters.ref === 'string')
+        toolParams.ref = step.parameters.ref;
+      if (typeof step.parameters.text === 'string')
+        toolParams.text = step.parameters.text;
+      if (typeof step.parameters.target === 'string' && toolName === 'browser_wait_for')
+        toolParams.text = step.parameters.target;
+      if (typeof step.parameters.expression === 'string')
+        toolParams.expression = step.parameters.expression;
+
+      const tool = context.tools.find(t => t.schema.name === toolName);
+      if (!tool) {
+        // Snapshot fallback for analysis actions keeps workflows moving.
+        if (toolName === 'browser_snapshot' || step.action.startsWith('analyze') || step.action === 'generate_report' || step.action === 'detect_login_form') {
+          const result = await runTool(context, 'browser_snapshot', {});
+          return {
+            action: step.action,
+            toolName: 'browser_snapshot',
+            success: true,
+            result,
+            timestamp: startTime,
+            duration: Date.now() - startTime,
+          };
+        }
+        return {
+          action: step.action,
+          toolName,
+          success: false,
+          error: `Tool '${toolName}' not found for action '${step.action}'`,
+          timestamp: startTime,
+          duration: Date.now() - startTime,
+        };
+      }
+
       const result = await context.run(tool, toolParams);
       return {
         action: step.action,
@@ -365,7 +433,6 @@ export class WorkflowEngine {
       return {
         action: step.action,
         toolName,
-        parameters: toolParams,
         success: false,
         error: error instanceof Error ? error.message : String(error),
         timestamp: startTime,

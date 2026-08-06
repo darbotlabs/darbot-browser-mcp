@@ -377,10 +377,7 @@ export class CrawlOrchestrator {
    */
   private async navigateToUrl(url: string): Promise<boolean> {
     try {
-      const tab = this.context.currentTabOrDie();
-      if (!tab)
-        throw new Error('No active tab available');
-
+      const tab = await this.context.ensureTab();
 
       log('Navigating to:', url);
       await tab.page.goto(url, {

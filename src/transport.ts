@@ -214,13 +214,13 @@ export async function startHttpServer(config: { host?: string, port?: number }):
   if (isOAuthConfigured() && oauthConfig) {
     try {
       const provider = createMcpOAuthProvider(oauthConfig);
-      const serverUrl = new URL(oauthConfig.serverBaseUrl);
+      const serverUrl = oauthConfig.serverBaseUrl;
 
       const authRouter = mcpAuthRouter({
         provider,
         issuerUrl: serverUrl,
         baseUrl: serverUrl,
-        serviceDocumentationUrl: new URL('https://github.com/AugustinMauworworworwy/darbot-browser-mcp'),
+        serviceDocumentationUrl: new URL('https://github.com/darbotlabs/darbot-browser-mcp'),
         scopesSupported: ['openid', 'profile', 'email', 'User.Read'],
         resourceName: 'Darbot Browser MCP',
       });
@@ -230,8 +230,7 @@ export async function startHttpServer(config: { host?: string, port?: number }):
       // eslint-disable-next-line no-console
       console.error('[OAuth] MCP OAuth router configured with Entra ID proxy');
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('[OAuth] Failed to setup OAuth router:', error);
+      throw new Error(`OAuth is configured but the MCP OAuth router failed to initialize: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
@@ -285,12 +284,23 @@ export function startHttpTransport(httpServer: http.Server, mcpServer: Server, a
   const authenticator = createUnifiedAuthenticator();
 
   // Initialize async auth providers (Managed Identity, Key Vault)
-  void authenticator.initialize().catch(err => {
+  let authInitializationError: Error | undefined;
+  const authInitialization = authenticator.initialize().catch(error => {
+    authInitializationError = error instanceof Error ? error : new Error(String(error));
     // eslint-disable-next-line no-console
-    console.error('[Auth] Failed to initialize async auth providers:', err);
+    console.error('[Auth] Failed to initialize async auth providers:', authInitializationError);
   });
 
   const enforceAuthIfEnabled = async (req: express.Request, res: express.Response): Promise<boolean> => {
+    await authInitialization;
+    if (authInitializationError) {
+      res.status(503).json({
+        error: 'authentication_unavailable',
+        message: 'Authentication providers failed to initialize.',
+      });
+      return false;
+    }
+
     // Check if any auth method is configured
     if (!authenticator.isAuthEnabled())
       return true;

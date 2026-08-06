@@ -23,6 +23,17 @@ import { defineTool } from './tool.js';
 import { intentParser } from '../ai/intent.js';
 import { aiContextManager } from '../ai/context.js';
 import { workflowEngine, type WorkflowParameters } from '../ai/workflow.js';
+import {
+  executeClick,
+  executeNavigate,
+  executePressKey,
+  executeRecovery,
+  executeSearch,
+  executeSubmitForm,
+  executeType,
+  executeWaitFor,
+  type ActionResult,
+} from '../ai/actions.js';
 
 // AI-native intent execution tool
 const browserExecuteIntent = defineTool({
@@ -61,36 +72,21 @@ const browserExecuteIntent = defineTool({
     code.push(`// Confidence: ${(enhancedIntent.confidence * 100).toFixed(1)}%`);
 
     try {
-      // Execute the parsed intent
-      switch (enhancedIntent.action) {
-        case 'navigate':
-          await executeNavigate(context, enhancedIntent.parameters);
-          break;
-        case 'click':
-          await executeClick(context, enhancedIntent.parameters);
-          break;
-        case 'type':
-          await executeType(context, enhancedIntent.parameters);
-          break;
-        case 'submit_form':
-          await executeSubmitForm(context, enhancedIntent.parameters);
-          break;
-        case 'search':
-          await executeSearch(context, enhancedIntent.parameters);
-          break;
-        default:
-          await executeGenericIntent(context, enhancedIntent);
-      }
+      const actionResult = await dispatchIntent(context, enhancedIntent);
+      if (!actionResult.success)
+        throw new Error(actionResult.error || `Action '${enhancedIntent.action}' failed`);
 
-      // Record successful action
+      const successTarget = enhancedIntent.parameters.element
+        || enhancedIntent.parameters.url
+        || actionResult.detail;
       aiContextManager.recordSuccess(sessionId, {
         action: enhancedIntent.action,
-        target: enhancedIntent.parameters.element || enhancedIntent.parameters.url,
+        ...(successTarget !== undefined && { target: String(successTarget) }),
         timestamp: Date.now(),
         success: true,
       });
 
-      code.push(`// Action completed successfully`);
+      code.push(`// Action completed: ${actionResult.detail || enhancedIntent.action}`);
 
       return {
         code,
@@ -99,14 +95,13 @@ const browserExecuteIntent = defineTool({
         resultOverride: {
           content: [{
             type: 'text',
-            text: `Successfully executed: ${params.description}\nAction: ${enhancedIntent.action}\nConfidence: ${(enhancedIntent.confidence * 100).toFixed(1)}%`,
+            text: `Successfully executed: ${params.description}\nAction: ${enhancedIntent.action}\nDetail: ${actionResult.detail || 'ok'}\nConfidence: ${(enhancedIntent.confidence * 100).toFixed(1)}%`,
           }],
         },
       };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 
-      // Record error pattern
       aiContextManager.recordError(sessionId, {
         errorType: enhancedIntent.action,
         elementSelector: enhancedIntent.parameters.element,
@@ -116,12 +111,16 @@ const browserExecuteIntent = defineTool({
         recoveryActions: [enhancedIntent.fallbackStrategy || 'auto_detect_elements'],
       });
 
-      // Attempt recovery if enabled
-      if (params.auto_recover && enhancedIntent.fallbackStrategy) {
-        try {
-          await executeRecoveryStrategy(context, enhancedIntent);
+      if (params.auto_recover) {
+        const recovery = await executeRecovery(context, enhancedIntent);
+        if (recovery.success) {
           code.push(`// Primary action failed, recovery successful`);
-
+          aiContextManager.recordSuccess(sessionId, {
+            action: `recovery:${enhancedIntent.action}`,
+            ...(recovery.detail !== undefined && { target: recovery.detail }),
+            timestamp: Date.now(),
+            success: true,
+          });
           return {
             code,
             captureSnapshot: true,
@@ -129,13 +128,12 @@ const browserExecuteIntent = defineTool({
             resultOverride: {
               content: [{
                 type: 'text',
-                text: `Recovered from error and completed: ${params.description}\nRecovery strategy: ${enhancedIntent.fallbackStrategy}`,
+                text: `Recovered from error and completed: ${params.description}\nRecovery: ${recovery.detail || enhancedIntent.fallbackStrategy || 'auto'}`,
               }],
             },
           };
-        } catch (recoveryError) {
-          code.push(`// Both primary action and recovery failed`);
         }
+        code.push(`// Both primary action and recovery failed`);
       }
 
       throw new Error(`Failed to execute intent: ${errorMessage}`);
@@ -263,40 +261,57 @@ const browserAnalyzeContext = defineTool({
   },
 });
 
-// Helper functions for intent execution
-async function executeNavigate(context: any, params: any) {
-  // Use existing navigate tool
-  return { success: true, action: 'navigate', url: params.url };
+async function dispatchIntent(context: any, intent: { action: string; parameters: Record<string, any> }): Promise<ActionResult> {
+  switch (intent.action) {
+    case 'navigate':
+      return executeNavigate(context, intent.parameters);
+    case 'click':
+      return executeClick(context, intent.parameters);
+    case 'type':
+      return executeType(context, intent.parameters);
+    case 'submit_form':
+      return executeSubmitForm(context, intent.parameters);
+    case 'search':
+      return executeSearch(context, intent.parameters);
+    case 'wait_for':
+      return executeWaitFor(context, intent.parameters);
+    case 'press_key':
+    case 'press':
+      return executePressKey(context, intent.parameters);
+    case 'login':
+      // Prefer workflow when credentials are supplied; otherwise focus the login form.
+      if (intent.parameters.service) {
+        return executeNavigate(context, {
+          url: intent.parameters.service.startsWith('http')
+            ? intent.parameters.service
+            : `https://${intent.parameters.service}`,
+        });
+      }
+      return executeClick(context, { element: intent.parameters.element || 'Sign in' });
+    case 'github_create_issue':
+    case 'github_review_pr':
+      return executeGenericIntent(context, intent);
+    default:
+      return executeGenericIntent(context, intent);
+  }
 }
 
-async function executeClick(context: any, params: any) {
-  // Use existing click tool with intelligent element detection
-  return { success: true, action: 'click', element: params.element };
-}
-
-async function executeType(context: any, params: any) {
-  // Use existing type tool
-  return { success: true, action: 'type', text: params.text, element: params.element };
-}
-
-async function executeSubmitForm(context: any, params: any) {
-  // Find and submit form
-  return { success: true, action: 'submit_form' };
-}
-
-async function executeSearch(context: any, params: any) {
-  // Execute search functionality
-  return { success: true, action: 'search', query: params.query };
-}
-
-async function executeGenericIntent(context: any, intent: any) {
-  // Handle generic intents
-  return { success: true, action: intent.action, parameters: intent.parameters };
-}
-
-async function executeRecoveryStrategy(context: any, intent: any) {
-  // Implement recovery strategies
-  return { success: true, action: 'recovery', strategy: intent.fallbackStrategy };
+async function executeGenericIntent(context: any, intent: { action: string; parameters: Record<string, any> }): Promise<ActionResult> {
+  if (intent.parameters.url)
+    return executeNavigate(context, intent.parameters);
+  if (intent.parameters.element && intent.parameters.text)
+    return executeType(context, intent.parameters);
+  if (intent.parameters.element)
+    return executeClick(context, intent.parameters);
+  if (intent.parameters.query)
+    return executeSearch(context, intent.parameters);
+  if (intent.parameters.description)
+    return executeClick(context, { element: String(intent.parameters.description) });
+  return {
+    success: false,
+    action: intent.action,
+    error: `No executable parameters for action '${intent.action}'`,
+  };
 }
 
 function analyzePageIntent(url: string, title: string): string {

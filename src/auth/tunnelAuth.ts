@@ -52,8 +52,9 @@ export function isDevTunnelRequest(req: IncomingMessage, config: TunnelAuthConfi
     return false;
 
   // Check X-Forwarded-Host for tunnel domain
-  const forwardedHost = req.headers['x-forwarded-host'] as string | undefined;
-  if (forwardedHost) {
+  const forwardedHostHeader = req.headers['x-forwarded-host'];
+  const forwardedHost = Array.isArray(forwardedHostHeader) ? forwardedHostHeader[0] : forwardedHostHeader;
+  if (config.trustForwardedHeaders && forwardedHost) {
     return config.allowedDomains.some(domain =>
       forwardedHost.endsWith(domain)
     );

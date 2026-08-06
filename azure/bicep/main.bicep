@@ -50,7 +50,7 @@ param containerImage {
   tag: string
 } = {
   repository: 'darbot-browser-mcp'
-  tag: '2.0.0'
+  tag: '2.1.1'
 }
 
 @description('Runtime settings surfaced as App Service application settings.')

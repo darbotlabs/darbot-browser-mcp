@@ -18,11 +18,11 @@
 
 /**
  * Darbot Browser MCP Bridge Extension - Popup Controller
- * Version: 2.0.0
+ * Version: 2.1.1
  */
 
 /** @constant {string} */
-const POPUP_VERSION = '2.0.0';
+const POPUP_VERSION = '2.1.1';
 
 /** @constant {string} */
 const DEFAULT_BRIDGE_URL = 'ws://localhost:9223/extension';

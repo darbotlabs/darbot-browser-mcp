@@ -79,26 +79,27 @@ program
         const relayResult = await startCDPRelayServer(httpServer);
         config.browser.cdpEndpoint = relayResult.cdpEndpoint;
         cdpRelayServer = relayResult.relayServer;
+      }
 
-        // /bridge: status payload consumed by IDE clients and the auto-detect
-        // probe in `resolveCLIConfig`. Version is pulled from package.json so
-        // there is no second source of truth to keep in sync at release.
-        if (expressApp) {
-          expressApp.get('/bridge', (_req, res) => {
-            const status = cdpRelayServer?.getStatus() ?? {
-              extensionConnected: false,
-              mcpConnected: false,
-              targetInfo: null,
-              sessionId: null,
-              extensionVersion: null,
-            };
-            res.json({
-              bridge: 'cdp-relay',
-              version: packageJSON.version,
-              ...status,
-            });
+      // /bridge is always registered when HTTP is up so IDE auto-detect and
+      // health UIs can probe status even before --extension attaches a relay.
+      // Version comes from package.json (single source of truth).
+      if (expressApp) {
+        expressApp.get('/bridge', (_req, res) => {
+          const status = cdpRelayServer?.getStatus() ?? {
+            extensionConnected: false,
+            mcpConnected: false,
+            targetInfo: null,
+            sessionId: null,
+            extensionVersion: null,
+          };
+          res.json({
+            bridge: 'cdp-relay',
+            version: packageJSON.version,
+            extensionMode: !!config.extension,
+            ...status,
           });
-        }
+        });
       }
 
       // Build a single health service before transport startup so /health and

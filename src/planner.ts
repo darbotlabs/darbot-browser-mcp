@@ -55,6 +55,8 @@ export class BFSPlanner {
   private readonly memory: MemoryManager;
   private readonly visitQueue: Array<{ url: string; depth: number; parent?: string }>;
   private readonly visited: Set<string>;
+  /** Depth at which each URL was first seen (queue or visit). */
+  private readonly depthByUrl: Map<string, number> = new Map();
   private currentDepth: number = 0;
   private pagesVisited: number = 0;
 
@@ -76,8 +78,9 @@ export class BFSPlanner {
     try {
       log('Planning next action for:', observation.url);
 
-      // Check if we should finish crawling
-      if (this.shouldFinish(observation)) {
+      // The page limit can be checked before processing the observation, but
+      // queue exhaustion cannot: the current page may reveal the next depth.
+      if (this.pagesVisited >= this.config.maxPages) {
         return {
           type: 'finish',
           reason: this.getFinishReason(),
@@ -147,7 +150,8 @@ export class BFSPlanner {
    */
   async initialize(startUrl: string): Promise<void> {
     this.visitQueue.push({ url: startUrl, depth: 0 });
-    log('Initialized BFS planner with start URL:', startUrl);
+    this.depthByUrl.set(startUrl, 0);
+    log('Initialized planner (%s) with start URL: %s', this.config.strategy, startUrl);
   }
 
   /**
@@ -166,13 +170,38 @@ export class BFSPlanner {
             depth: currentDepth + 1,
             parent: observation.url
           });
+          this.depthByUrl.set(normalizedUrl, this.depthByUrl.get(normalizedUrl) ?? currentDepth + 1);
           log('Queued URL:', normalizedUrl, 'at depth', currentDepth + 1);
         }
       }
     }
 
-    // Sort queue by priority (breadth-first)
+    this.sortQueue();
+  }
+
+  /**
+   * Order the visit queue according to the configured strategy:
+   * - bfs: shallowest first, then URL priority
+   * - dfs: deepest first (stack-like), then URL priority
+   * - focused: goal-keyword score first, then depth, then URL priority
+   */
+  private sortQueue(): void {
+    const strategy = this.config.strategy || 'bfs';
     this.visitQueue.sort((a, b) => {
+      if (strategy === 'dfs') {
+        if (a.depth !== b.depth)
+          return b.depth - a.depth;
+        return this.calculatePriority(b.url) - this.calculatePriority(a.url);
+      }
+      if (strategy === 'focused') {
+        const scoreDiff = this.calculateGoalScore(b.url) - this.calculateGoalScore(a.url);
+        if (scoreDiff !== 0)
+          return scoreDiff;
+        if (a.depth !== b.depth)
+          return a.depth - b.depth;
+        return this.calculatePriority(b.url) - this.calculatePriority(a.url);
+      }
+      // bfs (default)
       if (a.depth !== b.depth)
         return a.depth - b.depth;
       return this.calculatePriority(b.url) - this.calculatePriority(a.url);
@@ -180,14 +209,35 @@ export class BFSPlanner {
   }
 
   /**
+   * Score a URL against the optional goal description (focused strategy).
+   */
+  private calculateGoalScore(url: string): number {
+    const goal = (this.config.goalDescription || '').toLowerCase().trim();
+    if (!goal)
+      return this.calculatePriority(url);
+
+    let score = this.calculatePriority(url);
+    const tokens = goal.split(/[^a-z0-9]+/i).filter(t => t.length > 2);
+    const haystack = url.toLowerCase();
+    for (const token of tokens) {
+      if (haystack.includes(token.toLowerCase()))
+        score += 15;
+    }
+    return score;
+  }
+
+  /**
    * Get the next target URL from the queue
    */
   private getNextTarget(): { url: string; depth: number; parent?: string } | null {
+    this.sortQueue();
     while (this.visitQueue.length > 0) {
       const target = this.visitQueue.shift()!;
-      if (!this.visited.has(target.url) && this.shouldVisitUrl(target.url, target.depth))
+      if (!this.visited.has(target.url) && this.shouldVisitUrl(target.url, target.depth)) {
+        this.currentDepth = target.depth;
+        this.depthByUrl.set(target.url, target.depth);
         return target;
-
+      }
     }
     return null;
   }
@@ -344,6 +394,8 @@ export class BFSPlanner {
    * Get current depth for a URL
    */
   private getCurrentDepth(url: string): number {
+    if (this.depthByUrl.has(url))
+      return this.depthByUrl.get(url)!;
     const queueItem = this.visitQueue.find(item => item.url === url);
     return queueItem ? queueItem.depth : this.currentDepth;
   }
@@ -357,21 +409,6 @@ export class BFSPlanner {
     } catch {
       return href;
     }
-  }
-
-  /**
-   * Check if we should finish crawling
-   */
-  private shouldFinish(observation: PlannerObservation): boolean {
-    if (this.pagesVisited >= this.config.maxPages)
-      return true;
-
-
-    if (this.visitQueue.length === 0 && observation.clickableElements.length === 0)
-      return true;
-
-
-    return false;
   }
 
   /**
