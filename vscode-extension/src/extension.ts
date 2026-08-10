@@ -37,7 +37,7 @@ interface ServerConfig {
 function readConfig(): ServerConfig {
   const cfg = vscode.workspace.getConfiguration(CONFIG_SECTION);
   return {
-    serverPath: cfg.get<string>('serverPath', 'npx @darbotlabs/darbot-browser-mcp@latest'),
+    serverPath: cfg.get<string>('serverPath', 'npx @darbotlabs/darbot-browser-mcp@2.1.4'),
     autoStart: cfg.get<boolean>('autoStart', false),
     autoConfigureMCP: cfg.get<boolean>('autoConfigureMCP', true),
     logLevel: cfg.get<'error' | 'warn' | 'info' | 'debug'>('logLevel', 'info'),

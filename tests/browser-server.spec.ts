@@ -59,7 +59,7 @@ const test = baseTest.extend<{ agentEndpoint: (options?: { args?: string[] }) =>
 test.skip(({ mcpBrowser }) => mcpBrowser !== 'msedge', 'Agent is CDP-only for now');
 
 test('browser lifecycle', async ({ agentEndpoint, startClient, server }) => {
-  const { url: agentUrl } = await agentEndpoint();
+  const { url: agentUrl } = await agentEndpoint({ args: ['--port', '0'] });
   const { client: client1 } = await startClient({ args: ['--browser-agent', agentUrl.toString()] });
   expect(await client1.callTool({
     name: 'browser_navigate',

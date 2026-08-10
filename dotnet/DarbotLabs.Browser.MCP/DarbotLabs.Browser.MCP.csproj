@@ -1,17 +1,17 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net11.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <PackageId>DarbotLabs.Browser.MCP</PackageId>
-    <Version>2.1.1</Version>
-    <PackageVersion>2.1.1</PackageVersion>
+    <Version>2.1.4</Version>
+    <PackageVersion>2.1.4</PackageVersion>
     <Authors>darbotlabs</Authors>
     <Company>darbotlabs</Company>
     <Product>Darbot Browser MCP</Product>
-    <Description>Darbot Browser MCP — framework of 59 AI-driven autonomous browser tools with session state support and VS Code GitHub Copilot agent mode integration</Description>
+    <Description>Darbot Browser MCP — framework of 68 AI-driven autonomous browser tools with portable session state support and VS Code GitHub Copilot agent mode integration</Description>
     <Copyright>Copyright 2026 darbotlabs</Copyright>
     <PackageProjectUrl>https://github.com/darbotlabs/darbot-browser-mcp</PackageProjectUrl>
     <PackageIcon>icon.png</PackageIcon>
@@ -25,7 +25,6 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.8" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.8" />
-    <PackageReference Include="System.Text.Json" Version="10.0.8" />
   </ItemGroup>
 
   <ItemGroup>
@@ -44,4 +43,3 @@
   </ItemGroup>
 
 </Project>
-

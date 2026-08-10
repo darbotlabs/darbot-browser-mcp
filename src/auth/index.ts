@@ -22,7 +22,7 @@
  * - Entra ID RBAC (role-based access control)
  * - VS Code Dev Tunnel (GitHub-based auth)
  * - OAuth 2.0 (for MCP clients like VS Code)
- * - API Key (legacy support)
+ * - API Key (backwards-compatible lower-priority credential)
  *
  * Priority order (first successful auth wins):
  * 1. Dev Tunnel (if request comes through tunnel)
@@ -188,7 +188,7 @@ export class UnifiedAuthenticator {
       }
     }
 
-    // 3. Check API Key (legacy)
+    // 3. Check API Key (backwards-compatible static credential)
     if (this.config.enableApiKey && this.apiKeyAuth.authenticate(req)) {
       return {
         authenticated: true,

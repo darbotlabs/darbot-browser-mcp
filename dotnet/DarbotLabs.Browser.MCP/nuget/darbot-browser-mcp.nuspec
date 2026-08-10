@@ -2,13 +2,13 @@
 <package>
   <metadata>
     <id>DarbotLabs.Browser.MCP</id>
-    <version>2.1.1</version>
+    <version>2.1.4</version>
     <title>Darbot Browser MCP</title>
     <authors>darbotlabs</authors>
     <owners>darbotlabs</owners>
-    <description>Darbot Browser - framework of 59 AI-driven autonomous browser tools with session state support and VS Code GitHub Copilot agent mode integration</description>
-    <releaseNotes>v2.1.1: Align product matrix to reconcile best-of (59 tools, healthz aliases, cloud package version parity, docs pack paths).</releaseNotes>
-    <summary>framework of 59 AI-driven autonomous browser tools with MCP server integration.</summary>
+    <description>Darbot Browser - framework of 68 AI-driven autonomous browser tools with portable session state support and VS Code GitHub Copilot agent mode integration</description>
+    <releaseNotes>v2.1.4: Add portable session-state and workspace metadata imports, Streamable HTTP hardening, Chromium Docker fixes, and synchronized package metadata.</releaseNotes>
+    <summary>Framework of 68 AI-driven autonomous browser tools with MCP server integration.</summary>
     <language>en-US</language>
     <projectUrl>https://github.com/darbotlabs/darbot-browser-mcp</projectUrl>
     <repository type="git" url="https://github.com/darbotlabs/darbot-browser-mcp.git" />
@@ -17,20 +17,20 @@
     <license type="file">LICENSE</license>
     <copyright>Copyright 2026 darbotlabs</copyright>
     <dependencies>
-      <group targetFramework="net8.0">
+      <group targetFramework="net11.0">
         <dependency id="Microsoft.Extensions.Hosting" version="10.0.8" />
         <dependency id="Microsoft.Extensions.Logging" version="10.0.8" />
-        <dependency id="System.Text.Json" version="10.0.8" />
       </group>
     </dependencies>
     <tags>mcp browser automation playwright vscode copilot azure entra</tags>
   </metadata>
   <files>
-    <file src="..\bin\Release\net8.0\DarbotLabs.Browser.MCP.dll" target="lib\net8.0" />
+    <file src="..\bin\Release\net11.0\DarbotLabs.Browser.MCP.dll" target="lib\net11.0" />
     <file src="..\README.md" target="" />
     <file src="..\..\..\LICENSE" target="" />
     <file src="..\icon.png" target="" />
+    <file src="..\..\..\docs\README.md" target="docs" />
+    <file src="..\..\..\docs\integrations\vscode-extension.md" target="docs" />
+    <file src="..\..\..\docs\getting-started\installation.md" target="docs" />
   </files>
 </package>
-
-

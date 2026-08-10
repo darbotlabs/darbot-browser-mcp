@@ -5,7 +5,7 @@
 			"type": "shell",
 			"label": "Start Darbot Browser MCP (Edge, Headed)",
 			"command": "npx",
-			"args": ["@darbotlabs/darbot-browser-mcp@latest", "--browser=msedge"],
+			"args": ["@darbotlabs/darbot-browser-mcp@2.1.4", "--browser=msedge"],
 			"isBackground": true,
 			"group": "build"
 		}

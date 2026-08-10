@@ -16,7 +16,7 @@
 
 /**
  * Darbot Browser MCP Bridge Extension - Service Worker
- * Version: 2.1.1
+ * Version: 2.1.4
  *
  * Chrome/Edge Manifest V3 extension that bridges Chrome DevTools Protocol
  * (CDP) messages between the chrome.debugger API and the Darbot Browser MCP
@@ -26,7 +26,7 @@
 // @ts-check
 
 /** @constant {string} */
-const EXTENSION_VERSION = '2.1.1';
+const EXTENSION_VERSION = '2.1.4';
 
 /** @constant {number} Connection timeout in milliseconds */
 const CONNECTION_TIMEOUT_MS = 10000;

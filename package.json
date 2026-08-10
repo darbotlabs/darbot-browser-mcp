@@ -1,7 +1,7 @@
 {
   "name": "@darbotlabs/darbot-browser-mcp",
-  "version": "2.1.1",
-  "description": "Darbot Browser MCP — framework of 59 AI-driven autonomous browser tools with session state support and VS Code GitHub Copilot agent mode integration",
+  "version": "2.1.4",
+  "description": "Darbot Browser MCP — framework of 68 AI-driven autonomous browser tools with portable session state support and VS Code GitHub Copilot agent mode integration",
   "type": "module",
   "repository": {
     "type": "git",
@@ -46,7 +46,8 @@
   "scripts": {
     "build": "tsc",
     "watch": "tsc --watch",
-    "clean": "node -e \"require('fs').rmSync('lib',{recursive:true,force:true})\"",
+    "clean": "node --input-type=commonjs -e \"require('fs').rmSync('lib',{recursive:true,force:true})\"",
+    "atlas": "node scripts/generate-tool-atlas.mjs",
     "lint": "eslint . && tsc --noEmit",
     "update-readme": "node utils/update-readme.js",
     "typecheck": "tsc --noEmit",
@@ -55,9 +56,11 @@
     "ctest": "npx playwright test --reporter=list",
     "run-server": "node cli.js",
     "run-darbot": "node cli.js",
-    "package": "npm run build && npm pack",
-    "prepublishOnly": "npm run clean && npm run build",
-    "publish:npm": "npm publish --access public --provenance",
+    "prepack": "npm run clean && npm run build",
+    "package": "npm run clean && npm run build && npm run atlas && npm pack --ignore-scripts",
+    "package:verify": "npm run clean && npm run build && npm pack --dry-run --ignore-scripts",
+    "prepublishOnly": "npm run lint",
+    "publish:npm": "npm publish --access public --tag latest --provenance",
     "publish:vsix": "echo \"Publishes the VSIX extensions via individual extension package scripts; orchestrated by .github/workflows/publish.yml\" && exit 0",
     "publish:nuget": "echo \"Publishes the .NET package from dotnet/DarbotLabs.Browser.MCP; orchestrated by .github/workflows/publish.yml\" && exit 0",
     "publish:docker": "echo \"Builds and pushes the Docker image; orchestrated by .github/workflows/publish.yml\" && exit 0"
@@ -66,6 +69,10 @@
   "types": "index.d.ts",
   "exports": {
     "./package.json": "./package.json",
+    "./ai": {
+      "types": "./lib/ai/index.d.ts",
+      "default": "./lib/ai/index.js"
+    },
     ".": {
       "types": "./index.d.ts",
       "default": "./index.js"
@@ -74,15 +81,23 @@
   "files": [
     "lib/**/*.js",
     "lib/**/*.d.ts",
+    "lib/**/*.js.map",
+    "lib/**/*.d.ts.map",
     "cli.js",
     "index.js",
     "index.d.ts",
     "config.d.ts",
     "README.md",
+    "tool-atlas.csv",
+    "CHANGELOG.md",
     "LICENSE"
   ],
   "bin": {
     "darbot-browser-mcp": "cli.js"
+  },
+  "publishConfig": {
+    "access": "public",
+    "tag": "latest"
   },
   "dependencies": {
     "@azure/identity": "^4.13.1",
@@ -93,6 +108,7 @@
     "debug": "^4.4.3",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "jsonc-parser": "^3.3.1",
     "mime": "^4.1.0",
     "playwright": "^1.60.0",
     "playwright-core": "^1.60.0",

@@ -1,8 +1,8 @@
 {
   "name": "darbot-browser-mcp-cloud",
   "displayName": "Darbot Browser MCP Cloud",
-  "description": "Cloud-connected autonomous browser for VS Code. 59 AI-driven browser tools delivered from an Azure-hosted deployment with Microsoft Entra ID single sign-on via VS Code's built-in authentication.",
-  "version": "2.1.1",
+  "description": "Cloud-connected autonomous browser for VS Code. 68 AI-driven browser tools delivered from an Azure-hosted deployment with portable session-state support and Microsoft Entra ID integration.",
+  "version": "2.1.4",
   "publisher": "darbotlabs",
   "engines": {
     "vscode": "^1.96.0",
@@ -90,10 +90,10 @@
           "default": "",
           "description": "Cloud server base URL (e.g. https://<your-app>.azurewebsites.net). Overridden at runtime by the SERVER_BASE_URL environment variable when set."
         },
-        "darbot-browser-mcp-cloud.sseEndpoint": {
+        "darbot-browser-mcp-cloud.mcpEndpoint": {
           "type": "string",
           "default": "",
-          "description": "MCP Streamable-HTTP endpoint (typically <serverUrl>/mcp). Auto-derived from serverUrl when left blank. (Field name kept for v1.x backwards compatibility.)"
+          "description": "MCP Streamable HTTP endpoint (typically <serverUrl>/mcp). Auto-derived from serverUrl when left blank."
         },
         "darbot-browser-mcp-cloud.autoConnect": {
           "type": "boolean",
@@ -117,8 +117,15 @@
         },
         "darbot-browser-mcp-cloud.scopes": {
           "type": "array",
-          "items": { "type": "string" },
-          "default": ["openid", "profile", "email", "User.Read"],
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "openid",
+            "profile",
+            "email",
+            "User.Read"
+          ],
           "description": "OIDC / Microsoft Graph scopes requested when fetching the Entra ID access token."
         }
       }
@@ -136,5 +143,3 @@
     "typescript": "^5.9.3"
   }
 }
-
-

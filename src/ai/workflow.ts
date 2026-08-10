@@ -74,8 +74,9 @@ export interface WorkflowStepResult {
 }
 
 export interface WorkflowExecution {
+  id?: string;
   templateName: string;
-  status: 'running' | 'completed' | 'failed' | 'paused';
+  status: 'running' | 'completed' | 'failed' | 'paused' | 'cancelled';
   currentStep: number;
   startTime: number;
   parameters: WorkflowParameters;
@@ -89,6 +90,7 @@ export interface WorkflowExecution {
 export class WorkflowEngine {
   private readonly _templates = new Map<string, WorkflowTemplate>();
   private readonly _executions = new Map<string, WorkflowExecution>();
+  private readonly _cancelledExecutionIds = new Set<string>();
 
   constructor() {
     this._registerDefaultTemplates();
@@ -230,6 +232,7 @@ export class WorkflowEngine {
 
     const executionId = `${templateName}_${Date.now()}`;
     const execution: WorkflowExecution = {
+      id: executionId,
       templateName,
       status: 'running',
       currentStep: 0,
@@ -242,6 +245,9 @@ export class WorkflowEngine {
 
     try {
       for (let i = 0; i < template.steps.length; i++) {
+        if (this._isCancelled(execution))
+          return execution;
+
         execution.currentStep = i;
         const step = template.steps[i];
         if (!step)
@@ -251,10 +257,15 @@ export class WorkflowEngine {
         try {
           const result = await this._executeStep(context, resolvedStep, parameters);
           execution.results.push(result);
+          if (this._isCancelled(execution))
+            return execution;
 
           if (step.validation && !step.validation(result))
             throw new Error(`Step validation failed for step ${i}`);
         } catch (error) {
+          if (this._isCancelled(execution))
+            return execution;
+
           const errorMessage = error instanceof Error ? error.message : 'Unknown error';
           execution.errors.push(`Step ${i}: ${errorMessage}`);
 
@@ -266,8 +277,13 @@ export class WorkflowEngine {
           if (onError === 'retry' && (step.retryCount ?? 0) > 0) {
             const retries = step.retryCount ?? 0;
             for (let retry = 0; retry < retries; retry++) {
+              if (this._isCancelled(execution))
+                return execution;
+
               try {
                 execution.results.push(await this._executeStep(context, resolvedStep, parameters));
+                if (this._isCancelled(execution))
+                  return execution;
                 break;
               } catch (retryError) {
                 if (retry === retries - 1)
@@ -278,10 +294,15 @@ export class WorkflowEngine {
           // 'continue' falls through to the next step
         }
       }
-      execution.status = 'completed';
+      if (!this._isCancelled(execution))
+        execution.status = 'completed';
     } catch (error) {
-      execution.status = 'failed';
-      execution.errors.push(error instanceof Error ? error.message : 'Unknown error');
+      if (!this._isCancelled(execution)) {
+        execution.status = 'failed';
+        execution.errors.push(error instanceof Error ? error.message : 'Unknown error');
+      }
+    } finally {
+      this._cancelledExecutionIds.delete(executionId);
     }
 
     return execution;
@@ -456,11 +477,16 @@ export class WorkflowEngine {
   cancelExecution(executionId: string): boolean {
     const execution = this._executions.get(executionId);
     if (execution && execution.status === 'running') {
-      execution.status = 'failed';
+      this._cancelledExecutionIds.add(executionId);
+      execution.status = 'cancelled';
       execution.errors.push('Workflow cancelled by user');
       return true;
     }
     return false;
+  }
+
+  private _isCancelled(execution: WorkflowExecution): boolean {
+    return execution.id !== undefined && this._cancelledExecutionIds.has(execution.id);
   }
 
   /**

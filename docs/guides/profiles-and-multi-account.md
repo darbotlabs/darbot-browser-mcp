@@ -36,7 +36,7 @@ await browser_discover_profiles({
     "darbot-browser-mcp": {
       "command": "npx",
       "args": [
-        "@darbotlabs/darbot-browser-mcp@latest",
+        "@darbotlabs/darbot-browser-mcp@2.1.4",
         "--browser", "msedge",
         "--user-data-dir", "C:\Users\you\AppData\Local\Microsoft\Edge\User Data",
         "--edge-profile", "Default",
@@ -60,4 +60,4 @@ A full Edge user-data directory can be locked by an already running Edge process
 - Prefer the bridge for human-owned sessions and launched browsers for CI.
 ---
 
-_Last updated: 2026-05-18 (v2.0.0)_
+_Last updated: 2026-08-10 (v2.1.4)_

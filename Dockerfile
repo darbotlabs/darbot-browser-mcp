@@ -1,10 +1,10 @@
 # syntax=docker/dockerfile:1.7
 #
-# Multi-stage Dockerfile for darbot-browser-mcp (v2.0.0)
+# Multi-stage Dockerfile for darbot-browser-mcp (v2.1.4)
 #
 # NOTE on base image choice:
-# The task brief asked for node:20-alpine. We use node:20-bookworm-slim for
-# both stages because Playwright's chromium binary requires glibc and a
+# We use node:26.2.0-bookworm-slim for both stages because Playwright's
+# Chromium binary requires glibc and a
 # selection of system libraries that are not present (or are non-trivially
 # patched in) on Alpine. bookworm-slim is the smallest practical base on
 # which Playwright's bundled browsers work reliably.
@@ -14,7 +14,7 @@ ARG PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 # ----------------------------------------------------------------------
 # Base — shared layer with production node_modules and playwright deps
 # ----------------------------------------------------------------------
-FROM node:20-bookworm-slim AS base
+FROM node:26.2.0-bookworm-slim AS base
 
 ARG PLAYWRIGHT_BROWSERS_PATH
 ENV PLAYWRIGHT_BROWSERS_PATH=${PLAYWRIGHT_BROWSERS_PATH} \
@@ -56,13 +56,14 @@ RUN npx -y playwright-core install --no-shell chromium
 # ----------------------------------------------------------------------
 # Runtime — minimal slim image, non-root, with healthcheck
 # ----------------------------------------------------------------------
-FROM node:20-bookworm-slim AS runtime
+FROM node:26.2.0-bookworm-slim AS runtime
 
 ARG PLAYWRIGHT_BROWSERS_PATH
 ARG USERNAME=node
 
 ENV NODE_ENV=production \
     PLAYWRIGHT_BROWSERS_PATH=${PLAYWRIGHT_BROWSERS_PATH} \
+    DARBOT_SESSION_STATE_DIR=/app/data/sessions \
     PORT=8931 \
     HOST=0.0.0.0 \
     NPM_CONFIG_UPDATE_NOTIFIER=false \
@@ -82,16 +83,17 @@ COPY --from=browser --chown=${USERNAME}:${USERNAME} ${PLAYWRIGHT_BROWSERS_PATH} 
 COPY --chown=${USERNAME}:${USERNAME} cli.js index.js index.d.ts config.d.ts package.json ./
 COPY --from=builder --chown=${USERNAME}:${USERNAME} /app/lib ./lib
 
-RUN chown -R ${USERNAME}:${USERNAME} /app
+RUN mkdir -p /app/data/sessions \
+    && chown -R ${USERNAME}:${USERNAME} /app
 
 USER ${USERNAME}
 
 EXPOSE 8931
 
-# Health check pings the /healthz endpoint provided by src/health.ts
+# Health check pings the /health endpoint provided by src/health.ts
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
-  CMD node -e "fetch('http://127.0.0.1:'+process.env.PORT+'/healthz').then(r=>{if(r.status!==200)process.exit(1)}).catch(()=>process.exit(1))"
+  CMD node -e "fetch('http://127.0.0.1:'+process.env.PORT+'/health').then(r=>{if(r.status!==200)process.exit(1)}).catch(()=>process.exit(1))"
 
 # CLI args after the entrypoint are forwarded to cli.js (e.g. --port, --headless)
-ENTRYPOINT ["node", "cli.js", "--headless", "--browser", "chromium", "--no-sandbox"]
+ENTRYPOINT ["node", "cli.js", "--headless", "--browser", "chromium", "--no-sandbox", "--viewport-size", "1920,1080", "--output-dir", "/app/data"]
 CMD ["--port", "8931"]

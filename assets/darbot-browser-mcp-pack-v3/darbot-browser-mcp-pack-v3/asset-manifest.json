@@ -1,0 +1,581 @@
+{
+  "package": "darbot-browser-mcp-pack-v3",
+  "version": "3.0",
+  "created_utc": "2026-08-09T03:30:55.360947+00:00",
+  "primary_logo": "darbot-browser-mcp-logo-1024.png",
+  "primary_banner": "darbot-horizontal-banner-1500x500.png",
+  "requested_icon_sizes": [
+    16,
+    24,
+    32,
+    48,
+    64,
+    96,
+    128,
+    256,
+    512,
+    1024
+  ],
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 1487,
+      "sha256": "273f0a4a90393eeb9ce8f77d8368e9e80a95dda128f184f18f8bbeaadee5c515"
+    },
+    {
+      "path": "banners/darbot-horizontal-banner-dark-1500x500.png",
+      "bytes": 199623,
+      "sha256": "49221f10495389afbf2a81fe046de51843eed5898a1e2d8c86f9c176bc944177",
+      "image": {
+        "width": 1500,
+        "height": 500,
+        "mode": "RGBA",
+        "format": "PNG"
+      }
+    },
+    {
+      "path": "banners/darbot-horizontal-banner-light-1500x500.png",
+      "bytes": 191096,
+      "sha256": "c68f4f5bc51be39bd43e6d400ed42906e7cdc0a50035f03567a9f75106328892",
+      "image": {
+        "width": 1500,
+        "height": 500,
+        "mode": "RGBA",
+        "format": "PNG"
+      }
+    },
+    {
+      "path": "banners/darbot-horizontal-banner-transparent-1500x500.png",
+      "bytes": 216656,
+      "sha256": "ac0b98df3d6dc1d7df1620a2e373afb991e9cf537e9ef69d024460357ed728ac",
+      "image": {
+        "width": 1500,
+        "height": 500,
+        "mode": "RGBA",
+        "format": "PNG"
+      }
+    },
+    {
+      "path": "darbot-browser-mcp-logo-1024.png",
+      "bytes": 364050,
+      "sha256": "84ac584aa9739d5914e68dea53b40030073a09a584f4edfbdbc3150353b63975",
+      "image": {
+        "width": 1024,
+        "height": 1024,
+        "mode": "RGBA",
+        "format": "PNG"
+      }
+    },
+    {
+      "path": "darbot-browser-mcp-logo.svg",
+      "bytes": 23454,
+      "sha256": "44f56dfe578a435c943405ea33a70a17a17540f9fd57404fc0ae5fd0178040e8"
+    },
+    {
+      "path": "darbot-horizontal-banner-1500x500.png",
+      "bytes": 216656,
+      "sha256": "ac0b98df3d6dc1d7df1620a2e373afb991e9cf537e9ef69d024460357ed728ac",
+      "image": {
+        "width": 1500,
+        "height": 500,
+        "mode": "RGBA",
+        "format": "PNG"
+      }
+    },
+    {
+      "path": "icons/darbot-1024px.png",
+      "bytes": 547907,
+      "sha256": "8fb05e9082aa6cff476855cef2641a7f633f483594381a8b9df016a5adaa2e07",
+      "image": {
+        "width": 1024,
+        "height": 1024,
+        "mode": "RGBA",
+        "format": "PNG"
+      }
+    },
+    {
+      "path": "icons/darbot-128px.png",
+      "bytes": 17253,
+      "sha256": "cd3d8d853ecf2dee18fc509c135cba643350ad919b447b424b304468a29bfe92",
+      "image": {
+        "width": 128,
+        "height": 128,
+        "mode": "RGBA",
+        "format": "PNG"
+      }
+    },
+    {
+      "path": "icons/darbot-16px.png",
+      "bytes": 852,
+      "sha256": "ab294e7f651e6738964f04dcf1f173d4d631d11fc8c34c33103518287e994442",
+      "image": {
+        "width": 16,
+        "height": 16,
+        "mode": "RGBA",
+        "format": "PNG"
+      }
+    },
+    {
+      "path": "icons/darbot-24px.png",
+      "bytes": 1506,
+      "sha256": "e614e2cc0a8a88bc8091260bde495d74555f6010ce1b6a59aadb7115c95cb16c",
+      "image": {
+        "width": 24,
+        "height": 24,
+        "mode": "RGBA",
+        "format": "PNG"
+      }
+    },
+    {
+      "path": "icons/darbot-256px.png",
+      "bytes": 49807,
+      "sha256": "af7c84aa4803d3eb1b60fcb89a6e76e42fc77acb2c5ed936c969bf74d2d0a825",
+      "image": {
+        "width": 256,
+        "height": 256,
+        "mode": "RGBA",
+        "format": "PNG"
+      }
+    },
+    {
+      "path": "icons/darbot-32px.png",
+      "bytes": 2332,
+      "sha256": "b050876529b12482356c5cb4f3da8318a8c71974dea51024fa1818af621b901f",
+      "image": {
+        "width": 32,
+        "height": 32,
+        "mode": "RGBA",
+        "format": "PNG"
+      }
+    },
+    {
+      "path": "icons/darbot-48px.png",
+      "bytes": 4192,
+      "sha256": "a18bfbd9c090fa2a5f0f3092f54613aafee4c5632dde2456b24cdccb4ab91d84",
+      "image": {
+        "width": 48,
+        "height": 48,
+        "mode": "RGBA",
+        "format": "PNG"
+      }
+    },
+    {
+      "path": "icons/darbot-512px.png",
+      "bytes": 156806,
+      "sha256": "f2481a5e44779af5fe0f350d617fce237c5edd700af7c8afea07aea0246cb6dd",
+      "image": {
+        "width": 512,
+        "height": 512,
+        "mode": "RGBA",
+        "format": "PNG"
+      }
+    },
+    {
+      "path": "icons/darbot-64px.png",
+      "bytes": 6412,
+      "sha256": "82ddfa4bfa8ac6030f1a22f30bcab8cf064d6d60c893fde44babbb34da5ed669",
+      "image": {
+        "width": 64,
+        "height": 64,
+        "mode": "RGBA",
+        "format": "PNG"
+      }
+    },
+    {
+      "path": "icons/darbot-96px.png",
+      "bytes": 11491,
+      "sha256": "99d2acf2c657920e79876bfe24cb92f46ce25d8c45f915a5a0c7193b7bc96a0f",
+      "image": {
+        "width": 96,
+        "height": 96,
+        "mode": "RGBA",
+        "format": "PNG"
+      }
+    },
+    {
+      "path": "icons/darbot.ico",
+      "bytes": 83828,
+      "sha256": "c4740802a37e321403d227d888ccf71b61a5c71b61e94ad8abd7aa43166dff7b",
+      "image": {
+        "width": 256,
+        "height": 256,
+        "mode": "RGBA",
+        "format": "ICO",
+        "ico_sizes": [
+          [
+            16,
+            16
+          ],
+          [
+            24,
+            24
+          ],
+          [
+            32,
+            32
+          ],
+          [
+            48,
+            48
+          ],
+          [
+            64,
+            64
+          ],
+          [
+            128,
+            128
+          ],
+          [
+            256,
+            256
+          ]
+        ]
+      }
+    },
+    {
+      "path": "icons/emblem/darbot-emblem-1024px.png",
+      "bytes": 648755,
+      "sha256": "730defe6e6a66b2104ee183b9fde56e51c2c9e2e0afc11c68000e80da7fdbdeb",
+      "image": {
+        "width": 1024,
+        "height": 1024,
+        "mode": "RGBA",
+        "format": "PNG"
+      }
+    },
+    {
+      "path": "icons/emblem/darbot-emblem-128px.png",
+      "bytes": 20060,
+      "sha256": "3c89a39d1efd83b8640d18b96a0ce0bf113158becfb6c6b8a135e5572d7fd06a",
+      "image": {
+        "width": 128,
+        "height": 128,
+        "mode": "RGBA",
+        "format": "PNG"
+      }
+    },
+    {
+      "path": "icons/emblem/darbot-emblem-16px.png",
+      "bytes": 877,
+      "sha256": "0d67e43c9f670bb9216e46462a34b555dd10aab6ee2e8c20c5151c71c1f810ea",
+      "image": {
+        "width": 16,
+        "height": 16,
+        "mode": "RGBA",
+        "format": "PNG"
+      }
+    },
+    {
+      "path": "icons/emblem/darbot-emblem-24px.png",
+      "bytes": 1618,
+      "sha256": "6310e5f310b87e7f4bbc6ecf0579ccef8fa4ae3274a1b9f766ef962ad84a3b19",
+      "image": {
+        "width": 24,
+        "height": 24,
+        "mode": "RGBA",
+        "format": "PNG"
+      }
+    },
+    {
+      "path": "icons/emblem/darbot-emblem-256px.png",
+      "bytes": 55661,
+      "sha256": "40a2bf25d3424b8ddee064bb64bd368b868add418ce758b0772e145731c316a0",
+      "image": {
+        "width": 256,
+        "height": 256,
+        "mode": "RGBA",
+        "format": "PNG"
+      }
+    },
+    {
+      "path": "icons/emblem/darbot-emblem-32px.png",
+      "bytes": 2570,
+      "sha256": "5c972083de2ce3628a78a9c483082f00fe2ffe4ae1277e6cd4fa7df10c57bcbc",
+      "image": {
+        "width": 32,
+        "height": 32,
+        "mode": "RGBA",
+        "format": "PNG"
+      }
+    },
+    {
+      "path": "icons/emblem/darbot-emblem-48px.png",
+      "bytes": 4850,
+      "sha256": "f928f78b478c135f0f0198f9fb4dcd6aabe6e1ff2631e1b82a1062023bdf5233",
+      "image": {
+        "width": 48,
+        "height": 48,
+        "mode": "RGBA",
+        "format": "PNG"
+      }
+    },
+    {
+      "path": "icons/emblem/darbot-emblem-512px.png",
+      "bytes": 186474,
+      "sha256": "366292d07dfff6989213aff403aadcdf053357baa5a0cb1b7a6dd2d665232b18",
+      "image": {
+        "width": 512,
+        "height": 512,
+        "mode": "RGBA",
+        "format": "PNG"
+      }
+    },
+    {
+      "path": "icons/emblem/darbot-emblem-64px.png",
+      "bytes": 7283,
+      "sha256": "56231ba7763f8d6d2b14aad0e2f8badcd9017caf37a3c5c33296250526162cca",
+      "image": {
+        "width": 64,
+        "height": 64,
+        "mode": "RGBA",
+        "format": "PNG"
+      }
+    },
+    {
+      "path": "icons/emblem/darbot-emblem-96px.png",
+      "bytes": 13060,
+      "sha256": "047885cb6fa49ef00a93b146ee2a74dd6c402cd0c8f7db677a2d477b1f14a952",
+      "image": {
+        "width": 96,
+        "height": 96,
+        "mode": "RGBA",
+        "format": "PNG"
+      }
+    },
+    {
+      "path": "icons/emblem/darbot-emblem.ico",
+      "bytes": 95129,
+      "sha256": "1c041927527919f9f039bb028b4bd5346495c68ab8a49f54a931650cd15f7c3d",
+      "image": {
+        "width": 256,
+        "height": 256,
+        "mode": "RGBA",
+        "format": "ICO",
+        "ico_sizes": [
+          [
+            16,
+            16
+          ],
+          [
+            24,
+            24
+          ],
+          [
+            32,
+            32
+          ],
+          [
+            48,
+            48
+          ],
+          [
+            64,
+            64
+          ],
+          [
+            128,
+            128
+          ],
+          [
+            256,
+            256
+          ]
+        ]
+      }
+    },
+    {
+      "path": "previews/darbot-logo-on-dark.png",
+      "bytes": 367343,
+      "sha256": "88b79fb681c6346d112725caa7150fa6dc556f80a1ee2f5b1c98df4a001e4e32",
+      "image": {
+        "width": 1024,
+        "height": 1024,
+        "mode": "RGBA",
+        "format": "PNG"
+      }
+    },
+    {
+      "path": "previews/darbot-logo-on-white.png",
+      "bytes": 374995,
+      "sha256": "3a13a348d6a07373c8029446fe157da1c9d6108875b6092128503e204af0461d",
+      "image": {
+        "width": 1024,
+        "height": 1024,
+        "mode": "RGBA",
+        "format": "PNG"
+      }
+    },
+    {
+      "path": "previews/icon-scale-contact-sheet.png",
+      "bytes": 272720,
+      "sha256": "9944130d4880be49d3304bd4e390fedc6868009e27f60b3399c808f0fc15fcce",
+      "image": {
+        "width": 1800,
+        "height": 900,
+        "mode": "RGBA",
+        "format": "PNG"
+      }
+    },
+    {
+      "path": "source/darbot-browser-mcp-emblem-master-1024.png",
+      "bytes": 618523,
+      "sha256": "4a5375d8413b923896411a9119f1cd711f0698c2b49fc88f7c19b79bb37a8086",
+      "image": {
+        "width": 1024,
+        "height": 1024,
+        "mode": "RGBA",
+        "format": "PNG"
+      }
+    },
+    {
+      "path": "source/darbot-browser-mcp-emblem.svg",
+      "bytes": 16035,
+      "sha256": "700360aa2902790dd3c1a81547047f37b9e8c001c8a800bc94339c4514b40a5f"
+    },
+    {
+      "path": "source/darbot-browser-mcp-icon-master-1024.png",
+      "bytes": 536096,
+      "sha256": "53636606fc25e2026e0e243758ff8047c07329084e07ea55e3523a69e6507bbc",
+      "image": {
+        "width": 1024,
+        "height": 1024,
+        "mode": "RGBA",
+        "format": "PNG"
+      }
+    },
+    {
+      "path": "source/darbot-browser-mcp-logo-editable.svg",
+      "bytes": 23454,
+      "sha256": "44f56dfe578a435c943405ea33a70a17a17540f9fd57404fc0ae5fd0178040e8"
+    },
+    {
+      "path": "source/darbot-browser-mcp-logo-master-2048.png",
+      "bytes": 1195823,
+      "sha256": "c46c456d4d06cb7e270939ddb710d0d1364a7baf7b6eafb9c131b3576e405be5",
+      "image": {
+        "width": 2048,
+        "height": 2048,
+        "mode": "RGBA",
+        "format": "PNG"
+      }
+    },
+    {
+      "path": "source/darbot-browser-mcp-logo-master-4096.png",
+      "bytes": 3122856,
+      "sha256": "15c2db51c799ee4afb9cf6aafee249ef2864a4cc74774c7011dfd7e81ecfc85d",
+      "image": {
+        "width": 4096,
+        "height": 4096,
+        "mode": "RGBA",
+        "format": "PNG"
+      }
+    },
+    {
+      "path": "web/android-chrome-192x192.png",
+      "bytes": 32426,
+      "sha256": "511b73c3e1bd58930d867fc3bbba9c65622021cddc9cb716540d66b43f5b61c8",
+      "image": {
+        "width": 192,
+        "height": 192,
+        "mode": "RGBA",
+        "format": "PNG"
+      }
+    },
+    {
+      "path": "web/android-chrome-512x512.png",
+      "bytes": 156806,
+      "sha256": "f2481a5e44779af5fe0f350d617fce237c5edd700af7c8afea07aea0246cb6dd",
+      "image": {
+        "width": 512,
+        "height": 512,
+        "mode": "RGBA",
+        "format": "PNG"
+      }
+    },
+    {
+      "path": "web/apple-touch-icon.png",
+      "bytes": 29185,
+      "sha256": "a14b6eaf616e1ba802370113ebc178b34d5b4fe85e6689560e80ef8c8bd0bd8f",
+      "image": {
+        "width": 180,
+        "height": 180,
+        "mode": "RGBA",
+        "format": "PNG"
+      }
+    },
+    {
+      "path": "web/favicon-16x16.png",
+      "bytes": 852,
+      "sha256": "ab294e7f651e6738964f04dcf1f173d4d631d11fc8c34c33103518287e994442",
+      "image": {
+        "width": 16,
+        "height": 16,
+        "mode": "RGBA",
+        "format": "PNG"
+      }
+    },
+    {
+      "path": "web/favicon-32x32.png",
+      "bytes": 2332,
+      "sha256": "b050876529b12482356c5cb4f3da8318a8c71974dea51024fa1818af621b901f",
+      "image": {
+        "width": 32,
+        "height": 32,
+        "mode": "RGBA",
+        "format": "PNG"
+      }
+    },
+    {
+      "path": "web/favicon.ico",
+      "bytes": 83828,
+      "sha256": "c4740802a37e321403d227d888ccf71b61a5c71b61e94ad8abd7aa43166dff7b",
+      "image": {
+        "width": 256,
+        "height": 256,
+        "mode": "RGBA",
+        "format": "ICO",
+        "ico_sizes": [
+          [
+            16,
+            16
+          ],
+          [
+            24,
+            24
+          ],
+          [
+            32,
+            32
+          ],
+          [
+            48,
+            48
+          ],
+          [
+            64,
+            64
+          ],
+          [
+            128,
+            128
+          ],
+          [
+            256,
+            256
+          ]
+        ]
+      }
+    },
+    {
+      "path": "web/favicon.svg",
+      "bytes": 16035,
+      "sha256": "700360aa2902790dd3c1a81547047f37b9e8c001c8a800bc94339c4514b40a5f"
+    },
+    {
+      "path": "web/site.webmanifest",
+      "bytes": 382,
+      "sha256": "58ffd4dd6b8c5cdb365faf787976ce7594a67ad29a52106b13b3521b32f378ae"
+    }
+  ]
+}

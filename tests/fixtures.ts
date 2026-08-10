@@ -23,7 +23,7 @@ import { fork } from 'child_process';
 
 import { test as baseTest, expect as baseExpect } from '@playwright/test';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
-import { SSEClientTransport } from '@modelcontextprotocol/sdk/client/sse.js';
+import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { TestServer } from './testserver/index.ts';
 import { ManualPromise } from '../src/manualPromise.js';
@@ -67,7 +67,7 @@ export const test = baseTest.extend<TestFixtures & TestOptions, WorkerFixtures>(
   },
 
   visionClient: async ({ startClient }, use) => {
-    const { client } = await startClient({ args: ['--vision'] });
+    const { client } = await startClient();
     await use(client);
   },
 
@@ -228,26 +228,26 @@ async function createTransport(args: string[], mcpMode: TestOptions['mcpMode']):
       stdio: 'pipe'
     });
     const cdpRelayServerReady = new ManualPromise<string>();
-    const sseEndpointPromise = new ManualPromise<string>();
+    const mcpEndpointPromise = new ManualPromise<string>();
     let stderrBuffer = '';
     relay.stderr!.on('data', data => {
       stderrBuffer += data.toString();
       // Match "listening on http://..." (case insensitive)
       const match = stderrBuffer.match(/listening on (http:\/\/[^\s]+)/i);
       if (match)
-        sseEndpointPromise.resolve(match[1].toString());
+        mcpEndpointPromise.resolve(match[1].toString());
       const extensionMatch = stderrBuffer.match(/CDP relay server started on (ws:\/\/.*\/extension)/);
       if (extensionMatch)
         cdpRelayServerReady.resolve(extensionMatch[1].toString());
     });
     relay.on('exit', () => {
-      sseEndpointPromise.reject(new Error(`Process exited`));
+      mcpEndpointPromise.reject(new Error(`Process exited`));
       cdpRelayServerReady.reject(new Error(`Process exited`));
     });
     const relayServerURL = await cdpRelayServerReady;
-    const sseEndpoint = await sseEndpointPromise;
+    const mcpEndpoint = await mcpEndpointPromise;
 
-    const transport = new SSEClientTransport(new URL(sseEndpoint));
+    const transport = new StreamableHTTPClientTransport(new URL(`${mcpEndpoint}/mcp`));
     // We cannot just add  transport.onclose here as Client.connect() overrides it.
     const origClose = transport.close;
     transport.close = async () => {

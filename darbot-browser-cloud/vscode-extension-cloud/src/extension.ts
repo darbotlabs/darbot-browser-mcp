@@ -20,7 +20,7 @@ import * as https from 'https';
 
 const EXTENSION_ID = 'darbot-browser-mcp-cloud';
 const CONFIG_SECTION = 'darbot-browser-mcp-cloud';
-const EXTENSION_VERSION = '2.1.1';
+const EXTENSION_VERSION = '2.1.4';
 const AUTH_PROVIDER = 'microsoft';
 
 interface CloudConfig {
@@ -39,7 +39,7 @@ function readConfig(): CloudConfig {
   const baseFromSetting = cfg.get<string>('serverUrl', '').trim();
   const serverUrl = envOverride || baseFromSetting;
 
-  let mcpEndpoint = cfg.get<string>('sseEndpoint', '').trim();
+  let mcpEndpoint = cfg.get<string>('mcpEndpoint', '').trim();
   if (!mcpEndpoint && serverUrl)
     mcpEndpoint = stripTrailingSlash(serverUrl) + '/mcp';
 
@@ -119,7 +119,7 @@ class DarbotBrowserMCPCloudProvider implements vscode.McpServerDefinitionProvide
       return [new HttpDef('Darbot Browser MCP Cloud', vscode.Uri.parse(mcpEndpoint), undefined, EXTENSION_VERSION)];
     }
 
-    output.appendLine('McpHttpServerDefinition unavailable — using legacy literal shape.');
+    output.appendLine('McpHttpServerDefinition unavailable — using the compatible literal shape.');
     return [{
       label: 'Darbot Browser MCP Cloud',
       uri: vscode.Uri.parse(mcpEndpoint),

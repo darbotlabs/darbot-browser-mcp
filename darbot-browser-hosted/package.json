@@ -1,10 +1,8 @@
 {
   "name": "@darbotlabs/darbot-browser-mcp-hosted",
-  "version": "2.1.1",
+  "version": "2.1.4",
   "description": "Darbot Browser MCP - On-Premises Hosted Edition with optional MSAL authentication and Dev Tunnel support",
   "type": "module",
-  "main": "../index.js",
-  "types": "../index.d.ts",
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "start": "node ../cli.js --headless --browser chromium --port 8080",
@@ -37,7 +35,7 @@
   "author": "DarbotLabs",
   "license": "Apache-2.0",
   "dependencies": {
-    "@azure/msal-node": "^2.15.0",
+    "@azure/msal-node": "^5.4.3",
     "@modelcontextprotocol/sdk": "^1.11.0",
     "commander": "^13.1.0",
     "debug": "^4.4.1",
@@ -47,8 +45,8 @@
     "express-rate-limit": "^7.5.0",
     "helmet": "^8.0.0",
     "mime": "^4.0.7",
-    "playwright": "1.55.0-alpha-1752540053000",
-    "playwright-core": "1.55.0-alpha-1752540053000",
+    "playwright": "^1.60.0",
+    "playwright-core": "^1.60.0",
     "winston": "^3.17.0",
     "ws": "^8.18.1",
     "zod": "^3.25.76",
@@ -67,4 +65,3 @@
     "node": ">=20"
   }
 }
-

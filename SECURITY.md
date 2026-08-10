@@ -84,7 +84,7 @@ If you are running the server yourself, please:
 - Pin extension versions in deployment manifests so a compromised marketplace
   release cannot be silently auto-upgraded.
 - Run the Docker image as a non-root user (the published image already does).
-- Treat the `/healthz`, `/readyz`, `/livez` endpoints as internal — do not
+- Treat the `/health`, `/ready`, and `/live` endpoints as internal — do not
   expose them publicly without filtering.
 - Use a network policy to restrict which sites the browser is allowed to
   reach if you are running the autonomous-crawl tools.

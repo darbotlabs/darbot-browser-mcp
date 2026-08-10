@@ -17,7 +17,7 @@ code --install-extension darbotlabs.darbot-browser-mcp
 ## What the extension does
 
 - Registers a VS Code MCP server definition provider.
-- Prompts to enable `chat.mcp.enabled` when needed.
+- Prompts to enable `chat.mcp.gallery.enabled` when needed.
 - Adds a `chat.mcp.servers` entry using the npm package.
 - Provides commands to start, stop, restart, and inspect status.
 - Writes server output to the `Darbot Browser MCP` output channel.
@@ -26,11 +26,11 @@ code --install-extension darbotlabs.darbot-browser-mcp
 
 ```json
 {
-  "chat.mcp.enabled": true,
+  "chat.mcp.gallery.enabled": true,
   "chat.mcp.servers": {
     "darbot-browser-mcp": {
       "command": "npx",
-      "args": ["@darbotlabs/darbot-browser-mcp@latest", "--browser", "msedge"],
+      "args": ["@darbotlabs/darbot-browser-mcp@2.1.4", "--browser", "msedge"],
       "env": { "NODE_ENV": "production" }
     }
   }
@@ -59,10 +59,10 @@ Use darbot-browser-mcp to save this authenticated portal session as power-platfo
 ## Troubleshooting
 
 - Confirm VS Code version supports MCP server definition providers.
-- Confirm `chat.mcp.enabled` is `true`.
+- Confirm `chat.mcp.gallery.enabled` is `true`.
 - Restart VS Code after changing MCP settings.
 - Check the output channel for npm, Node.js, or browser launch errors.
 - If Copilot needs an already-open browser tab, configure the [bridge extension](../guides/bridge-auto-detection.md).
 ---
 
-_Last updated: 2026-05-18 (v2.0.0)_
+_Last updated: 2026-08-10 (v2.1.4)_

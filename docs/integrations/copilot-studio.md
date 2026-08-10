@@ -48,7 +48,7 @@ AZURE_CLIENT_SECRET=<client-secret>
 COPILOT_STUDIO_ENABLED=true
 ```
 
-`SERVER_BASE_URL` is required in v2.0.0 so OAuth metadata and redirect URLs match the deployed origin.
+`SERVER_BASE_URL` is required so OAuth metadata and redirect URLs match the deployed origin.
 
 ## Copilot Studio connection options
 
@@ -80,4 +80,4 @@ Use `/openapi.json` for connector generation and tool discovery. The OpenAPI doc
 - Keep browser automation targets allowlisted where possible.
 ---
 
-_Last updated: 2026-05-18 (v2.0.0)_
+_Last updated: 2026-08-10 (v2.1.4)_

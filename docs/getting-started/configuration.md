@@ -28,12 +28,11 @@ Runtime configuration is resolved in this order:
 | `--config <path>` | Load a JSON configuration file. |
 | `--cdp-endpoint <endpoint>` | Connect to an existing Chromium CDP endpoint. |
 | `--extension` | Start bridge relay mode for the browser extension. Requires `--port`. |
-| `--vision` | Use screenshot-based tools instead of accessibility snapshots. |
 | `--isolated` | Use an in-memory profile and discard state on close. |
 | `--user-data-dir <path>` | Persist browser data in a specific profile directory. |
 | `--storage-state <path>` | Seed an isolated context with Playwright storage state. |
 | `--save-trace` | Save a Playwright trace under the output directory. |
-| `--output-dir <path>` | Directory for traces, screenshots, PDFs, and generated artifacts. |
+| `--output-dir <path>` | Directory for traces, screenshots, PDFs, portable session-state bundles, workspace files, and generated artifacts. |
 | `--allowed-origins <origins>` | Semicolon-separated allowlist. |
 | `--blocked-origins <origins>` | Semicolon-separated blocklist evaluated before the allowlist. |
 | `--proxy-server <proxy>` | HTTP or SOCKS proxy endpoint. |
@@ -49,7 +48,7 @@ Runtime configuration is resolved in this order:
 | Variable | Purpose |
 | --- | --- |
 | `PORT` | Cloud-friendly fallback for `--port`. |
-| `SERVER_BASE_URL` | Required for v2.0.0 OAuth metadata and redirect generation. |
+| `SERVER_BASE_URL` | Required for OAuth metadata and redirect generation. |
 | `ENTRA_AUTH_ENABLED` | Enables Microsoft Entra JWT authentication for HTTP transports. |
 | `AZURE_TENANT_ID` | Entra tenant ID. |
 | `AZURE_CLIENT_ID` | Entra application client ID. |
@@ -68,6 +67,12 @@ Runtime configuration is resolved in this order:
 | `DARBOT_EDGE_PROFILE` | Profile name recorded by session-state tools. |
 | `DARBOT_EDGE_PROFILE_EMAIL` | Account email recorded by session-state tools. |
 | `DARBOT_WORKSPACE` | Workspace metadata recorded by session-state tools. |
+| `DARBOT_SESSION_STATE_DIR` | Optional managed directory for saved/imported session states. Docker images use `/app/data/sessions`. |
+| `DARBOT_MEMORY_DIR` | Root directory available to crawl-memory list/clear tools. Requested storage paths must stay beneath this root. |
+
+When `ALLOW_ANONYMOUS_ACCESS=true`, HTTP requests are accepted anonymously
+before Entra, API-key, tunnel, or managed-identity validation. Do not combine
+that setting with claims that authentication is enforced.
 
 ## JSON config file
 
@@ -92,7 +97,6 @@ Runtime configuration is resolved in this order:
     "allowedOrigins": ["https://example.com"],
     "blockedOrigins": ["https://tracking.example.com"]
   },
-  "vision": false,
   "outputDir": ".darbot/output"
 }
 ```
@@ -100,7 +104,7 @@ Runtime configuration is resolved in this order:
 Run it with:
 
 ```bash
-npx @darbotlabs/darbot-browser-mcp@latest --config .darbot/browser-mcp.json
+npx @darbotlabs/darbot-browser-mcp@2.1.4 --config .darbot/browser-mcp.json
 ```
 
 ## Security defaults
@@ -108,4 +112,4 @@ npx @darbotlabs/darbot-browser-mcp@latest --config .darbot/browser-mcp.json
 Local stdio mode does not require authentication. Any HTTP deployment should enable [authentication](../architecture/auth.md), bind behind TLS, and restrict origins when automation targets are known.
 ---
 
-_Last updated: 2026-05-18 (v2.0.0)_
+_Last updated: 2026-08-09 (v2.1.4)_

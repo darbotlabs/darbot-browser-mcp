@@ -56,4 +56,4 @@ sequenceDiagram
 - Multi-tab commands depend on the extension and relay target model; launched-browser mode remains the most complete multi-tab runtime.
 ---
 
-_Last updated: 2026-05-18 (v2.0.0)_
+_Last updated: 2026-08-10 (v2.1.4)_

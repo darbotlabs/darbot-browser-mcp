@@ -10,23 +10,23 @@
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
 [![GitHub stars](https://img.shields.io/github/stars/darbotlabs/darbot-browser-mcp?style=social)](https://github.com/darbotlabs/darbot-browser-mcp/stargazers)
 
-## v2.1.1 highlights
+## v2.1.4 highlights
 
 - **Best-of reconcile matrix:** GitHub canonical runtime (Playwright 1.60 hardening, webdriver suppress, persistent-context fast-fail) plus ADO/fleet enterprise surfaces (auth, Azure bicep, PP connector, NuGet, extensions) on one version line.
-- Registration-truth **59** MCP tools (54 accessibility-first default + 5 vision-mode screen tools), including `browser_evaluate` and `browser_discover_profiles`.
+- Registration-truth **68** native MCP tools (63 accessibility-first and management tools + 5 coordinate-based screen tools), including portable session-state and workspace-metadata imports.
 - Bridge auto-detection for Chrome/Edge extension relays on ports `9223`-`9225`.
 - Hosted + cloud VS Code extensions and Azure-first deployment path for enterprise MCP endpoints.
 - OAuth with Microsoft Entra ID, explicit `SERVER_BASE_URL`, API key, tunnel, and managed identity auth.
-- Health probes with K8s-style aliases: `/health|/healthz`, `/ready|/readyz`, `/live|/livez`.
+- Health probes: `/health`, `/ready`, and `/live`.
 - OpenAPI generation for Copilot Studio and Power Platform (full tool-aligned connector actions).
-- Unified product versions at **2.1.1** (npm, VS Code, bridge, hosted, cloud client, NuGet).
+- Unified npm and extension package versions at **2.1.4**.
 - Documentation under [`docs/`](docs/README.md).
 
 ## Quick install
 
 ```bash
 # npm / npx
-npx @darbotlabs/darbot-browser-mcp@latest --browser msedge
+npx @darbotlabs/darbot-browser-mcp@2.1.4 --browser msedge
 
 # VS Code Marketplace
 code --install-extension darbotlabs.darbot-browser-mcp
@@ -45,7 +45,7 @@ Add the MCP server to VS Code settings:
   "chat.mcp.servers": {
     "darbot-browser": {
       "command": "npx",
-      "args": ["@darbotlabs/darbot-browser-mcp@latest", "--browser", "msedge"]
+      "args": ["@darbotlabs/darbot-browser-mcp@2.1.4", "--browser", "msedge"]
     }
   }
 }
@@ -61,7 +61,7 @@ Typical tool flow: `browser_navigate` → `browser_snapshot` → `browser_evalua
 
 ## Feature matrix
 
-Current registration-truth tool surface from `src/tools.ts`: **59** unique tools — **54** accessibility-first tools in default snapshot mode, plus **5** vision-mode screen tools when `--vision` is enabled.
+Current registration-truth tool surface from `src/tools.ts`: **68** unique tools — **63** accessibility-first and management tools plus **5** coordinate-based `browser_screen_*` tools, all registered as core tools in every session.
 
 | Category | Examples |
 | --- | --- |
@@ -70,7 +70,7 @@ Current registration-truth tool surface from `src/tools.ts`: **59** unique tools
 | Media and artifacts | `browser_take_screenshot`, `browser_pdf_save`, `browser_file_upload` |
 | Tabs and browser lifecycle | `browser_tab_new`, `browser_tab_select`, `browser_tab_close`, `browser_close` |
 | Debugging | `browser_console_messages`, `browser_network_requests`, `browser_performance_metrics` |
-| Session and profiles | `browser_save_profile`, `browser_switch_profile`, `browser_discover_profiles` |
+| Session and profiles | `browser_save_profile`, `browser_export_session_state`, `browser_import_session_state`, `browser_import_workspace_metadata`, `browser_switch_profile`, `browser_discover_profiles` |
 | Autonomous and AI-native | `browser_execute_intent`, `browser_execute_workflow`, `browser_start_autonomous_crawl` |
 | Emulation, clock, storage | geolocation, timezone, media, clock, cookie, and localStorage tools |
 
@@ -81,12 +81,12 @@ See the complete [tool catalog](docs/reference/tools.md).
 ```mermaid
 flowchart LR
   Client[MCP client] -->|stdio or HTTP| Server[Darbot Browser MCP]
-  Server --> Tools[59 registered tools]
+  Server --> Tools[68 registered tools]
   Tools --> Browser[Playwright browser]
   Server -->|bridge auto-detect| Bridge[CDP relay :9223-9225]
   Bridge --> Extension[Chrome/Edge extension]
   Extension --> Tab[Existing user tab]
-  Server --> API[/healthz /readyz /livez /mcp /openapi.json]
+  Server --> API[/health /ready /live /mcp /openapi.json]
 ```
 
 Read the [architecture overview](docs/architecture/overview.md) and [bridge protocol](docs/architecture/bridge-protocol.md).
@@ -101,7 +101,7 @@ Read the [architecture overview](docs/architecture/overview.md) and [bridge prot
 
 ## Tools
 
-The server exposes navigation, interaction, capture, debugging, session-state, AI-native, autonomous crawl, emulation, clock, cookie, storage, and vision tools. Start with `browser_snapshot` before interacting with unfamiliar pages, and use `browser_evaluate` only for scoped DOM inspection or controlled page-context logic.
+The server exposes navigation, interaction, capture, debugging, session-state, AI-native, autonomous crawl, emulation, clock, cookie, storage, and coordinate-based screen tools. Start with `browser_snapshot` before interacting with unfamiliar pages, and use `browser_evaluate` only for scoped DOM inspection or controlled page-context logic.
 
 ## Integrations
 
@@ -114,7 +114,7 @@ The server exposes navigation, interaction, capture, debugging, session-state, A
 ## Configuration
 
 ```bash
-npx @darbotlabs/darbot-browser-mcp@latest \
+npx @darbotlabs/darbot-browser-mcp@2.1.4 \
   --browser msedge \
   --port 8931 \
   --allowed-origins "https://example.com" \
@@ -150,12 +150,15 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request.
 - [Changelog](CHANGELOG.md)
 - [Contributing](CONTRIBUTING.md)
 - [Security](#security)
-- [Release tracker](RELEASE_TRACKER.md)
+- [Release tracker archive](docs/history/release-tracker-archive.md)
 - [Code of Conduct](CODE_OF_CONDUCT.md)
 
 ## Security
 
-Do not expose `/mcp` on a network without authentication and TLS. Use Entra ID/OAuth for user-delegated access, API keys only for constrained service-to-service calls, and `SERVER_BASE_URL` for every OAuth deployment. If a repository `SECURITY.md` is added, this section should link to it.
+Do not expose `/mcp` or `/api/v1/tools/*` on a network without authentication
+and TLS. Use Entra ID/OAuth for user-delegated access, API keys only for
+constrained service-to-service calls, and `SERVER_BASE_URL` for every OAuth
+deployment. See [SECURITY.md](SECURITY.md) for the supported reporting process.
 
 ## License
 

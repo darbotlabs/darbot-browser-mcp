@@ -12,6 +12,14 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+$projectRoot = Split-Path -Parent $PSScriptRoot
+$packageJsonPath = Join-Path $projectRoot 'package.json'
+$packageVersion = if (Test-Path $packageJsonPath) {
+    ([System.IO.File]::ReadAllText($packageJsonPath) | ConvertFrom-Json).version
+} else {
+    throw "Repository package.json not found: $packageJsonPath"
+}
+$packageSpec = "@darbotlabs/darbot-browser-mcp@$packageVersion"
 
 if ($Help) {
     @'
@@ -50,9 +58,9 @@ function Get-EdgeProfiles([string]$UserDataDir) {
 }
 
 function Get-ServerArgs($Profile, [string]$UserDataDir) {
-    $args = @('@darbotlabs/darbot-browser-mcp@latest','--user-data-dir',$UserDataDir,'--edge-profile',$Profile.Directory)
+    $args = @($packageSpec,'--user-data-dir',$UserDataDir,'--edge-profile',$Profile.Directory)
     if ($Profile.Email) { $args += @('--edge-profile-email',$Profile.Email) }
-    $args + @('--caps','tabs pdf history wait files')
+    $args + @('--caps','tabs,pdf,history,wait,files')
 }
 
 function Get-ConfigObject([string]$Type, $Profile, [string]$UserDataDir) {

@@ -1,6 +1,6 @@
 # Bridge auto-detection
 
-This guide explains how v2.0.0 discovers an existing Chrome or Edge extension bridge without manual `--cdp-endpoint` wiring.
+This guide explains how Darbot Browser MCP v2.1.4 discovers an existing Chrome or Edge extension bridge without manual `--cdp-endpoint` wiring.
 
 You'll learn:
 
@@ -8,7 +8,7 @@ You'll learn:
 - What `/bridge` returns.
 - How the browser extension, CDP relay, and MCP server coordinate.
 
-## What changed in v2.0.0
+## Bridge auto-detection behavior
 
 When no `--cdp-endpoint` is supplied and `--extension` is not explicitly requested, the server scans well-known bridge ports `9223`, `9224`, and `9225`. If a bridge reports an attached extension and target tab, Darbot sets the Chromium CDP endpoint automatically.
 
@@ -30,7 +30,7 @@ sequenceDiagram
 Start a relay for the extension:
 
 ```bash
-npx @darbotlabs/darbot-browser-mcp@latest --port 9223 --extension --browser msedge
+npx @darbotlabs/darbot-browser-mcp@2.1.4 --port 9223 --extension --browser msedge
 ```
 
 The server exposes:
@@ -47,7 +47,7 @@ The server exposes:
 ```json
 {
   "bridge": "cdp-relay",
-  "version": "2.0.0",
+  "version": "2.1.4",
   "extensionConnected": true,
   "mcpConnected": true,
   "targetInfo": {
@@ -56,7 +56,7 @@ The server exposes:
     "type": "page"
   },
   "sessionId": "...",
-  "extensionVersion": "2.0.0"
+  "extensionVersion": "2.1.4"
 }
 ```
 
@@ -72,4 +72,4 @@ Use the bridge when the agent must operate in a browser tab that already has use
 - Single-tab bridge sessions may not support every tab-management pattern; fall back to launched-browser mode for multi-tab test generation.
 ---
 
-_Last updated: 2026-05-18 (v2.0.0)_
+_Last updated: 2026-08-10 (v2.1.4)_

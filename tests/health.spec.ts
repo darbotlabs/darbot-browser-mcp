@@ -49,7 +49,7 @@ async function createHealthTestServer(options: HealthOptions) {
     return await listen(app);
   }
 
-  test.skip(true, 'src/health.ts must export createHealthApp or registerHealthEndpoints for /healthz and /readyz tests');
+  test.skip(true, 'src/health.ts must export createHealthApp or registerHealthEndpoints for /health and /ready tests');
   throw new Error('src/health.ts must export createHealthApp or registerHealthEndpoints');
 }
 
@@ -76,11 +76,11 @@ async function getJSON(baseURL: string, path: string) {
 }
 
 test.describe('health endpoints', () => {
-  test('it should return 200 with ok status from /healthz when healthy', async () => {
+  test('it should return 200 with ok status from /health when healthy', async () => {
     const server = await createHealthTestServer({ oauthValid: true });
 
     try {
-      const response = await getJSON(server.baseURL, '/healthz');
+      const response = await getJSON(server.baseURL, '/health');
 
       expect(response.status).toBe(200);
       expect(response.body).toEqual(expect.objectContaining({ status: 'ok' }));
@@ -89,11 +89,11 @@ test.describe('health endpoints', () => {
     }
   });
 
-  test('it should return 503 from /readyz if bridge is required but not connected', async () => {
+  test('it should return 503 from /ready if bridge is required but not connected', async () => {
     const server = await createHealthTestServer({ bridgeRequired: true, bridgeConnected: false, oauthValid: true });
 
     try {
-      const response = await getJSON(server.baseURL, '/readyz');
+      const response = await getJSON(server.baseURL, '/ready');
 
       expect(response.status).toBe(503);
       expect(response.body).toEqual(expect.objectContaining({ status: expect.stringMatching(/not_ready|degraded|fail/i) }));
@@ -102,14 +102,30 @@ test.describe('health endpoints', () => {
     }
   });
 
-  test('it should return 200 from /readyz when ready', async () => {
+  test('it should return 200 from /ready when ready', async () => {
     const server = await createHealthTestServer({ bridgeRequired: true, bridgeConnected: true, oauthValid: true });
 
     try {
-      const response = await getJSON(server.baseURL, '/readyz');
+      const response = await getJSON(server.baseURL, '/ready');
 
       expect(response.status).toBe(200);
       expect(response.body).toEqual(expect.objectContaining({ status: 'ok' }));
+    } finally {
+      await server.close();
+    }
+  });
+
+  test('it should expose /live and reject removed z-suffixed aliases', async () => {
+    const server = await createHealthTestServer({ oauthValid: true });
+
+    try {
+      const live = await fetch(`${server.baseURL}/live`);
+      expect(live.status).toBe(200);
+
+      for (const path of ['/healthz', '/readyz', '/livez']) {
+        const response = await fetch(`${server.baseURL}${path}`);
+        expect(response.status).toBe(404);
+      }
     } finally {
       await server.close();
     }
@@ -121,7 +137,7 @@ test.describe('health endpoints', () => {
     const server = await createHealthTestServer({ oauthValid: false });
 
     try {
-      const response = await getJSON(server.baseURL, '/healthz');
+      const response = await getJSON(server.baseURL, '/health');
 
       expect(response.body).toEqual(expect.objectContaining({
         oauth: expect.objectContaining({ valid: false }),

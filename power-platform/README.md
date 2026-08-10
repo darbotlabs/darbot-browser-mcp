@@ -56,6 +56,10 @@ Use `--dry-run` to render and validate connector files without calling Power Pla
 4. Start with **List Tools** to confirm the hosted service is reachable.
 5. Use a specific browser action such as `BrowserNavigate` or the generic `Execute Tool` action for newly added tools.
 
+The hosted adapter reuses a default browser session for each authenticated
+principal. Direct REST clients can also retain the `X-Darbot-Session-Id`
+response header and send it on later calls to select that session explicitly.
+
 ## Use in Copilot Studio
 
 1. Open your agent in **Copilot Studio**.
@@ -68,13 +72,14 @@ Use `--dry-run` to render and validate connector files without calling Power Pla
 - Require Microsoft Entra ID for production deployments; do not expose browser-control endpoints anonymously.
 - Scope the Entra application to the Darbot Browser MCP resource and grant only required permissions.
 - Treat browser snapshots, screenshots, cookies, and storage data as sensitive.
+- Keep Entra identities or API keys distinct when callers require separate browser and saved-session state.
 - Restrict connector access with Power Platform environment roles and DLP policies.
 - Monitor hosted service logs and Power Platform connector analytics for unexpected usage.
 - Use separate environments and app registrations for development, test, and production.
 
 ## Tool coverage
 
-The **v2.1.1** connector includes individual operations for the registration-truth **59**-tool Darbot Browser MCP registry plus generic list/execute operations.
+The **v2.1.4** connector includes individual operations for the registration-truth **68**-tool Darbot Browser MCP registry plus generic list/execute operations.
 
 ## Troubleshooting
 
@@ -82,4 +87,3 @@ The **v2.1.1** connector includes individual operations for the registration-tru
 - OAuth consent failures: verify redirect URL `https://global.consent.azure-apim.net/redirect` and resource scopes.
 - Connector action failures: call `/health`, then `GET /api/v1/tools` on the hosted service.
 - Browser timeouts: verify the host has enough CPU/memory and that Edge/Playwright dependencies are installed.
-

@@ -17,7 +17,7 @@ You'll learn:
 ## 1. Verify the package
 
 ```bash
-npx @darbotlabs/darbot-browser-mcp@latest --version
+npx @darbotlabs/darbot-browser-mcp@2.1.4 --version
 ```
 
 ## 2. Add the MCP server
@@ -30,7 +30,7 @@ For VS Code, add this to user or workspace settings:
   "chat.mcp.servers": {
     "darbot-browser": {
       "command": "npx",
-      "args": ["@darbotlabs/darbot-browser-mcp@latest", "--browser", "msedge"]
+      "args": ["@darbotlabs/darbot-browser-mcp@2.1.4", "--browser", "msedge"]
     }
   }
 }
@@ -51,7 +51,7 @@ The expected tool sequence is `browser_navigate` followed by `browser_snapshot`.
 Use HTTP mode when a remote client, Copilot Studio, or the bridge extension needs a network endpoint:
 
 ```bash
-npx @darbotlabs/darbot-browser-mcp@latest --port 8931 --browser msedge
+npx @darbotlabs/darbot-browser-mcp@2.1.4 --port 8931 --browser msedge
 ```
 
 Verify health and OpenAPI endpoints:
@@ -64,4 +64,4 @@ curl http://localhost:8931/openapi.json
 Next: review [installation](installation.md), [configuration](configuration.md), and the [tool catalog](../reference/tools.md).
 ---
 
-_Last updated: 2026-05-18 (v2.0.0)_
+_Last updated: 2026-08-10 (v2.1.4)_

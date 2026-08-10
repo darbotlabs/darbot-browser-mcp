@@ -19,14 +19,15 @@ import assert from 'node:assert';
 import crypto from 'node:crypto';
 import { execSync } from 'node:child_process';
 
-import debug from 'debug';
 import express from 'express';
-import { SSEServerTransport } from '@modelcontextprotocol/sdk/server/sse.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { mcpAuthRouter } from '@modelcontextprotocol/sdk/server/auth/router.js';
+import { z } from 'zod';
 
 import type { AddressInfo } from 'node:net';
+import type { UnifiedAuthResult } from './auth/index.js';
+import type { Connection } from './connection.js';
 import type { Server } from './server.js';
 import type { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
 
@@ -38,49 +39,42 @@ export async function startStdioTransport(server: Server) {
   await server.createConnection(new StdioServerTransport());
 }
 
-const testDebug = debug('pw:mcp:test');
+type StreamableSession = {
+  transport: StreamableHTTPServerTransport;
+  storageNamespace: string;
+};
 
-async function handleSSE(server: Server, req: http.IncomingMessage, res: http.ServerResponse, url: URL, sessions: Map<string, SSEServerTransport>) {
-  if (req.method === 'POST') {
-    const sessionId = url.searchParams.get('sessionId');
-    if (!sessionId) {
-      res.statusCode = 400;
-      return res.end('Missing sessionId');
-    }
+type RestToolSession = {
+  id: string;
+  storageNamespace: string;
+  connection: Connection;
+  lastUsedAt: number;
+};
 
-    const transport = sessions.get(sessionId);
-    if (!transport) {
-      res.statusCode = 404;
-      return res.end('Session not found');
-    }
-
-    return await transport.handlePostMessage(req, res);
-  } else if (req.method === 'GET') {
-    const transport = new SSEServerTransport('/sse', res);
-    sessions.set(transport.sessionId, transport);
-    testDebug(`create SSE session: ${transport.sessionId}`);
-    const connection = await server.createConnection(transport);
-    res.on('close', () => {
-      testDebug(`delete SSE session: ${transport.sessionId}`);
-      sessions.delete(transport.sessionId);
-      // eslint-disable-next-line no-console
-      void connection.close().catch(e => console.error(e));
-    });
-    return;
-  }
-
-  res.statusCode = 405;
-  res.end('Method not allowed');
-}
-
-async function handleStreamable(server: Server, req: http.IncomingMessage, res: http.ServerResponse, sessions: Map<string, StreamableHTTPServerTransport>) {
+async function handleStreamable(
+  server: Server,
+  req: http.IncomingMessage,
+  res: http.ServerResponse,
+  sessions: Map<string, StreamableSession>,
+  storageNamespace: string,
+) {
   const sessionId = req.headers['mcp-session-id'] as string | undefined;
 
   // If session ID provided, try to use existing session
   if (sessionId) {
-    const existingTransport = sessions.get(sessionId);
-    if (existingTransport)
-      return await existingTransport.handleRequest(req, res);
+    const existingSession = sessions.get(sessionId);
+    if (existingSession) {
+      if (existingSession.storageNamespace !== storageNamespace) {
+        res.statusCode = 403;
+        res.setHeader('Content-Type', 'application/json');
+        res.end(JSON.stringify({
+          error: 'forbidden',
+          message: 'This MCP session belongs to a different authenticated principal.',
+        }));
+        return;
+      }
+      return await existingSession.transport.handleRequest(req, res);
+    }
 
     // Session not found (server may have restarted) - create new session for POST requests
     // eslint-disable-next-line no-console
@@ -92,19 +86,23 @@ async function handleStreamable(server: Server, req: http.IncomingMessage, res: 
     const transport = new StreamableHTTPServerTransport({
       sessionIdGenerator: () => crypto.randomUUID(),
       onsessioninitialized: newSessionId => {
-        sessions.set(newSessionId, transport);
+        sessions.set(newSessionId, { transport, storageNamespace });
         // eslint-disable-next-line no-console
         console.error(`[MCP] New session created: ${newSessionId}`);
       }
     });
+    const connection = await server.createConnection(transport as Transport, { storageNamespace });
     transport.onclose = () => {
       if (transport.sessionId) {
         sessions.delete(transport.sessionId);
         // eslint-disable-next-line no-console
         console.error(`[MCP] Session closed: ${transport.sessionId}`);
       }
+      void server.closeConnection(connection).catch(error => {
+        // eslint-disable-next-line no-console
+        console.error('[MCP] Failed to close connection:', error);
+      });
     };
-    await server.createConnection(transport as Transport);
     await transport.handleRequest(req, res);
     return;
   }
@@ -193,7 +191,8 @@ export async function startHttpServer(config: { host?: string, port?: number }):
   app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, DELETE');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-API-Key, Mcp-Session-Id, Accept');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-API-Key, X-Darbot-Session-Id, Mcp-Session-Id, Accept');
+    res.setHeader('Access-Control-Expose-Headers', 'X-Darbot-Session-Id, Mcp-Session-Id');
     if (req.method === 'OPTIONS') {
       res.status(200).end();
       return;
@@ -201,9 +200,9 @@ export async function startHttpServer(config: { host?: string, port?: number }):
     next();
   });
 
-  // Parse JSON bodies - but NOT for /mcp and /sse endpoints (MCP SDK handles its own body parsing)
+  // MCP transports handle their own request bodies.
   app.use((req, res, next) => {
-    if (req.path === '/mcp' || req.path === '/sse')
+    if (req.path === '/mcp')
       return next();
 
     return express.json()(req, res, next);
@@ -276,14 +275,13 @@ export interface HttpTransportOptions {
 }
 
 export function startHttpTransport(httpServer: http.Server, mcpServer: Server, app: express.Express, options: HttpTransportOptions = {}) {
-  const sseSessions = new Map<string, SSEServerTransport>();
-  const streamableSessions = new Map<string, StreamableHTTPServerTransport>();
+  const streamableSessions = new Map<string, StreamableSession>();
+  const restToolSessions = new Map<string, RestToolSession>();
+  const defaultRestSessionIds = new Map<string, string>();
   const healthService = options.healthService ?? createHealthCheckService();
 
-  // Use unified authenticator that supports multiple auth methods
   const authenticator = createUnifiedAuthenticator();
 
-  // Initialize async auth providers (Managed Identity, Key Vault)
   let authInitializationError: Error | undefined;
   const authInitialization = authenticator.initialize().catch(error => {
     authInitializationError = error instanceof Error ? error : new Error(String(error));
@@ -301,20 +299,14 @@ export function startHttpTransport(httpServer: http.Server, mcpServer: Server, a
       return false;
     }
 
-    // Check if any auth method is configured
-    if (!authenticator.isAuthEnabled())
-      return true;
-
     const result = await authenticator.authenticate(req);
 
     if (result.authenticated) {
-      // Attach user info to request
       (req as any).auth = result;
       (req as any).user = result.user;
       return true;
     }
 
-    // Return 401 with helpful error message
     res.status(401).json({
       error: 'unauthorized',
       message: result.error || 'Valid authentication required.',
@@ -323,33 +315,181 @@ export function startHttpTransport(httpServer: http.Server, mcpServer: Server, a
     return false;
   };
 
-  // MCP Streamable HTTP endpoint - must be registered as Express route
-  // Cast to http types since Express extends them and MCP SDK needs the base types
+  const storageNamespaceForRequest = (req: express.Request): string => {
+    const auth = (req as express.Request & { auth?: UnifiedAuthResult }).auth;
+    if (!auth || auth.method === 'anonymous')
+      return 'anonymous';
+
+    if (auth.method === 'api-key') {
+      const rawHeader = req.headers['x-api-key'];
+      const apiKey = Array.isArray(rawHeader) ? rawHeader[0] : rawHeader;
+      if (apiKey)
+        return `api-key:${crypto.createHash('sha256').update(apiKey).digest('hex')}`;
+    }
+
+    if (auth.user) {
+      const principal = `${auth.method}\0${auth.user.tenantId}\0${auth.user.userId}`;
+      return `principal:${crypto.createHash('sha256').update(principal).digest('hex')}`;
+    }
+
+    return `auth:${auth.method}`;
+  };
+
+  const closeRestSession = async (session: RestToolSession): Promise<void> => {
+    restToolSessions.delete(session.id);
+    if (defaultRestSessionIds.get(session.storageNamespace) === session.id)
+      defaultRestSessionIds.delete(session.storageNamespace);
+    await mcpServer.closeConnection(session.connection);
+  };
+
+  const cleanupExpiredRestSessions = async (): Promise<void> => {
+    const now = Date.now();
+    const timeoutMs = mcpServer.config.copilotStudio.sessionTimeoutMs ?? 1_800_000;
+    const expired = Array.from(restToolSessions.values())
+        .filter(session => now - session.lastUsedAt >= timeoutMs);
+    await Promise.all(expired.map(closeRestSession));
+  };
+
+  const getRestToolSession = async (
+    req: express.Request,
+    res: express.Response,
+    storageNamespace: string,
+  ): Promise<RestToolSession | undefined> => {
+    await cleanupExpiredRestSessions();
+    const requestedHeader = req.headers['x-darbot-session-id'];
+    const requestedId = Array.isArray(requestedHeader) ? requestedHeader[0] : requestedHeader;
+    const defaultSessionId = defaultRestSessionIds.get(storageNamespace);
+    let session = requestedId
+      ? restToolSessions.get(requestedId)
+      : defaultSessionId
+        ? restToolSessions.get(defaultSessionId)
+        : undefined;
+
+    if (requestedId && !session) {
+      res.status(404).json({
+        error: 'session_not_found',
+        message: 'The requested REST tool session does not exist or has expired.',
+      });
+      return undefined;
+    }
+
+    if (session && session.storageNamespace !== storageNamespace) {
+      res.status(403).json({
+        error: 'forbidden',
+        message: 'This REST tool session belongs to a different authenticated principal.',
+      });
+      return undefined;
+    }
+
+    if (!session) {
+      const activeSessionCount = streamableSessions.size + restToolSessions.size;
+      const maxConcurrentSessions = mcpServer.config.copilotStudio.maxConcurrentSessions ?? 10;
+      if (activeSessionCount >= maxConcurrentSessions) {
+        res.status(429).json({
+          error: 'session_limit_reached',
+          message: 'The maximum number of concurrent browser sessions has been reached.',
+        });
+        return undefined;
+      }
+
+      const id = crypto.randomUUID();
+      session = {
+        id,
+        storageNamespace,
+        connection: mcpServer.createDetachedConnection({ storageNamespace }),
+        lastUsedAt: Date.now(),
+      };
+      restToolSessions.set(id, session);
+      defaultRestSessionIds.set(storageNamespace, id);
+    }
+
+    session.lastUsedAt = Date.now();
+    res.setHeader('X-Darbot-Session-Id', session.id);
+    return session;
+  };
+
   app.all('/mcp', async (req, res) => {
     if (!(await enforceAuthIfEnabled(req, res)))
       return;
-    await handleStreamable(mcpServer, req as http.IncomingMessage, res as http.ServerResponse, streamableSessions);
+    await handleStreamable(
+        mcpServer,
+        req as http.IncomingMessage,
+        res as http.ServerResponse,
+        streamableSessions,
+        storageNamespaceForRequest(req),
+    );
   });
 
-  // SSE endpoint (legacy MCP transport)
-  app.all('/sse', async (req, res) => {
+  app.get(['/health', '/api/v1/health'], healthService.handleHealthCheck);
+  app.get(['/ready', '/api/v1/ready'], healthService.handleReadinessCheck);
+  app.get(['/live', '/api/v1/live'], healthService.handleLivenessCheck);
+
+  app.get(['/mcp/tools', '/api/v1/tools'], async (req, res) => {
     if (!(await enforceAuthIfEnabled(req, res)))
       return;
-    const url = new URL(`http://localhost${req.url}`);
-    await handleSSE(mcpServer, req as http.IncomingMessage, res as http.ServerResponse, url, sseSessions);
+    const connection = mcpServer.createDetachedConnection({
+      storageNamespace: storageNamespaceForRequest(req),
+    });
+    try {
+      const tools = connection.context.tools.map(tool => ({
+        name: tool.schema.name,
+        title: tool.schema.title,
+        description: tool.schema.description,
+        inputSchema: z.toJSONSchema(tool.schema.inputSchema, { target: 'draft-7' }),
+        annotations: {
+          readOnlyHint: tool.schema.type === 'readOnly',
+          destructiveHint: tool.schema.type === 'destructive',
+        },
+      }));
+      res.status(200).json({ tools, count: tools.length });
+    } finally {
+      await mcpServer.closeConnection(connection);
+    }
   });
 
-  // Health check endpoints — k8s/Azure naming conventions are aliased for parity.
-  app.get(['/health', '/healthz'], healthService.handleHealthCheck);
-  app.get(['/ready', '/readyz'], healthService.handleReadinessCheck);
-  app.get(['/live', '/livez'], healthService.handleLivenessCheck);
+  app.post('/api/v1/tools/:toolName', async (req, res) => {
+    if (!(await enforceAuthIfEnabled(req, res)))
+      return;
+    const session = await getRestToolSession(req, res, storageNamespaceForRequest(req));
+    if (!session)
+      return;
+
+    const tool = session.connection.context.tools.find(candidate => candidate.schema.name === req.params.toolName);
+    if (!tool) {
+      res.status(404).json({
+        error: 'tool_not_found',
+        message: `Tool "${req.params.toolName}" was not found.`,
+      });
+      return;
+    }
+
+    try {
+      const result = await session.connection.context.run(tool, req.body ?? {});
+      res.status(200).json({
+        ...result,
+        metadata: {
+          sessionId: session.id,
+          tool: tool.schema.name,
+        },
+      });
+    } catch (error) {
+      res.status(400).json({
+        error: 'tool_execution_failed',
+        message: error instanceof Error ? error.message : String(error),
+        metadata: {
+          sessionId: session.id,
+          tool: tool.schema.name,
+        },
+      });
+    }
+  });
 
   // OpenAPI specification endpoints (JSON + YAML for Copilot Studio / Power Platform connectors).
-  app.get(['/openapi.json', '/swagger.json'], async (req, res) => {
+  app.get(['/openapi.json', '/swagger.json', '/api/v1/openapi.json'], async (req, res) => {
     try {
       const { createOpenAPIGenerator } = await import('./openapi.js');
-      const { snapshotTools } = await import('./tools.js');
-      const openApiGenerator = createOpenAPIGenerator(snapshotTools);
+      const { allTools } = await import('./tools.js');
+      const openApiGenerator = createOpenAPIGenerator(allTools);
       openApiGenerator.handleOpenAPISpec(req, res);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -357,11 +497,11 @@ export function startHttpTransport(httpServer: http.Server, mcpServer: Server, a
     }
   });
 
-  app.get(['/openapi.yaml', '/swagger.yaml'], async (req, res) => {
+  app.get(['/openapi.yaml', '/swagger.yaml', '/api/v1/openapi.yaml'], async (req, res) => {
     try {
       const { createOpenAPIGenerator } = await import('./openapi.js');
-      const { snapshotTools } = await import('./tools.js');
-      const openApiGenerator = createOpenAPIGenerator(snapshotTools);
+      const { allTools } = await import('./tools.js');
+      const openApiGenerator = createOpenAPIGenerator(allTools);
       openApiGenerator.handleOpenAPISpecYaml(req, res);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -375,12 +515,12 @@ export function startHttpTransport(httpServer: http.Server, mcpServer: Server, a
     `Darbot Browser MCP Server listening on ${url}`,
     '',
     'Available endpoints:',
-    `  Health Check: ${url}/health (alias: /healthz)`,
-    `  Readiness:    ${url}/ready  (alias: /readyz)`,
-    `  Liveness:     ${url}/live   (alias: /livez)`,
+    `  Health Check: ${url}/health`,
+    `  Readiness:    ${url}/ready`,
+    `  Liveness:     ${url}/live`,
     `  OpenAPI:      ${url}/openapi.json (also: /openapi.yaml)`,
+    `  REST Tools:   ${url}/api/v1/tools`,
     `  MCP:          ${url}/mcp`,
-    `  SSE:          ${url}/sse`,
   ].join('\n');
   // eslint-disable-next-line no-console
   console.error(message);

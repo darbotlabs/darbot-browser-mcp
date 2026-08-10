@@ -1,3 +1,5 @@
+> **Immutable archive.** This document records the v1.3.0 release as historical reference. Do not treat it as a current implementation specification.
+
 # Release tracker archive
 
 This archive preserves the historical v1.3.0 release tracker for reference while the root `RELEASE_TRACKER.md` now tracks forward-looking v2.x work.
@@ -296,4 +298,4 @@ Fixed MCP SDK compliance for Streamable HTTP transport:
 *Updated January 25, 2026 - Darbot Browser MCP v1.3.0 Release*
 ---
 
-_Last updated: 2026-05-18 (v2.0.0)_
+_Last updated: 2026-08-03 (v2.1.1) — archived; content records the v1.3.0 release._

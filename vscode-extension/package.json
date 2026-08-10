@@ -1,11 +1,11 @@
 {
   "name": "darbot-browser-mcp",
   "displayName": "Darbot Browser MCP",
-  "description": "Your autonomous browser companion for VS Code. 59 AI-driven browser tools exposed to GitHub Copilot agent mode via the Model Context Protocol, with Microsoft Edge work-profile support.",
-  "version": "2.1.1",
+  "description": "Your autonomous browser companion for VS Code. 68 AI-driven browser tools exposed to GitHub Copilot agent mode via the Model Context Protocol, with portable session-state support.",
+  "version": "2.1.4",
   "publisher": "darbotlabs",
   "engines": {
-    "vscode": "^1.96.0",
+    "vscode": "^1.132.0",
     "node": ">=20"
   },
   "icon": "icon.png",
@@ -87,7 +87,7 @@
       "properties": {
         "darbot-browser-mcp.serverPath": {
           "type": "string",
-          "default": "npx @darbotlabs/darbot-browser-mcp@latest",
+          "default": "npx @darbotlabs/darbot-browser-mcp@2.1.4",
           "description": "Path or command used to start the Browser MCP server. Whitespace-separated; the first token is the executable."
         },
         "darbot-browser-mcp.autoStart": {
@@ -144,18 +144,22 @@
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
-    "package": "npx --yes @vscode/vsce package --no-dependencies",
+    "package": "npm run compile && node ./scripts/package-vsix.mjs",
     "test": "node ./out/test/runTest.js"
   },
   "devDependencies": {
-    "@types/glob": "^8.1.0",
     "@types/mocha": "^10.0.10",
-    "@types/node": "^22.18.0",
-    "@types/vscode": "^1.96.0",
-    "@vscode/test-electron": "^2.5.2",
-    "mocha": "^11.7.1",
-    "typescript": "^5.9.3"
+    "@types/node": "^26.2.0",
+    "@types/vscode": "^1.125.0",
+    "@vscode/test-electron": "^3.1.0",
+    "mocha": "^11.8.0",
+    "typescript": "^7.0.2"
+  },
+  "overrides": {
+    "mocha": {
+      "diff": "^9.0.0",
+      "glob": "^13.0.6",
+      "serialize-javascript": "^7.1.0"
+    }
   }
 }
-
-

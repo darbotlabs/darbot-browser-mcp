@@ -68,7 +68,7 @@ Create a `.env` file alongside your `docker-compose.yml`:
 
 ```env
 ALLOW_ANONYMOUS_ACCESS=false
-REQUIRE_MSAL=true
+ENTRA_AUTH_ENABLED=true
 AZURE_TENANT_ID=<tenant-id>
 AZURE_CLIENT_ID=<client-id>
 AZURE_CLIENT_SECRET=<client-secret>
@@ -82,6 +82,11 @@ Run:
 docker compose up -d
 docker compose logs -f
 ```
+
+> **Current Compose caveat:** `docker-compose.yml` still sets the legacy
+> `REQUIRE_AUTH` and `ALLOW_LOCALHOST` variables, which the image entrypoint
+> does not read. Pass the canonical variables above as explicit environment
+> overrides; the manifest itself has not yet been migrated.
 
 ### 3.3 VS Code extension settings
 
@@ -126,7 +131,7 @@ code .
 
 - [ ] `curl <serverUrl>/health` returns `{status:"healthy", version:"2.0.0", …}`.
 - [ ] Status bar shows `$(server) MCP Hosted: Connected`.
-- [ ] Copilot Chat → agent mode → *Darbot Browser MCP Hosted* lists 59 tools.
+- [ ] Copilot Chat → agent mode → *Darbot Browser MCP Hosted* lists 68 tools.
 - [ ] (MSAL) `Authorization: Bearer …` is visible in the container logs.
 - [ ] (Tunnel) Connecting from a second machine works after sharing the tunnel.
 

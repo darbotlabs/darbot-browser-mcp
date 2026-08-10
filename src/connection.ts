@@ -19,18 +19,21 @@ import { CallToolRequestSchema, ListToolsRequestSchema, Tool as McpTool } from '
 import { z } from 'zod';
 
 import { Context } from './context.js';
-import { snapshotTools, visionTools } from './tools.js';
+import { allTools } from './tools.js';
 import { packageJSON } from './package.js';
 
 import { FullConfig, validateConfig } from './config.js';
 
 import type { BrowserContextFactory } from './browserContextFactory.js';
 
-export function createConnection(config: FullConfig, browserContextFactory: BrowserContextFactory): Connection {
-  const allTools = config.vision ? visionTools : snapshotTools;
+export function createConnection(
+  config: FullConfig,
+  browserContextFactory: BrowserContextFactory,
+  options: { storageNamespace?: string } = {},
+): Connection {
   const tools = allTools.filter(tool => !config.capabilities || tool.capability === 'core' || config.capabilities.includes(tool.capability));
   validateConfig(config);
-  const context = new Context(tools, config, browserContextFactory);
+  const context = new Context(tools, config, browserContextFactory, options.storageNamespace);
   const server = new McpServer({ name: 'Browser', version: packageJSON.version }, {
     capabilities: {
       tools: {},
@@ -84,6 +87,7 @@ export function createConnection(config: FullConfig, browserContextFactory: Brow
 export class Connection {
   readonly server: McpServer;
   readonly context: Context;
+  private _closing = false;
 
   constructor(server: McpServer, context: Context) {
     this.server = server;
@@ -94,7 +98,10 @@ export class Connection {
   }
 
   async close() {
-    await this.server.close();
+    if (this._closing)
+      return;
+    this._closing = true;
     await this.context.close();
+    await this.server.close();
   }
 }

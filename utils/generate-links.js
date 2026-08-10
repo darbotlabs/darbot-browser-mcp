@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // @ts-check
 
-const DEFAULT_PACKAGE = '@darbotlabs/darbot-browser-mcp@latest';
+const DEFAULT_PACKAGE = '@darbotlabs/darbot-browser-mcp@2.1.4';
 
 function usage() {
   console.log(`Usage: node utils/generate-links.js [options]

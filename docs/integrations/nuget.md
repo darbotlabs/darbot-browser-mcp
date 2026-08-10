@@ -20,7 +20,7 @@ Use the NuGet package when a .NET service or test harness needs a typed integrat
 
 ## Version alignment
 
-v2.0.0 aligns npm, VS Code, hosted extension, and NuGet release tracks. Treat the npm package as the runtime authority and the NuGet package as the .NET integration surface.
+v2.1.4 aligns npm, VS Code, hosted extension, and NuGet release tracks at one version line. The NuGet package targets `net11.0` exclusively; it currently uses the preview SDK with stable Microsoft.Extensions dependencies so the package remains publishable. Treat the npm package as the runtime authority and the NuGet package as the .NET integration surface.
 
 ## Operational guidance
 
@@ -30,4 +30,4 @@ v2.0.0 aligns npm, VS Code, hosted extension, and NuGet release tracks. Treat th
 - Capture screenshots and traces as artifacts, not application logs.
 ---
 
-_Last updated: 2026-05-18 (v2.0.0)_
+_Last updated: 2026-08-09 (v2.1.4)_

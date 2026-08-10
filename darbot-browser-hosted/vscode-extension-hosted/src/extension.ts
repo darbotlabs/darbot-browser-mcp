@@ -8,7 +8,7 @@ import { exec } from 'node:child_process';
 import * as http from 'node:http';
 import * as https from 'node:https';
 
-const EXTENSION_VERSION = '2.1.1';
+const EXTENSION_VERSION = '2.1.4';
 const CONFIG_NAMESPACE = 'darbot-browser-mcp-hosted';
 
 interface HostedConfig {

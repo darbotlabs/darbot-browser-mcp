@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Test script for Darbot Browser MCP Cloud Instance
- * Tests the Azure-hosted MCP server via HTTP/SSE transport
+ * Tests the Azure-hosted MCP server via Streamable HTTP transport
  */
 
 import https from 'https';
@@ -175,7 +175,6 @@ async function runTests() {
   log(`  - Health: ${CLOUD_BASE_URL}/health`, 'blue');
   log(`  - OpenAPI: ${CLOUD_BASE_URL}/openapi.json`, 'blue');
   log(`  - MCP Endpoint: ${CLOUD_BASE_URL}/mcp`, 'blue');
-  log(`  - SSE Endpoint: ${CLOUD_BASE_URL}/sse`, 'blue');
   
   return results.failed === 0 ? 0 : 1;
 }

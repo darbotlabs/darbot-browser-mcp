@@ -15,13 +15,12 @@ Node.js install, no local Chromium, no port juggling.
 ## Features
 
 - **MCP server discovery** — registers the cloud endpoint as an MCP
-  Streamable HTTP server. VS Code's agent mode picks up the 52 Darbot
+  Streamable HTTP server. VS Code's agent mode picks up the 68 Darbot
   browser tools automatically.
 - **Microsoft sign-in** — uses VS Code's built-in `microsoft`
   authentication provider; no custom OAuth dance, no embedded webview.
 - **Lazy auth** — silent token fetch on first request; interactive sign-in
-  only when the user explicitly chooses *Sign in with Microsoft* or the
-  silent attempt fails.
+  occurs only when the user explicitly chooses *Sign in with Microsoft*.
 - **Health monitoring** — periodic probes against `/health` while
   connected, with status-bar indicator and output channel logs.
 - **`SERVER_BASE_URL` env override** — flip a window between staging and
@@ -44,7 +43,7 @@ Detailed setup (auth, scopes, troubleshooting): see
 | Setting                                             | Type      | Default                                        | Description                                                                       |
 | --------------------------------------------------- | --------- | ---------------------------------------------- | --------------------------------------------------------------------------------- |
 | `darbot-browser-mcp-cloud.serverUrl`                | `string`  | `https://<your-app>.azurewebsites.net`         | Base URL of the cloud server. Overridden by `SERVER_BASE_URL` env var.            |
-| `darbot-browser-mcp-cloud.sseEndpoint`              | `string`  | *blank → derived from `serverUrl + /mcp`*      | Override for the MCP Streamable HTTP endpoint. Name kept for backwards compat.    |
+| `darbot-browser-mcp-cloud.mcpEndpoint`              | `string`  | *blank → derived from `serverUrl + /mcp`*      | Override for the MCP Streamable HTTP endpoint.                                    |
 | `darbot-browser-mcp-cloud.autoConnect`              | `boolean` | `true`                                         | Connect to the server on VS Code start-up.                                        |
 | `darbot-browser-mcp-cloud.enableHealthChecks`       | `boolean` | `true`                                         | Run periodic health probes while connected.                                       |
 | `darbot-browser-mcp-cloud.healthCheckInterval`      | `number`  | `60000` (ms)                                   | Health-check period.                                                              |
@@ -77,14 +76,19 @@ Authentication: VS Code's Microsoft provider issues an Entra ID access
 token. The extension attaches it as `Authorization: Bearer <token>` on
 every MCP request — the server validates with MSAL JWT validation.
 
+The default `User.Read` scope normally produces a Microsoft Graph token. For
+enforced Darbot authentication, expose a delegated scope on the Darbot app
+registration and set `darbot-browser-mcp-cloud.scopes` to include
+`api://<client-id>/<scope>`. A successful `/health` probe does not validate the
+MCP token audience.
+
 ## Build from source
 
 ```bash
 cd darbot-browser-cloud/vscode-extension-cloud
 npm install
 npm run compile          # tsc -p ./
-npm test                 # vscode-test runner
-npx vsce package         # produce .vsix
+npm run package          # produce .vsix
 ```
 
 The compiled output (`out/`) is **not** tracked in git; install the

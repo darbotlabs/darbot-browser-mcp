@@ -18,7 +18,7 @@ try
     // NuGet consumers install DarbotLabs.Browser.MCP and register the hosted MCP server.
     builder.Services.AddBrowserMcpServer(options =>
     {
-        options.PackageVersion = "2.1.1";
+        options.PackageVersion = "2.1.4";
         options.LogLevel = "info";
         options.Environment["BROWSER"] = "msedge";
         options.Environment["VIEWPORT_SIZE"] = "1920,1080";
@@ -34,7 +34,7 @@ try
         return 1;
     }
 
-    if (options.PackageSpec != "@darbotlabs/darbot-browser-mcp@2.1.1")
+    if (options.PackageSpec != "@darbotlabs/darbot-browser-mcp@2.1.4")
     {
         Console.Error.WriteLine($"Smoke test failed: unexpected package spec '{options.PackageSpec}'.");
         return 1;

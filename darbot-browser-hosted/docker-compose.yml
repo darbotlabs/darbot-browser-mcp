@@ -6,8 +6,7 @@ services:
       context: ..
       dockerfile: darbot-browser-hosted/Dockerfile
       args:
-        NODE_VERSION: 22
-        PLAYWRIGHT_VERSION: 1.55.0-alpha
+        NODE_VERSION: 26.2.0-bookworm-slim
     image: darbot-browser-hosted:latest
     container_name: darbot-browser-hosted
     hostname: darbot-browser-mcp

@@ -1,11 +1,11 @@
 # Darbot Browser MCP - On-Premises Hosted Edition
 # Multi-stage Docker build with MSAL auth and dev tunnel support
 #
-# Hosted edition defaults to node:23-bookworm-slim. Root product image uses
-# node:20-bookworm-slim. Both satisfy package engines node>=20.
+# Hosted edition defaults to the pinned Node 26.2.0 Bookworm slim image.
+ARG NODE_VERSION=26.2.0-bookworm-slim
 
 # Build stage
-FROM node:23-bookworm-slim AS builder
+FROM node:${NODE_VERSION} AS builder
 
 # Set working directory
 WORKDIR /build
@@ -29,7 +29,7 @@ COPY config.d.ts ./
 RUN npm run build
 
 # Production stage
-FROM node:23-bookworm-slim
+FROM node:${NODE_VERSION}
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -113,6 +113,7 @@ ENV NODE_ENV=production \
     HOST=0.0.0.0 \
     BROWSER=chromium \
     HEADLESS=true \
+    DARBOT_SESSION_STATE_DIR=/app/data/sessions \
     PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 
 # Expose port
@@ -126,4 +127,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 
 # Start command
-CMD ["node", "cli.js", "--headless", "--browser", "chromium", "--no-sandbox", "--host", "0.0.0.0", "--port", "8080", "--output-dir", "/app/data"]
+CMD ["node", "cli.js", "--headless", "--browser", "chromium", "--no-sandbox", "--viewport-size", "1920,1080", "--host", "0.0.0.0", "--port", "8080", "--output-dir", "/app/data"]

@@ -4,9 +4,10 @@ name: Publish
 #
 # Trigger: pushing a tag matching v*.*.* (e.g. v2.0.0).
 #
-# Each publish target lives in its own job behind `needs: build` so that
-# a failure in one target (e.g. the VS Code Marketplace being down) does
-# not block the others, and the only re-run cost is on the failing job.
+# Each publish target lives in its own job after `build`. The core VSIX and
+# NuGet wrapper also wait for `publish-npm` because both launch the pinned npm
+# runtime; independent hosted/cloud VSIX and Docker jobs can still publish
+# without waiting on external registries they do not consume.
 #
 # Required GitHub secrets (configure in repo Settings → Secrets and variables → Actions):
 #   NPM_TOKEN        — npm automation token with publish rights on @darbotlabs scope
@@ -106,7 +107,7 @@ jobs:
 
   publish-vsix-core:
     name: Publish vscode-extension to Marketplace
-    needs: build
+    needs: [build, publish-npm]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -226,7 +227,7 @@ jobs:
 
   publish-nuget:
     name: Publish to NuGet
-    needs: build
+    needs: [build, publish-npm]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -236,7 +237,8 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: '11.0.x'
+          dotnet-quality: 'preview'
 
       - name: Restore
         working-directory: dotnet/DarbotLabs.Browser.MCP

@@ -134,7 +134,7 @@ export class HealthCheckService {
   }
 
   /**
-   * Express handler for the full `/health` (and `/healthz`) endpoint. Returns
+   * Express handler for the full `/health` endpoint. Returns
    * 200 when healthy or degraded, 503 when unhealthy.
    */
   handleHealthCheck = async (_req: Request, res: Response): Promise<void> => {
@@ -157,7 +157,7 @@ export class HealthCheckService {
   };
 
   /**
-   * Express handler for the `/ready` (and `/readyz`) readiness probe.
+   * Express handler for the `/ready` readiness probe.
    *
    * Returns 200 when the service is ready to receive traffic, 503 otherwise.
    * Differs from the liveness probe in that any failing check (e.g. missing
@@ -183,7 +183,7 @@ export class HealthCheckService {
   };
 
   /**
-   * Express handler for the `/live` (and `/livez`) liveness probe.
+   * Express handler for the `/live` liveness probe.
    *
    * Lightweight: only fails if the process itself is unresponsive. Does not
    * run health checks — those drive readiness, not liveness. Containers
@@ -334,14 +334,14 @@ export type OAuthValidationLike =
 
 export interface HealthAppOptions {
   /**
-   * When `true`, readiness fails (HTTP 503 on `/readyz`) if the bridge is not
+   * When `true`, readiness fails (HTTP 503 on `/ready`) if the bridge is not
    * connected. When `false` (default), bridge status is informational only.
    */
   bridgeRequired?: boolean;
   /** Probe returning the current bridge state. Required when `bridgeRequired` is true. */
   getBridgeStatus?: () => PartialBridgeStatus;
   /**
-   * Optional OAuth validator. When supplied, `/healthz` includes an
+   * Optional OAuth validator. When supplied, `/health` includes an
    * `oauth: { valid }` block. Failures here do *not* flip the overall status,
    * since deployments may legitimately run without Entra-backed auth.
    */
@@ -356,14 +356,13 @@ function normalizeOAuthValid(result: OAuthValidationLike): { valid: boolean; mis
 }
 
 /**
- * Express app exposing `/healthz`, `/readyz` and `/livez` (plus the alias
- * paths without the trailing `z`) suitable for Kubernetes-style orchestrators
- * and Azure App Service health probes.
+ * Express app exposing `/health`, `/ready`, and `/live` suitable for
+ * Azure App Service health probes and other HTTP monitors.
  *
  * Health and readiness aggregate the underlying {@link HealthCheckService},
  * with two app-level concerns layered on top:
  *   - `bridgeRequired` gates readiness on extension connectivity
- *   - `validateOAuthConfig` decorates `/healthz` with an `oauth` block
+ *   - `validateOAuthConfig` decorates `/health` with an `oauth` block
  */
 export function createHealthApp(options: HealthAppOptions = {}): Express {
   const bridgeRequired = options.bridgeRequired ?? false;
@@ -417,7 +416,7 @@ export function createHealthApp(options: HealthAppOptions = {}): Express {
           .set('Cache-Control', 'no-store')
           .json(body);
     } catch (error) {
-      debugLogger('createHealthApp /healthz failed: %O', error);
+      debugLogger('createHealthApp /health failed: %O', error);
       res.status(500)
           .set('Cache-Control', 'no-store')
           .json({
@@ -442,16 +441,13 @@ export function createHealthApp(options: HealthAppOptions = {}): Express {
             checks: health.checks.map(c => ({ name: c.name, status: c.status })),
           });
     } catch (error) {
-      debugLogger('createHealthApp /readyz failed: %O', error);
+      debugLogger('createHealthApp /ready failed: %O', error);
       res.status(503).set('Cache-Control', 'no-store').send('Service Unavailable');
     }
   };
 
-  app.get('/healthz', handleHealth);
   app.get('/health', handleHealth);
-  app.get('/readyz', handleReady);
   app.get('/ready', handleReady);
-  app.get('/livez', service.handleLivenessCheck);
   app.get('/live', service.handleLivenessCheck);
 
   return app;

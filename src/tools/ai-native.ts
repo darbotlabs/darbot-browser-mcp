@@ -22,7 +22,7 @@ import { z } from 'zod';
 import { defineTool } from './tool.js';
 import { intentParser } from '../ai/intent.js';
 import { aiContextManager } from '../ai/context.js';
-import { workflowEngine, type WorkflowParameters } from '../ai/workflow.js';
+import type { WorkflowParameters } from '../ai/workflow.js';
 import {
   executeClick,
   executeNavigate,
@@ -161,7 +161,7 @@ const browserExecuteWorkflow = defineTool({
   handle: async (context, params) => {
     try {
       // Execute the workflow
-      const execution = await workflowEngine.executeWorkflow(context, params.intent, params.parameters as WorkflowParameters);
+      const execution = await context.workflowEngine().executeWorkflow(context, params.intent, params.parameters as WorkflowParameters);
 
       const code: string[] = [];
       code.push(`// Workflow Execution: ${params.intent}`);
@@ -176,7 +176,7 @@ const browserExecuteWorkflow = defineTool({
           resultOverride: {
             content: [{
               type: 'text',
-              text: `Workflow "${params.intent}" completed successfully\nSteps: ${execution.results.length}\nDuration: ${((Date.now() - execution.startTime) / 1000).toFixed(1)}s`,
+              text: `Workflow "${params.intent}" completed successfully\nExecution ID: ${execution.id ?? 'unknown'}\nSteps: ${execution.results.length}\nDuration: ${((Date.now() - execution.startTime) / 1000).toFixed(1)}s`,
             }],
           },
         };
@@ -223,7 +223,7 @@ const browserAnalyzeContext = defineTool({
       suggestions = aiContextManager.suggestNextActions(sessionId, currentUrl);
 
       // Add workflow suggestions
-      const workflowSuggestions = workflowEngine.suggestWorkflows(currentUrl, pageTitle);
+      const workflowSuggestions = context.workflowEngine().suggestWorkflows(currentUrl, pageTitle);
       suggestions.push(...workflowSuggestions.map(w => `Execute workflow: ${w.name} - ${w.description}`));
     }
 

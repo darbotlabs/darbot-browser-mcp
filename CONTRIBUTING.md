@@ -65,4 +65,4 @@ If a repository-level DCO or CLA check is enabled, follow the bot instructions o
 
 ---
 
-_Last updated: 2026-05-18 (v2.0.0)_
+_Last updated: 2026-08-03 (v2.1.1)_

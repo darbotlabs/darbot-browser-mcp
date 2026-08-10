@@ -1,8 +1,8 @@
 {
   "name": "darbot-browser-mcp-hosted",
   "displayName": "Darbot Browser MCP Hosted",
-  "description": "On-premises Docker-hosted autonomous browser for VS Code. 59 AI-driven browser tools via local Docker container with optional MSAL authentication and Dev Tunnel support for secure remote access.",
-  "version": "2.1.1",
+  "description": "On-premises Docker-hosted autonomous browser for VS Code. 68 AI-driven browser tools via local Docker container with portable session-state support and optional enterprise authentication.",
+  "version": "2.1.4",
   "publisher": "darbotlabs",
   "engines": {
     "vscode": "^1.96.0",
@@ -114,8 +114,15 @@
         },
         "darbot-browser-mcp-hosted.scopes": {
           "type": "array",
-          "items": { "type": "string" },
-          "default": ["openid", "profile", "email", "User.Read"],
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "openid",
+            "profile",
+            "email",
+            "User.Read"
+          ],
           "description": "Scopes requested from the VS Code Microsoft authentication provider (when useMsalAuth is true)."
         },
         "darbot-browser-mcp-hosted.autoStartContainer": {
@@ -134,7 +141,8 @@
   "scripts": {
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./"
+    "watch": "tsc -watch -p ./",
+    "package": "npx --yes @vscode/vsce package --no-dependencies"
   },
   "devDependencies": {
     "@types/vscode": "^1.96.0",
@@ -142,4 +150,3 @@
     "typescript": "^5.9.3"
   }
 }
-

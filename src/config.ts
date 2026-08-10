@@ -63,7 +63,6 @@ export type CLIOptions = {
   userAgent?: string;
   userDataDir?: string;
   viewportSize?: string;
-  vision?: boolean;
   extension?: boolean;
   // Edge profile preference options
   edgeProfile?: string;
@@ -317,13 +316,16 @@ export async function configFromCLIOptions(cliOptions: CLIOptions): Promise<Conf
     case 'chrome-beta':
     case 'chrome-canary':
     case 'chrome-dev':
-    case 'chromium':
     case 'msedge':
     case 'msedge-beta':
     case 'msedge-canary':
     case 'msedge-dev':
       browserName = 'chromium';
       channel = cliOptions.browser;
+      break;
+    case 'chromium':
+      browserName = 'chromium';
+      channel = 'chromium';
       break;
     case 'firefox':
       browserName = 'firefox';
@@ -415,7 +417,6 @@ export async function configFromCLIOptions(cliOptions: CLIOptions): Promise<Conf
       ...(cliOptions.host !== undefined && { host: cliOptions.host }),
     },
     ...(capabilities !== undefined && { capabilities }),
-    vision: !!cliOptions.vision,
     extension: !!cliOptions.extension,
     network: {
       ...(cliOptions.allowedOrigins !== undefined && { allowedOrigins: cliOptions.allowedOrigins }),
@@ -475,7 +476,9 @@ function mergeConfig(base: FullConfig, overrides: Config): FullConfig {
     },
   };
 
-  if (browser.browserName !== 'chromium' && browser.launchOptions)
+  const browserNameOverridden = overrides.browser?.browserName !== undefined;
+  const channelOverridden = overrides.browser?.launchOptions?.channel !== undefined;
+  if ((browser.browserName !== 'chromium' || (browserNameOverridden && !channelOverridden)) && browser.launchOptions)
     delete browser.launchOptions.channel;
 
   return {
@@ -496,7 +499,7 @@ function mergeConfig(base: FullConfig, overrides: Config): FullConfig {
       rateLimit: {
         ...pickDefined(base.server?.rateLimit),
         ...pickDefined(overrides.server?.rateLimit),
-      }
+      },
     },
     copilotStudio: {
       ...pickDefined(base.copilotStudio),

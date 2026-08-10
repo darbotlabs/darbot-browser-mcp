@@ -26,7 +26,6 @@
     "install",
     "testing"
   ],
-  "vision": false,
   "outputDir": "./output",
   "network": {
     "allowedOrigins": ["https://*"],

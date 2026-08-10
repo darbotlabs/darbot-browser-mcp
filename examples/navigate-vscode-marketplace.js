@@ -16,7 +16,7 @@ async function main() {
   const client = new Client({ name: 'darbot-navigate-marketplace', version: '2.0.0' });
   const transport = new StdioClientTransport({
     command: 'npx',
-    args: ['-y', '@darbotlabs/darbot-browser-mcp@latest', '--browser', 'msedge'],
+    args: ['-y', '@darbotlabs/darbot-browser-mcp@2.1.4', '--browser', 'msedge'],
   });
 
   try {

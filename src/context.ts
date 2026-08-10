@@ -21,6 +21,7 @@ import { callOnPageNoTrace, waitForCompletion } from './tools/utils.js';
 import { ManualPromise } from './manualPromise.js';
 import { Tab } from './tab.js';
 import { outputFile } from './config.js';
+import { WorkflowEngine } from './ai/workflow.js';
 
 import type { ImageContent, TextContent } from '@modelcontextprotocol/sdk/types.js';
 import type { ModalState, Tool, ToolActionResult } from './tools/tool.js';
@@ -29,6 +30,21 @@ import type { BrowserContextFactory } from './browserContextFactory.js';
 
 type PendingAction = {
   dialogShown: ManualPromise<void>;
+};
+
+export type WorkspaceFolderMetadata = {
+  name?: string;
+  path?: string;
+  uri?: string;
+};
+
+export type WorkspaceMetadata = {
+  name: string;
+  path: string;
+  folders?: WorkspaceFolderMetadata[];
+  settingKeys?: string[];
+  extensionRecommendations?: string[];
+  remoteAuthority?: string;
 };
 
 const testDebug = debug('pw:mcp:test');
@@ -43,12 +59,16 @@ export class Context {
   private _modalStates: (ModalState & { tab: Tab })[] = [];
   private _pendingAction: PendingAction | undefined;
   private _downloads: { download: playwright.Download, finished: boolean, outputFile: string }[] = [];
+  private _workspaceMetadata: WorkspaceMetadata | undefined;
+  private readonly _workflowEngine = new WorkflowEngine();
+  private readonly _storageNamespace: string;
   clientVersion: { name: string; version: string; } | undefined;
 
-  constructor(tools: Tool[], config: FullConfig, browserContextFactory: BrowserContextFactory) {
+  constructor(tools: Tool[], config: FullConfig, browserContextFactory: BrowserContextFactory, storageNamespace = 'local') {
     this.tools = tools;
     this.config = config;
     this._browserContextFactory = browserContextFactory;
+    this._storageNamespace = storageNamespace;
     testDebug('create context');
   }
 
@@ -58,6 +78,22 @@ export class Context {
     if (this.config.imageResponses === 'omit')
       return false;
     return !this.clientVersion?.name.includes('cursor');
+  }
+
+  workspaceMetadata(): WorkspaceMetadata | undefined {
+    return this._workspaceMetadata;
+  }
+
+  setWorkspaceMetadata(workspaceMetadata: WorkspaceMetadata | undefined): void {
+    this._workspaceMetadata = workspaceMetadata;
+  }
+
+  workflowEngine(): WorkflowEngine {
+    return this._workflowEngine;
+  }
+
+  storageNamespace(): string {
+    return this._storageNamespace;
   }
 
   modalStates(): ModalState[] {
@@ -228,7 +264,7 @@ ${code.join('\n')}
     }
 
     await callOnPageNoTrace(this._currentTab.page, page => {
-      return page.evaluate(() => new Promise(f => setTimeout(f, 1000)));
+      return page.waitForTimeout(time);
     });
   }
 

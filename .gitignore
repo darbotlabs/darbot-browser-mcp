@@ -42,7 +42,10 @@ config/local.json
 *.pfx
 
 # Package artifacts (never commit; built/published from CI)
+artifacts/
 *.tgz
+*.tar
+*.tar.gz
 *.zip
 *.vsix
 *.nupkg

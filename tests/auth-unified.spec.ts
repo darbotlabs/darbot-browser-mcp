@@ -28,6 +28,7 @@ import type { IncomingHttpHeaders, IncomingMessage } from 'node:http';
 
 const authEnvVars = [
   'ALLOW_ANONYMOUS_ACCESS',
+  'ALLOW_LOCALHOST',
   'API_KEY_AUTH_ENABLED',
   'API_KEYS',
   'ENTRA_AUTH_ENABLED',
@@ -40,6 +41,7 @@ const authEnvVars = [
   'KEY_VAULT_URL',
   'IDENTITY_ENDPOINT',
   'REQUIRED_ROLES',
+  'REQUIRE_AUTH',
 ] as const;
 
 test.describe.configure({ mode: 'serial' });
@@ -69,6 +71,23 @@ test('unified auth allows anonymous access only when no method is enabled', asyn
   const restore = withAuthEnv({});
   try {
     const authenticator = new UnifiedAuthenticator({ allowAnonymous: false });
+    await expect(authenticator.authenticate(request())).resolves.toMatchObject({
+      authenticated: true,
+      method: 'anonymous',
+    });
+  } finally {
+    restore();
+  }
+});
+
+test('legacy hosted auth variables do not configure the root unified authenticator', async () => {
+  const restore = withAuthEnv({
+    REQUIRE_AUTH: 'true',
+    ALLOW_LOCALHOST: 'false',
+  });
+  try {
+    const authenticator = new UnifiedAuthenticator();
+    expect(authenticator.isAuthEnabled()).toBe(false);
     await expect(authenticator.authenticate(request())).resolves.toMatchObject({
       authenticated: true,
       method: 'anonymous',

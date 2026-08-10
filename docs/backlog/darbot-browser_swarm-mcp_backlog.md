@@ -60,7 +60,7 @@ Darbot Browser Swarm MCP is a meta-orchestration layer that enables parallel con
     │  └─────────────┘  │ │  └─────────────┘  │ │  └─────────────┘  │
     │                   │ │                   │ │                   │
     │  darbot-browser   │ │  darbot-browser   │ │  darbot-browser   │
-    │  -mcp (52 tools)  │ │  -mcp (52 tools)  │ │  -mcp (52 tools)  │
+    │  -mcp (65 tools)  │ │  -mcp (65 tools)  │ │  -mcp (65 tools)  │
     └───────────────────┘ └───────────────────┘ └───────────────────┘
 ```
 
@@ -1219,7 +1219,7 @@ Documents:
 | `swarm_session_migrate` | Migrate session |
 | `swarm_session_broadcast` | Broadcast command |
 
-**Total: 31 new MCP tools** (plus access to all 52 tools per node)
+**Total: 31 new MCP tools** (plus access to all 65 tools per node)
 
 ---
 

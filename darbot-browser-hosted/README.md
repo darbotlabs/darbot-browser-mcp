@@ -1,6 +1,6 @@
 # Darbot Browser MCP — On-Premises Hosted Edition
 
-**Version**: 2.0.0
+**Version**: 2.1.4
 **Deployment target**: On-premises Docker, optionally exposed via VS Code Dev Tunnels
 **Companion VS Code extension**: [`darbotlabs.darbot-browser-mcp-hosted`](./vscode-extension-hosted/README.md)
 
@@ -20,13 +20,13 @@ For client-side configuration, see
 
 | Path                              | Purpose                                                                  |
 | --------------------------------- | ------------------------------------------------------------------------ |
-| `Dockerfile`                      | Production container image (Node 23 + Playwright Chromium).              |
+| `Dockerfile`                      | Production container image (Node 26.2.0 + Playwright Chromium).          |
 | `docker-compose.yml`              | Single-host deployment manifest.                                         |
 | `.dockerignore`                   | Build context exclusions.                                                |
 | `package.json`                    | Server-side npm workspace (`@darbotlabs/darbot-browser-mcp-hosted`).     |
 | `tsconfig.json`                   | TypeScript config for the server-side helpers.                           |
 | `scripts/`                        | Helper shell/PowerShell scripts (`start.sh`, `stop.sh`, `setup-tunnel.*`, `health-check.sh`). |
-| `src/auth/`                       | MSAL middleware, routes, and config (gated by `REQUIRE_MSAL=true`).      |
+| `src/auth/`                       | Legacy hosted MSAL helper source; not wired into the Docker entrypoint.  |
 | `src/tunnel/`                     | Dev Tunnel manager.                                                      |
 | `vscode-extension-hosted/`        | VS Code Marketplace extension that drives the container.                  |
 
@@ -36,8 +36,8 @@ For client-side configuration, see
 
 ### Browser automation
 
-- 59 autonomous Darbot tools, mirroring the cloud edition (snapshot +
-  optional vision tool set).
+- 68 autonomous Darbot tools, mirroring the cloud edition (snapshot and
+  coordinate-based screen tools).
 - Scroll, clock, emulation, and storage helpers.
 - Profile / session management via persistent storage volume.
 - Autonomous crawling (BFS planner) with configurable memory.
@@ -45,10 +45,13 @@ For client-side configuration, see
 ### Authentication
 
 - Anonymous-access mode (default) for local development.
-- MSAL middleware that validates Microsoft Entra ID tokens on `/mcp`
-  and `/sse` endpoints (`REQUIRE_MSAL=true`, `AZURE_TENANT_ID`,
-  `AZURE_CLIENT_ID` envs required).
-- API-key fallback for non-interactive callers.
+- The active root runtime supports Entra with `ENTRA_AUTH_ENABLED=true`, and
+  API keys with `API_KEY_AUTH_ENABLED=true` plus `API_KEYS`.
+- `REQUIRE_AUTH`, `ALLOW_LOCALHOST`, and `REQUIRE_MSAL` belong to dormant
+  hosted helper source and do not protect the Docker image's `/mcp` endpoint.
+- The checked-in Compose security variables remain legacy configuration; do
+  not treat that manifest as authenticated until it is aligned with the
+  unified runtime variables.
 
 ### Remote access
 
@@ -74,8 +77,8 @@ For client-side configuration, see
   dependencies for the extension surface.
 - Container runs as non-root (`uid 1001`) via `dumb-init` with an
   HTTP-based health check.
-- `package.json` `engines.node` set to `>=20` to align with the rest of
-  the v2.0.0 fleet.
+- `package.json` `engines.node` set to `>=20`; container builds are pinned to
+  Node 26.2.0.
 
 ---
 

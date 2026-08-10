@@ -15,12 +15,36 @@
  */
 
 import { test, expect } from '@playwright/test';
-import { snapshotTools, visionTools } from '../src/tools.js';
+import { allTools, snapshotTools, visionTools, visionOnlyTools } from '../src/tools.js';
 
-test('2.1.1 registers evaluate and profile discovery in both browser modes', () => {
+test('2.1.4 registers evaluate and portable session-state tools in both browser modes', () => {
   for (const tools of [snapshotTools, visionTools]) {
     const names = tools.map(tool => tool.schema.name);
     expect(names).toContain('browser_evaluate');
     expect(names).toContain('browser_discover_profiles');
+    expect(names).toContain('browser_export_session_state');
+    expect(names).toContain('browser_import_session_state');
+    expect(names).toContain('browser_import_workspace_metadata');
   }
+});
+
+test('allTools exposes the full 68-tool surface with unique names', () => {
+  const names = allTools.map(tool => tool.schema.name);
+  expect(new Set(names).size).toBe(names.length);
+  expect(names.length).toBe(snapshotTools.length + visionOnlyTools.length);
+  expect(names.length).toBe(68);
+});
+
+test('screen tools are registered natively and carry the core capability', () => {
+  const names = allTools.map(tool => tool.schema.name);
+  for (const tool of visionOnlyTools) {
+    expect(tool.capability).toBe('core');
+    expect(names).toContain(tool.schema.name);
+  }
+});
+
+test('snapshot and vision tool names do not collide', () => {
+  const snapshotNames = new Set(snapshotTools.map(tool => tool.schema.name));
+  for (const tool of visionOnlyTools)
+    expect(snapshotNames.has(tool.schema.name)).toBe(false);
 });

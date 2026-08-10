@@ -31,7 +31,7 @@ const close = defineTool({
   handle: async context => {
     await context.close();
     return {
-      code: [`await page.close()`],
+      code: [`await context.close()`],
       captureSnapshot: false,
       waitForNetwork: false,
     };
@@ -45,8 +45,8 @@ const resize: ToolFactory = captureSnapshot => defineTool({
     title: 'Autonomous window resizing',
     description: 'Autonomously resize the browser window to specific dimensions for optimal viewing',
     inputSchema: z.object({
-      width: z.number().describe('Width of the browser window'),
-      height: z.number().describe('Height of the browser window'),
+      width: z.coerce.number().int().positive().describe('Width of the browser window'),
+      height: z.coerce.number().int().positive().describe('Height of the browser window'),
     }),
     type: 'readOnly',
   },

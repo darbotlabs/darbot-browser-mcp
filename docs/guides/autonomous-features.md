@@ -59,6 +59,11 @@ await browser_configure_memory({
 
 Reports are written under the configured output directory with an HTML overview, raw JSON, screenshots, visited states, errors, and timing data. Treat reports as artifacts; do not commit them unless a test fixture explicitly requires it.
 
+The `browser_memory_list` and `browser_memory_clear` management tools only
+accept storage locations beneath `DARBOT_MEMORY_DIR` (default:
+`<cwd>/.darbot/memory`). Clear operations remove validated crawl-state files
+only and leave unrelated files untouched.
+
 ## Operational guidance
 
 - Keep `maxDepth` and `maxPages` conservative for unknown sites.
@@ -67,4 +72,4 @@ Reports are written under the configured output directory with an HTML overview,
 - Prefer [session states](session-states.md) for authenticated checkpoints instead of re-running login flows.
 ---
 
-_Last updated: 2026-05-18 (v2.0.0)_
+_Last updated: 2026-08-10 (v2.1.4)_

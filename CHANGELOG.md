@@ -4,19 +4,84 @@ All notable changes to Darbot Browser MCP are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project uses semantic versioning.
 
+## [2.1.4] - 2026-08-10
+
+### Added
+
+- Added `browser_export_session_state`, `browser_import_session_state`, and
+  `browser_import_workspace_metadata`, bringing the native registry to 68
+  tools.
+- Added the native Mermaid and Marp integration backlog covering runbook
+  audits, presentations, workflows, proof bundles, security boundaries, and
+  release verification.
+
+### Changed
+
+- Replaced the VS Code extension's packaging dependency chain with a native
+  Node-based VSIX writer.
+- Standardized linked npm, VS Code, browser bridge, Azure, Power Platform, and
+  NuGet metadata on 2.1.4.
+- Reconciled the cloud deployment, authentication, storage, persistence, and
+  in-place container upgrade documentation with the audited runtime behavior.
+- Standardized Docker browser viewports and screenshots on `1920x1080`.
+- Standardized Docker session-state storage on `/app/data/sessions`, with
+  portable imports and exports constrained to the configured output directory.
+- Added executable `/api/v1/tools` REST routes for the checked-in Power
+  Platform connector, with principal-bound browser sessions and
+  `X-Darbot-Session-Id` continuity.
+- Isolated authenticated users' workflow registrations, executions, saved
+  session states, and portable artifacts.
+
+### Fixed
+
+- Made `--browser chromium` select Playwright's bundled full Chromium channel,
+  allowing the slim `--no-shell` Docker image to launch headless Chromium
+  without requiring Microsoft Edge or the separate headless-shell download.
+- Restored saved Playwright state in-place with `setStorageState`, preserving
+  the active MCP context instead of replacing it with an untracked context.
+- Constrained crawl-memory management to `DARBOT_MEMORY_DIR` and made clear
+  operations delete validated crawl-state files only.
+- Made workflow cancellation terminal so later steps do not continue and the
+  cancelled execution cannot be overwritten as completed.
+- Removed four non-tool connector operations and replaced them with live
+  readiness, liveness, and OpenAPI aliases while preserving 75 connector paths.
+- Made npm-dependent VSIX and NuGet publication wait for successful npm
+  publication, and corrected the default Azure Bicep image tag to 2.1.4.
+
+## [2.1.3] - 2026-08-07
+
+### Changed
+
+- Reconciled the 2.1.1 and 2.1.2 product surfaces into one 65-tool release line.
+- Added the generated `tool-atlas.csv` contract and deterministic atlas generator.
+- Removed the deprecated SSE transport and retained Streamable HTTP at `/mcp`.
+- Standardized linked npm, VS Code, browser bridge, Azure, Power Platform, and NuGet metadata on 2.1.3.
+
+## [2.1.2] - 2026-08-07
+
+### Added
+
+- Six native workflow and crawl-memory management tools, bringing the registered surface to 65 tools.
+
+### Changed
+
+- Removed the vision-mode gate; all five coordinate-based `browser_screen_*` tools are native core tools.
+- Made `npm run package` perform a deterministic clean build before creating the tarball.
+
 ## [2.1.1] - 2026-08-03
 
 ### Added
 
 - Unified **2.1.1** product matrix across npm, VS Code (local/hosted/cloud), browser bridge extension, and NuGet.
-- Documented K8s-style health aliases `/healthz`, `/readyz`, `/livez` alongside `/health`, `/ready`, `/live`.
-- Registration-truth marketing for **59** MCP tools (54 snapshot-mode + 5 vision-mode).
+- Standardized HTTP MCP transport on Streamable HTTP at `/mcp`.
+- Documented canonical health endpoints `/health`, `/ready`, and `/live`.
+- Registration-truth **65** MCP tools (60 accessibility-first and management tools + 5 coordinate-based core tools).
 - CHANGELOG / RELEASE_TRACKER campaign notes for the best-of ADO + fleet + reconcile enhance line.
 
 ### Changed
 
 - Bumped cloud client `@darbotlabs/darbot-browser` from stale **1.3.0** to **2.1.1** (version parity fix).
-- NuGet wrapper default `PackageVersion` pin and package metadata now **2.1.1** with 59-tool description.
+- NuGet wrapper default `PackageVersion` pin and package metadata now **2.1.1** with 65-tool description.
 - NuGet pack docs paths now reference live `docs/README.md`, installation, and VS Code integration guides.
 - README highlights rewritten for the 2.1.1 best-of matrix (Playwright 1.60 hardening, full PP connector, hosted extension).
 - Power Platform connector release line advanced to 2.1.1 metadata.
@@ -25,20 +90,20 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 | Source | Carried into 2.1.1 |
 | --- | --- |
-| **Reconcile (R0)** | Playwright 1.60 APIs, webdriver suppress, persistent contention fast-fail, `browser_evaluate`, `browser_discover_profiles`, healthz aliases, dead AI orphan cleanup, modern docs IA, mirror-to-ado |
+| **Reconcile (R0)** | Playwright 1.60 APIs, webdriver suppress, persistent contention fast-fail, `browser_evaluate`, `browser_discover_profiles`, canonical health endpoints, dead AI orphan cleanup, modern docs IA, mirror-to-ado |
 | **Fleet lanes** | Scoped ownership of auth/tools, azure bicep modules, extensions, net8 NuGet layout, PP swagger expansion, CI/deps |
 | **ADO donor** | Enterprise auth (Entra/OAuth/MI/tunnel/API key), hosted/cloud product shape, original autonomous/AI-native tool families |
 
 ### Fixed
 
 - Broken NuGet pack references to removed legacy doc paths (`docs/DarbotGuide.md`, `docs/vscode/...`).
-- Inconsistent tool-count claims (39/52/38 vs registration-truth 59).
+- Inconsistent tool-count claims (39/52/38/59 vs registration-truth 65).
 
 ### Migration notes: 2.0.0 → 2.1.1
 
 1. Bump consumers to `@darbotlabs/darbot-browser-mcp@2.1.1` and matching VSIX/NuGet packages.
-2. Prefer health probes with or without `z` suffix (`/healthz` recommended for K8s).
-3. Ensure tool allowlists include the full 59-name registry if you pin allowlists.
+2. Use `/health`, `/ready`, and `/live` for health probes.
+3. Ensure tool allowlists include the full 65-name registry if you pin allowlists.
 4. Cloud client package must not remain on 1.3.0.
 5. No API break intentional vs 2.0.0; this is an enhance/alignment release.
 
@@ -78,7 +143,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 1. Set `SERVER_BASE_URL` for every HTTP/OAuth deployment.
 2. Confirm Node.js `23` or newer and ESM-compatible imports.
 3. Replace legacy docs links with `docs/README.md` and the new `docs/reference/*` pages.
-4. Use `/mcp` for new remote clients; keep `/sse` only for legacy clients.
+4. Use `/mcp` for remote clients.
 5. Re-test bridge workflows with `/bridge` and ports `9223`-`9225`.
 6. Update tool allowlists to include `browser_evaluate` and `browser_discover_profiles` where appropriate.
 
@@ -99,5 +164,4 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ---
 
-_Last updated: 2026-08-03 (v2.1.1)_
-
+_Last updated: 2026-08-10 (v2.1.4)_

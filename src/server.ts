@@ -34,11 +34,21 @@ export class Server {
     this._contextFactory = contextFactory(this._browserConfig);
   }
 
-  async createConnection(transport: Transport): Promise<Connection> {
-    const connection = createConnection(this.config, this._contextFactory);
-    this._connectionList.push(connection);
+  async createConnection(transport: Transport, options: { storageNamespace?: string } = {}): Promise<Connection> {
+    const connection = this.createDetachedConnection(options);
     await connection.server.connect(transport);
     return connection;
+  }
+
+  createDetachedConnection(options: { storageNamespace?: string } = {}): Connection {
+    const connection = createConnection(this.config, this._contextFactory, options);
+    this._connectionList.push(connection);
+    return connection;
+  }
+
+  async closeConnection(connection: Connection): Promise<void> {
+    this._connectionList = this._connectionList.filter(candidate => candidate !== connection);
+    await connection.close();
   }
 
   setupExitWatchdog(mode: 'stdio' | 'http' = 'stdio') {

@@ -18,7 +18,7 @@ This suite uses Playwright Test (`npm test` runs `npx playwright test`).
 ## Fixture patterns
 
 - Import `{ test, expect }` from `./fixtures.js`.
-- Use `client` for a default MCP session and `visionClient` for `--vision`.
+- Use `client` for a default MCP session; `visionClient` is a second default client used to verify the native screen-tool surface.
 - Use `startClient({ args, config })` for custom CLI flags or generated config files.
 - Use `server`/`httpsServer` for offline deterministic web content.
 - Browser-dependent tests should stay headless-compatible and skip known unsupported browser/channel combinations.

@@ -50,7 +50,7 @@ param containerImage {
   tag: string
 } = {
   repository: 'darbot-browser-mcp'
-  tag: '2.1.1'
+  tag: '2.1.4'
 }
 
 @description('Runtime settings surfaced as App Service application settings.')
@@ -81,7 +81,7 @@ param authClientSecretName string = ''
 param serverBaseUrl string = ''
 
 @description('Health endpoint path used by App Service and the container health check.')
-param healthCheckPath string = '/healthz'
+param healthCheckPath string = '/health'
 
 @description('Optional CORS origins for browser-based management clients.')
 param allowedOrigins array = []

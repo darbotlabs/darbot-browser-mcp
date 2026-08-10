@@ -1,6 +1,6 @@
 # Installation
 
-This guide consolidates local, VS Code, Docker, Azure, and package installation paths for v2.0.0.
+This guide consolidates local, VS Code, Docker, Azure, and package installation paths for v2.1.4.
 
 You'll learn:
 
@@ -12,11 +12,11 @@ You'll learn:
 
 | Path | Best for | Command |
 | --- | --- | --- |
-| `npx` | Temporary use and CI | `npx @darbotlabs/darbot-browser-mcp@latest` |
+| `npx` | Temporary use and CI | `npx @darbotlabs/darbot-browser-mcp@2.1.4` |
 | Global npm | Daily local use | `npm install -g @darbotlabs/darbot-browser-mcp` |
 | VS Code Marketplace | Copilot agent mode with automatic configuration | `code --install-extension darbotlabs.darbot-browser-mcp` |
 | NuGet | .NET consumers and service wrappers | `dotnet add package DarbotLabs.Browser.MCP` |
-| Docker | Hosted or isolated deployments | `docker build -t darbot-browser-mcp .` |
+| Docker | Hosted or isolated deployments | Build `azure\docker\Dockerfile.appservice` |
 | Azure | Enterprise shared service | See [Azure deployment](../integrations/azure-deployment.md) |
 
 ## Requirements
@@ -41,7 +41,7 @@ Manual settings fallback:
   "chat.mcp.servers": {
     "darbot-browser-mcp": {
       "command": "npx",
-      "args": ["@darbotlabs/darbot-browser-mcp@latest", "--browser", "msedge"],
+      "args": ["@darbotlabs/darbot-browser-mcp@2.1.4", "--browser", "msedge"],
       "env": { "NODE_ENV": "production" }
     }
   }
@@ -51,22 +51,35 @@ Manual settings fallback:
 ## NPX or global npm
 
 ```bash
-npx @darbotlabs/darbot-browser-mcp@latest --browser msedge
+npx @darbotlabs/darbot-browser-mcp@2.1.4 --browser msedge
 npm install -g @darbotlabs/darbot-browser-mcp
 darbot-browser-mcp --browser msedge --port 8931
 ```
 
 ## Docker
 
-```bash
-docker build -t darbot-browser-mcp .
-docker run -i --rm darbot-browser-mcp
+```powershell
+docker build `
+  --file 'azure\docker\Dockerfile.appservice' `
+  --tag 'darbot-browser-mcp:2.1.4' `
+  .
+
+docker run `
+  --detach `
+  --name 'darbot-browser-mcp-2.1.4' `
+  --restart 'unless-stopped' `
+  --publish '8080:8080' `
+  'darbot-browser-mcp:2.1.4'
 ```
 
-For containers, prefer headless mode and disable the Chromium sandbox only when the host requires it:
+The App Service image already runs headless Chromium with `--no-sandbox` and
+binds to port `8080`. Docker entrypoints standardize the viewport at
+`1920x1080`. They omit `--isolated`, so browser state persists only inside the
+current container filesystem. Removing or replacing the container removes that
+state unless a volume is explicitly mounted.
 
-```bash
-npx @darbotlabs/darbot-browser-mcp@latest --headless --no-sandbox
+```powershell
+Invoke-RestMethod 'http://127.0.0.1:8080/health'
 ```
 
 ## Corporate networks
@@ -76,16 +89,16 @@ Configure npm and the browser proxy explicitly:
 ```bash
 npm config set proxy http://proxy.example.com:8080
 npm config set https-proxy http://proxy.example.com:8080
-npx @darbotlabs/darbot-browser-mcp@latest --proxy-server http://proxy.example.com:8080
+npx @darbotlabs/darbot-browser-mcp@2.1.4 --proxy-server http://proxy.example.com:8080
 ```
 
 ## Verification checklist
 
-1. `npx @darbotlabs/darbot-browser-mcp@latest --version` returns a version.
+1. `npx @darbotlabs/darbot-browser-mcp@2.1.4 --version` returns `2.1.4`.
 2. Your MCP client lists `darbot-browser-mcp` as an available server.
 3. `browser_navigate` can open `https://example.com`.
 4. `browser_snapshot` returns an accessibility snapshot.
 5. HTTP deployments return `200` from `/health` and `OK` from `/ready`.
 ---
 
-_Last updated: 2026-05-18 (v2.0.0)_
+_Last updated: 2026-08-09 (v2.1.4)_

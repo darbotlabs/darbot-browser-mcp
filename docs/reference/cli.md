@@ -1,6 +1,6 @@
 # CLI reference
 
-This reference documents the `darbot-browser-mcp` command-line interface for v2.0.0.
+This reference documents the `darbot-browser-mcp` command-line interface for v2.1.4.
 
 You'll learn:
 
@@ -17,7 +17,7 @@ darbot-browser-mcp [options]
 Use with npm without installation:
 
 ```bash
-npx @darbotlabs/darbot-browser-mcp@latest [options]
+npx @darbotlabs/darbot-browser-mcp@2.1.4 [options]
 ```
 
 ## Options
@@ -29,7 +29,7 @@ npx @darbotlabs/darbot-browser-mcp@latest [options]
 | `--block-service-workers` | Block service workers in the browser context. |
 | `--browser <browser>` | Browser or channel: `msedge`, `chrome`, `firefox`, `webkit`, `chromium`, and channel variants. |
 | `--browser-agent <endpoint>` | Experimental browser-agent endpoint. |
-| `--caps <caps>` | Comma-separated capabilities such as `tabs`, `pdf`, `history`, `wait`, `files`, `install`, `testing`. |
+| `--caps <caps>` | Comma-separated capabilities such as `core`, `tabs`, `pdf`, `history`, `wait`, `files`, `install`, `testing`. |
 | `--cdp-endpoint <endpoint>` | Connect to an existing Chromium CDP endpoint. |
 | `--config <path>` | Load JSON configuration. |
 | `--device <device>` | Playwright device profile, for example `iPhone 15`. |
@@ -40,7 +40,7 @@ npx @darbotlabs/darbot-browser-mcp@latest [options]
 | `--isolated` | Keep profile in memory and discard state on close. |
 | `--image-responses <mode>` | `allow`, `omit`, or `auto`. |
 | `--no-sandbox` | Disable Chromium sandbox where required by the host. |
-| `--output-dir <path>` | Directory for traces, screenshots, PDFs, and generated files. |
+| `--output-dir <path>` | Directory for traces, screenshots, PDFs, portable session bundles, workspace metadata files, and generated files. |
 | `--port <port>` | Enable HTTP transport on a port. |
 | `--proxy-bypass <bypass>` | Comma-separated proxy bypass domains. |
 | `--proxy-server <proxy>` | HTTP or SOCKS proxy server. |
@@ -49,7 +49,6 @@ npx @darbotlabs/darbot-browser-mcp@latest [options]
 | `--user-agent <ua>` | Override browser user agent. |
 | `--user-data-dir <path>` | Persist browser data in a specific directory. |
 | `--viewport-size <size>` | Viewport as `width,height`. |
-| `--vision` | Use screenshot-based vision tools. |
 | `--edge-profile <name>` | Record Edge profile name in session-state metadata. |
 | `--edge-profile-email <email>` | Record Edge profile email in session-state metadata. |
 | `--workspace <name>` | Record workspace context in session-state metadata. |
@@ -71,26 +70,26 @@ npx @darbotlabs/darbot-browser-mcp@latest [options]
 Local stdio with Edge:
 
 ```bash
-npx @darbotlabs/darbot-browser-mcp@latest --browser msedge
+npx @darbotlabs/darbot-browser-mcp@2.1.4 --browser msedge
 ```
 
 HTTP mode for a remote MCP client:
 
 ```bash
-npx @darbotlabs/darbot-browser-mcp@latest --port 8931 --host localhost --browser msedge
+npx @darbotlabs/darbot-browser-mcp@2.1.4 --port 8931 --host localhost --browser msedge
 ```
 
 Extension bridge relay:
 
 ```bash
-npx @darbotlabs/darbot-browser-mcp@latest --port 9223 --extension --browser msedge
+npx @darbotlabs/darbot-browser-mcp@2.1.4 --port 9223 --extension --browser msedge
 ```
 
 Trace-producing test session:
 
 ```bash
-npx @darbotlabs/darbot-browser-mcp@latest --isolated --save-trace --output-dir .darbot/output
+npx @darbotlabs/darbot-browser-mcp@2.1.4 --isolated --save-trace --output-dir .darbot/output
 ```
 ---
 
-_Last updated: 2026-05-18 (v2.0.0)_
+_Last updated: 2026-08-10 (v2.1.4)_

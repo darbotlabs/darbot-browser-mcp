@@ -16,8 +16,30 @@
 
 import fs from 'node:fs';
 
-import { Config } from '../config.js';
+import type { Config } from '../config.js';
+import { configFromCLIOptions, resolveCLIConfig } from '../src/config.js';
 import { test, expect } from './fixtures.js';
+
+test('chromium CLI selects the bundled full Chromium channel', async () => {
+  const config = await configFromCLIOptions({ browser: 'chromium', sandbox: true });
+  expect(config.browser?.browserName).toBe('chromium');
+  expect(config.browser?.launchOptions.channel).toBe('chromium');
+
+  const resolved = await resolveCLIConfig({
+    browser: 'chromium',
+    sandbox: true,
+    cdpEndpoint: 'ws://127.0.0.1:1',
+  });
+  expect(resolved.browser.browserName).toBe('chromium');
+  expect(resolved.browser.launchOptions.channel).toBe('chromium');
+
+  const edge = await resolveCLIConfig({
+    browser: 'msedge',
+    sandbox: true,
+    cdpEndpoint: 'ws://127.0.0.1:1',
+  });
+  expect(edge.browser.launchOptions.channel).toBe('msedge');
+});
 
 test('config user data dir', async ({ startClient, server, mcpMode }, testInfo) => {
   test.skip(mcpMode === 'extension', 'Connecting to CDP server does not use user data dir');

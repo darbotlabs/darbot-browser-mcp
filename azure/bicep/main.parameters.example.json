@@ -11,7 +11,7 @@
     "containerImage": {
       "value": {
         "repository": "darbot-browser-mcp",
-        "tag": "2.1.1"
+        "tag": "2.1.4"
       }
     },
     "runtime": {
@@ -26,7 +26,7 @@
     "entraClientId": { "value": "" },
     "authClientSecretName": { "value": "" },
     "serverBaseUrl": { "value": "" },
-    "healthCheckPath": { "value": "/healthz" },
+    "healthCheckPath": { "value": "/health" },
     "allowedOrigins": { "value": [] },
     "network": {
       "value": {

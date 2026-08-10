@@ -73,14 +73,13 @@ the project README for the current store links.
 1. Start the MCP server with the bridge listener:
 
    ```bash
-   npx @darbotlabs/darbot-browser-mcp@latest --extension --port 9223
+   npx @darbotlabs/darbot-browser-mcp@2.1.4 --extension --port 9223
    ```
 
 2. Click the **Darbot Browser MCP Bridge** toolbar icon and press
    **Share This Tab**. The badge turns green (`●`) once attached.
 
-3. Point your MCP client at `http://localhost:9223/mcp` (or the SSE/HTTP
-   endpoint your server is configured to expose). Tools that touch a page
+3. Point your MCP client at `http://localhost:9223/mcp`. Tools that touch a page
    will now operate against your shared tab.
 
 4. Stop sharing from the popup at any time, or close the tab.

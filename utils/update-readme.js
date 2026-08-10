@@ -20,7 +20,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import url from 'node:url'
 
-import commonTools from '../lib/common.js';
+import commonTools from '../lib/tools/common.js';
 import consoleTools from '../lib/tools/console.js';
 import dialogsTools from '../lib/tools/dialogs.js';
 import filesTools from '../lib/tools/files.js';
@@ -74,11 +74,15 @@ const categories = {
     profilesTools.browserSwitchProfile,
     profilesTools.browserListProfiles,
     profilesTools.browserDeleteProfile,
+    profilesTools.browserExportSessionState,
+    profilesTools.browserImportSessionState,
+    profilesTools.browserImportWorkspaceMetadata,
+    profilesTools.browserDiscoverProfiles,
   ],
   'Testing': [
     ...testTools,
   ],
-  'Vision mode': [
+  'Coordinate-based screen tools': [
     ...visionTools,
     ...keyboardTools(),
     ...waitTools(false),

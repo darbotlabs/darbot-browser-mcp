@@ -8,9 +8,9 @@ Registers the **Darbot Browser MCP** server as a Model Context Protocol
 provider for VS Code's chat / agent mode, and exposes Command Palette
 actions for managing a stand-alone server process.
 
-- **Version:** 2.0.0
-- **VS Code engine:** ^1.96.0
-- **Server tool count:** 52 (snapshot mode)
+- **Version:** 2.1.4
+- **VS Code engine:** ^1.132.0
+- **Server tool count:** 68 (snapshot, session portability, and coordinate-screen tools)
 - **Default browser:** Microsoft Edge (`msedge`)
 
 ## What it does
@@ -48,7 +48,7 @@ On first activation the extension:
 2. Adds a status bar item (`$(browser) MCP: Stopped`) wired to
    `Darbot Browser MCP: Show Server Status`.
 3. Registers the MCP server definition provider (if `vscode.lm` is
-   available — VS Code 1.96+).
+   available — VS Code 1.132+).
 4. If `darbot-browser-mcp.autoConfigureMCP` is `true` (default), checks
    whether the user has enabled VS Code's MCP Gallery (`chat.mcp.gallery.enabled`)
    and offers to flip it on.
@@ -69,7 +69,7 @@ On first activation the extension:
 
 | Setting                                       | Default                                                | Purpose                                                                                              |
 | --------------------------------------------- | ------------------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
-| `darbot-browser-mcp.serverPath`               | `npx @darbotlabs/darbot-browser-mcp@latest`            | Command line used to start the server. First whitespace-separated token is the executable.            |
+| `darbot-browser-mcp.serverPath`               | `npx @darbotlabs/darbot-browser-mcp@2.1.4`             | Command line used to start the server. First whitespace-separated token is the executable.            |
 | `darbot-browser-mcp.autoStart`                | `false`                                                | Spawn the server automatically when VS Code starts.                                                  |
 | `darbot-browser-mcp.autoConfigureMCP`         | `true`                                                 | Offer to enable `chat.mcp.gallery.enabled` on first activation.                                       |
 | `darbot-browser-mcp.logLevel`                 | `info`                                                 | One of `error` / `warn` / `info` / `debug`. Forwarded as `--log-level`.                              |
@@ -87,7 +87,7 @@ the server without reinstalling the npm package.
 
 ## Usage with GitHub Copilot Chat
 
-Once the MCP Gallery is enabled and the server is registered, the 52
+Once the MCP Gallery is enabled and the server is registered, the 68
 browser tools appear as `darbot/*` tools in agent mode. Sample prompts:
 
 ```text
@@ -105,6 +105,10 @@ Generate a Playwright test for the login flow on https://app.contoso.com.
 - **`npx` fetches the server every cold-start.** Set `serverPath` to a
   globally-installed CLI (`darbot-browser-mcp`) after running
   `npm i -g @darbotlabs/darbot-browser-mcp`.
+- **`npm ERR! ETARGET` for version `2.1.4`.** The exact version must exist in
+  the npm registry for the default command to work without a workspace. For
+  local repository testing, open the darbot-browser-mcp repository as the VS
+  Code workspace; the extension will use its root `cli.js` directly instead.
 - **MSEdge profile lock errors.** Close any open Edge windows or set
   `darbot-browser-mcp.browser` to `chrome` for a separate profile.
 

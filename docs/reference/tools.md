@@ -1,18 +1,18 @@
 # Tool catalog
 
-This reference catalogs every registered v2.0.0 MCP tool and its source schema surface.
+This reference catalogs every registered v2.1.4 MCP tool and its source schema surface.
 
 You'll learn:
 
 - Which tools are available in default accessibility mode.
-- Which additional tools are available in `--vision` mode.
+- Which coordinate-based screen tools are always available as core tools.
 - What parameters each tool accepts at a schema level.
 
 ## Counts
 
-- Default accessibility mode: **54 tools**.
-- Vision mode adds/replaces with **5 screen-coordinate tools**.
-- Total unique names in source catalog: **59 tools**.
+- Accessibility-first and management tools: **63 tools**.
+- Coordinate-based screen tools: **5 core tools**, always registered.
+- Total unique names in source catalog: **68 tools**, all available by default.
 
 ## Default accessibility-mode tools
 
@@ -60,6 +60,9 @@ You'll learn:
 | `browser_pdf_save` | PDF | `readOnly` | Autonomously save the current web page as a PDF document for archival or sharing |
 | `browser_delete_profile` | Profiles and session states | `destructive` | Permanently delete a saved session state snapshot from storage |
 | `browser_discover_profiles` | Profiles and session states | `readOnly` | List real Microsoft Edge browser profiles installed on this machine, showing each profile's folder path, display name, and associated email address. Use the folder name with --edge-profile and the data directory with --user-data-dir when starting the MCP server. These are actual Edge browser profiles, not session state snapshots. |
+| `browser_export_session_state` | Profiles and session states | `readOnly` | Export a saved Darbot session state and its Playwright storage state as one portable JSON bundle in the configured output directory. The bundle can contain authentication cookies and must be protected as sensitive data. |
+| `browser_import_session_state` | Profiles and session states | `destructive` | Import a portable Darbot session-state bundle from a filename inside the configured output directory. Arbitrary filesystem paths are rejected. |
+| `browser_import_workspace_metadata` | Profiles and session states | `destructive` | Import folder and configuration metadata from a JSON or VS Code `.code-workspace` file in the configured output directory. The import is scoped to the current MCP session; settings, tasks, and extensions are not executed or applied. |
 | `browser_list_profiles` | Profiles and session states | `readOnly` | List all saved Darbot session state snapshots with their Edge profile context and workspace information. These are session snapshots (cookies, localStorage, URL), not actual Edge browser profiles. Use browser_discover_profiles to list real Edge browser profiles. |
 | `browser_save_profile` | Profiles and session states | `destructive` | Save a snapshot of the current browser session state (cookies, localStorage, current URL) to disk for later restoration. This saves a session snapshot — not an actual Edge browser profile. Use browser_discover_profiles to list real Edge browser profiles on this machine. |
 | `browser_switch_profile` | Profiles and session states | `destructive` | Restore a previously saved session state snapshot, including cookies, localStorage, and navigate to the saved URL. This restores a session snapshot — not an actual Edge browser profile. Use browser_discover_profiles to list real Edge browser profiles on this machine. |
@@ -73,7 +76,10 @@ You'll learn:
 | `browser_generate_playwright_test` | Testing | `readOnly` | Autonomously generate Playwright test code for browser automation scenarios and user workflows |
 | `browser_wait_for` | Waiting | `readOnly` | Autonomously wait for specific conditions: text appearance, text disappearance, or time duration |
 
-## Vision-mode tools
+## Coordinate-based screen tools
+
+These five `browser_screen_*` tools use viewport coordinates rather than
+accessibility references. They are core tools and require no mode flag.
 
 | Tool | Type | Purpose |
 | --- | --- | --- |
@@ -82,6 +88,17 @@ You'll learn:
 | `browser_screen_drag` | `destructive` | Drag left mouse button |
 | `browser_screen_move_mouse` | `readOnly` | Move mouse to a given position |
 | `browser_screen_type` | `destructive` | Type text |
+
+## Workflow and crawl-memory management
+
+| Tool | Type | Purpose |
+| --- | --- | --- |
+| `browser_workflow_list` | `readOnly` | List registered workflow templates |
+| `browser_workflow_active` | `readOnly` | List running or paused workflow executions |
+| `browser_workflow_cancel` | `destructive` | Cancel a running workflow by execution ID |
+| `browser_workflow_register` | `destructive` | Register or replace a serializable workflow template |
+| `browser_memory_list` | `readOnly` | List autonomous crawl states in local memory |
+| `browser_memory_clear` | `destructive` | Delete autonomous crawl states from local memory |
 
 ## Schemas
 
@@ -318,6 +335,17 @@ inputSchema: z.object({ description: z.string().describe('Natural language descr
 inputSchema: z.object({ intent: z.string().describe('The workflow type (e.g., "github_issue_management", "code_review_workflow")'), parameters: z.record(z.any()).describe('Parameters for the workflow execution'), auto_recover: z.boolean().optional().default(true).describe('Whether to automatically recover from step failures'), validate_completion: z.boolean().optional().default(true).describe('Whether to validate successful completion'), })
 ```
 
+### `browser_export_session_state`
+
+- Category: Profiles and session states
+- Type: `readOnly`
+- Source: `src/tools/profiles.ts`
+- Purpose: Export a saved Darbot session state and its Playwright storage state as one portable JSON bundle in the configured output directory. The bundle can contain authentication cookies and must be protected as sensitive data.
+
+```typescript
+inputSchema: exportSessionStateSchema
+```
+
 ### `browser_file_upload`
 
 - Category: Files
@@ -382,6 +410,28 @@ inputSchema: z.object({ accept: z.boolean().describe('Whether to accept the dial
 
 ```typescript
 inputSchema: elementSchema
+```
+
+### `browser_import_session_state`
+
+- Category: Profiles and session states
+- Type: `destructive`
+- Source: `src/tools/profiles.ts`
+- Purpose: Import a portable Darbot session-state bundle from a filename inside the configured output directory. Arbitrary filesystem paths are rejected.
+
+```typescript
+inputSchema: importSessionStateSchema
+```
+
+### `browser_import_workspace_metadata`
+
+- Category: Profiles and session states
+- Type: `destructive`
+- Source: `src/tools/profiles.ts`
+- Purpose: Import folder and configuration metadata from a JSON or VS Code `.code-workspace` file in the configured output directory. The import is scoped to the current MCP session; settings, tasks, and extensions are not executed or applied.
+
+```typescript
+inputSchema: importWorkspaceMetadataSchema
 ```
 
 ### `browser_install`
@@ -518,7 +568,7 @@ inputSchema: z.object({ filename: z.string().optional().describe('File name to s
 
 ### `browser_screen_capture`
 
-- Category: Vision mode
+- Category: Core (coordinate-based)
 - Type: `readOnly`
 - Source: `src/tools/vision.ts`
 - Purpose: Take a screenshot of the current page
@@ -529,7 +579,7 @@ inputSchema: z.object({})
 
 ### `browser_screen_click`
 
-- Category: Vision mode
+- Category: Core (coordinate-based)
 - Type: `destructive`
 - Source: `src/tools/vision.ts`
 - Purpose: Click left mouse button
@@ -540,7 +590,7 @@ inputSchema: elementSchema.extend({ x: z.number().describe('X coordinate'), y: z
 
 ### `browser_screen_drag`
 
-- Category: Vision mode
+- Category: Core (coordinate-based)
 - Type: `destructive`
 - Source: `src/tools/vision.ts`
 - Purpose: Drag left mouse button
@@ -551,7 +601,7 @@ inputSchema: elementSchema.extend({ startX: z.number().describe('Start X coordin
 
 ### `browser_screen_move_mouse`
 
-- Category: Vision mode
+- Category: Core (coordinate-based)
 - Type: `readOnly`
 - Source: `src/tools/vision.ts`
 - Purpose: Move mouse to a given position
@@ -562,7 +612,7 @@ inputSchema: elementSchema.extend({ x: z.number().describe('X coordinate'), y: z
 
 ### `browser_screen_type`
 
-- Category: Vision mode
+- Category: Core (coordinate-based)
 - Type: `destructive`
 - Source: `src/tools/vision.ts`
 - Purpose: Type text
@@ -738,4 +788,4 @@ inputSchema: z.object({ time: z.number().optional().describe('The time to wait i
 
 ---
 
-_Last updated: 2026-05-18 (v2.0.0)_
+_Last updated: 2026-08-10 (v2.1.4)_

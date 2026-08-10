@@ -9,6 +9,7 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+$projectRoot = Split-Path -Parent $PSScriptRoot
 
 if ($Help) {
     @'
@@ -45,10 +46,21 @@ if (-not $SkipVsCode) {
 if (Has-Command node) {
     $nodeVersion = & node --version
     $major = [int]($nodeVersion -replace '^v(\d+).*','$1')
-    if ($major -ge 18) { Pass "Node.js found: $nodeVersion" } else { Add-Failure "Node.js $nodeVersion is too old." }
+    if ($major -ge 20) { Pass "Node.js found: $nodeVersion" } else { Add-Failure "Node.js $nodeVersion is too old; Node.js 20 or newer is required." }
 } else { Add-Failure 'Node.js not found.' }
 
 if (Has-Command npm) { Pass "npm found: $(& npm --version)" } else { Add-Failure 'npm not found.' }
+
+if (Test-Path (Join-Path $projectRoot 'package.json')) {
+    $rootVersion = ([System.IO.File]::ReadAllText((Join-Path $projectRoot 'package.json')) | ConvertFrom-Json).version
+    $extensionPackage = Join-Path $projectRoot 'vscode-extension\package.json'
+    if (Test-Path $extensionPackage) {
+        $extensionVersion = ([System.IO.File]::ReadAllText($extensionPackage) | ConvertFrom-Json).version
+        if ($rootVersion -eq $extensionVersion) { Pass "VS Code extension version matches server: $rootVersion" } else { Add-Failure "Version mismatch: server $rootVersion, VS Code extension $extensionVersion." }
+    }
+} else {
+    Add-Failure "Repository package.json not found under $projectRoot."
+}
 
 if (-not $SkipNetwork) {
     try {
@@ -62,5 +74,5 @@ if ($failures.Count -gt 0) {
     exit 1
 }
 
-Write-Host '`nReadiness: Microsoft integration prerequisites passed.' -ForegroundColor Green
+Write-Host "`nReadiness: Microsoft integration prerequisites passed." -ForegroundColor Green
 exit 0

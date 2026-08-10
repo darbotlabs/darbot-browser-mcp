@@ -20,6 +20,7 @@ import path from 'node:path';
 import debug from 'debug';
 
 const log = debug('darbot:memory');
+const STATE_FILE_PATTERN = /^[a-f0-9]{16}\.json$/;
 
 export interface CrawlState {
   url: string;
@@ -67,6 +68,8 @@ export class LocalMemoryStorage implements MemoryStorage {
   }
 
   private getStatePath(stateHash: string): string {
+    if (!/^[a-f0-9]{16}$/.test(stateHash))
+      throw new Error(`Invalid crawl state hash: ${stateHash}`);
     return path.join(this.storagePath, `${stateHash}.json`);
   }
 
@@ -109,9 +112,12 @@ export class LocalMemoryStorage implements MemoryStorage {
       const states: CrawlState[] = [];
 
       for (const file of files) {
-        if (file.endsWith('.json')) {
+        if (STATE_FILE_PATTERN.test(file)) {
           const filePath = path.join(this.storagePath, file);
           try {
+            const stat = await fs.promises.lstat(filePath);
+            if (!stat.isFile() || stat.isSymbolicLink())
+              continue;
             const data = await fs.promises.readFile(filePath, 'utf-8');
             states.push(JSON.parse(data));
           } catch (error) {
@@ -147,9 +153,12 @@ export class LocalMemoryStorage implements MemoryStorage {
     try {
       const files = await fs.promises.readdir(this.storagePath);
       await Promise.all(
-          files.map(file =>
-            fs.promises.unlink(path.join(this.storagePath, file))
-          )
+          files.filter(file => STATE_FILE_PATTERN.test(file)).map(async file => {
+            const filePath = path.join(this.storagePath, file);
+            const stat = await fs.promises.lstat(filePath);
+            if (stat.isFile() && !stat.isSymbolicLink())
+              await fs.promises.unlink(filePath);
+          })
       );
       log('Cleared memory storage');
     } catch (error) {

@@ -14,23 +14,45 @@
  * limitations under the License.
  */
 
+import * as fs from 'fs';
+import * as os from 'os';
 import * as path from 'path';
-import { runTests } from '@vscode/test-electron';
+import { runVSCodeCommand } from '@vscode/test-electron';
 
 async function main() {
+  const extensionDevelopmentPath = path.resolve(__dirname, '../../');
+  const extensionTestsPath = path.resolve(__dirname, './suite/index');
+  const testRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'darbot-browser-vscode-test-'));
+  const userDataDir = path.join(testRoot, 'user-data');
+  const extensionsDir = path.join(testRoot, 'extensions');
+
   try {
-    // The folder containing the Extension Manifest package.json
-    const extensionDevelopmentPath = path.resolve(__dirname, '../../');
-
-    // The path to the extension test script
-    const extensionTestsPath = path.resolve(__dirname, './suite/index');
-
-    // Download VS Code, unzip it and run the integration test
-    await runTests({ extensionDevelopmentPath, extensionTestsPath });
+    const result = await runVSCodeCommand([
+      '--no-sandbox',
+      '--disable-gpu-sandbox',
+      '--disable-updates',
+      '--skip-welcome',
+      '--skip-release-notes',
+      '--disable-workspace-trust',
+      '--disable-extensions',
+      `--user-data-dir=${userDataDir}`,
+      `--extensions-dir=${extensionsDir}`,
+      `--extensionTestsPath=${extensionTestsPath}`,
+      `--extensionDevelopmentPath=${extensionDevelopmentPath}`,
+    ], {
+      version: '1.132.0',
+      spawn: { windowsHide: true },
+    });
+    if (result.stdout)
+      process.stdout.write(result.stdout);
+    if (result.stderr)
+      process.stderr.write(result.stderr);
   } catch (err) {
-    console.error('Failed to run tests');
-    process.exit(1);
+    console.error('Failed to run VS Code extension tests:', err instanceof Error ? err.stack ?? err.message : String(err));
+    process.exitCode = 1;
+  } finally {
+    fs.rmSync(testRoot, { recursive: true, force: true });
   }
 }
 
-main();
+void main();

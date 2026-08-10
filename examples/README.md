@@ -17,4 +17,4 @@ node examples/navigate-darbotlabs.js
 | `navigate-vscode-marketplace.js` | Opens the VS Code Marketplace extension listing and prints a snapshot excerpt. |
 | `open-marketplace.js` | Opens the DarbotLabs publisher management page or a supplied URL. |
 
-The examples use `npx -y @darbotlabs/darbot-browser-mcp@latest --browser msedge`. Replace the package spec or browser flag as needed for local development.
+The examples use `npx -y @darbotlabs/darbot-browser-mcp@2.1.4 --browser msedge`. Replace the package spec or browser flag as needed for local development.

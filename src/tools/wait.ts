@@ -25,7 +25,7 @@ const wait: ToolFactory = captureSnapshot => defineTool({
     title: 'Autonomous wait conditions',
     description: 'Autonomously wait for specific conditions: text appearance, text disappearance, or time duration',
     inputSchema: z.object({
-      time: z.number().optional().describe('The time to wait in seconds'),
+      time: z.number().nonnegative().optional().describe('The time to wait in seconds'),
       text: z.string().optional().describe('The text to wait for'),
       textGone: z.string().optional().describe('The text to wait for to disappear'),
     }),
@@ -33,14 +33,14 @@ const wait: ToolFactory = captureSnapshot => defineTool({
   },
 
   handle: async (context, params) => {
-    if (!params.text && !params.textGone && !params.time)
+    if (!params.text && !params.textGone && params.time === undefined)
       throw new Error('Either time, text or textGone must be provided');
 
     const code: string[] = [];
 
-    if (params.time) {
+    if (params.time !== undefined) {
       code.push(`await new Promise(f => setTimeout(f, ${params.time!} * 1000));`);
-      await new Promise(f => setTimeout(f, Math.min(10000, params.time! * 1000)));
+      await context.waitForTimeout(params.time * 1000);
     }
 
     const tab = context.currentTabOrDie();

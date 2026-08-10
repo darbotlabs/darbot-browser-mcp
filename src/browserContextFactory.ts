@@ -198,7 +198,7 @@ class PersistentContextFactory implements BrowserContextFactory {
     const userDataDir = this.browserConfig.userDataDir ?? await this._createUserDataDir();
 
     // Fast-fail when the same in-process factory already holds the data dir
-    // (typical when a second MCP client connects to a persistent SSE server).
+    // (typical when a second MCP client connects to a persistent HTTP server).
     // Avoids spawning a second msedge that the OS singleton lock would race
     // and tear down, which previously surfaced as the opaque "Target page,
     // context or browser has been closed" message instead of the actionable
@@ -267,6 +267,23 @@ class PersistentContextFactory implements BrowserContextFactory {
 export class BrowserServerContextFactory extends BaseContextFactory {
   constructor(browserConfig: FullConfig['browser']) {
     super('persistent', browserConfig);
+  }
+
+  override async createContext(): Promise<{ browserContext: playwright.BrowserContext, close: () => Promise<void> }> {
+    testDebug('create browser context (browser agent)');
+    const browser = await this._obtainBrowser();
+    const browserContext = await this._doCreateContext(browser);
+    await hardenAutomationContext(browserContext);
+    return {
+      browserContext,
+      // The browser-agent process owns the remote browser. MCP sessions must
+      // not close its shared default context or disconnect other clients.
+      close: async () => {
+        if (this.browserConfig.isolated)
+          await browserContext.close().catch(() => {});
+        this._browserPromise = undefined;
+      },
+    };
   }
 
   protected override async _doObtainBrowser(): Promise<playwright.Browser> {

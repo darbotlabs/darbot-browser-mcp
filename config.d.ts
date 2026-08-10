@@ -72,7 +72,7 @@ export type Config = {
 
   server?: {
     /**
-     * The port to listen on for SSE or MCP transport.
+     * The port to listen on for Streamable HTTP MCP transport.
      */
     port?: number;
 
@@ -85,6 +85,12 @@ export type Config = {
      * Base URL for the server, used in OpenAPI specification generation.
      */
     baseUrl?: string;
+
+    /**
+     * Enable the deprecated SSE transport alongside Streamable HTTP.
+     * Disabled by default.
+     */
+
 
     /**
      * Enable HTTPS with SSL certificates.
@@ -103,6 +109,7 @@ export type Config = {
       windowMs?: number;
       maxRequests?: number;
     };
+
   },
 
   /**
@@ -169,11 +176,6 @@ export type Config = {
    *   - 'install': Browser installation utilities.
    */
   capabilities?: ToolCapability[];
-
-  /**
-   * Run server that uses screenshots (Aria snapshots are used by default).
-   */
-  vision?: boolean;
 
   /**
    * Whether to save the Playwright trace of the session into the output directory.

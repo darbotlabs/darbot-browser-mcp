@@ -1,9 +1,9 @@
 {
   "swagger": "2.0",
   "info": {
-    "version": "2.1.1",
+    "version": "2.1.4",
     "title": "Darbot Browser MCP",
-    "description": "Browser automation for Microsoft Power Platform and Copilot Studio. Provides registration-truth 59 Darbot Browser MCP tools plus generic list and execute operations (66 OpenAPI paths).",
+    "description": "Browser automation for Microsoft Power Platform and Copilot Studio. Provides registration-truth 68 Darbot Browser MCP tools plus generic list and execute operations (75 OpenAPI paths).",
     "contact": {
       "name": "Darbot Labs Support",
       "url": "https://github.com/darbotlabs/darbot-browser-mcp",
@@ -58,6 +58,73 @@
         "x-ms-visibility": "internal"
       }
     },
+    "/ready": {
+      "get": {
+        "summary": "Readiness Check",
+        "description": "Check whether the service is ready to accept browser sessions.",
+        "operationId": "ReadinessCheck",
+        "responses": {
+          "200": {
+            "description": "Service is ready",
+            "schema": {
+              "$ref": "#/definitions/HealthStatus"
+            }
+          }
+        },
+        "x-ms-visibility": "internal"
+      }
+    },
+    "/live": {
+      "get": {
+        "summary": "Liveness Check",
+        "description": "Check whether the service process is alive.",
+        "operationId": "LivenessCheck",
+        "responses": {
+          "200": {
+            "description": "Service is alive",
+            "schema": {
+              "type": "object"
+            }
+          }
+        },
+        "x-ms-visibility": "internal"
+      }
+    },
+    "/openapi.json": {
+      "get": {
+        "summary": "OpenAPI JSON",
+        "description": "Retrieve the runtime OpenAPI specification as JSON.",
+        "operationId": "GetOpenApiJson",
+        "responses": {
+          "200": {
+            "description": "OpenAPI JSON document",
+            "schema": {
+              "type": "object"
+            }
+          }
+        },
+        "x-ms-visibility": "internal"
+      }
+    },
+    "/openapi.yaml": {
+      "get": {
+        "summary": "OpenAPI YAML",
+        "description": "Retrieve the runtime OpenAPI specification as YAML.",
+        "operationId": "GetOpenApiYaml",
+        "produces": [
+          "application/yaml"
+        ],
+        "responses": {
+          "200": {
+            "description": "OpenAPI YAML document",
+            "schema": {
+              "type": "string"
+            }
+          }
+        },
+        "x-ms-visibility": "internal"
+      }
+    },
     "/tools": {
       "get": {
         "summary": "List Tools",
@@ -102,32 +169,6 @@
             }
           }
         }
-      }
-    },
-    "/tools/auth.json": {
-      "post": {
-        "summary": "Auth.json",
-        "description": "Execute the auth.json Darbot Browser MCP tool.",
-        "operationId": "Auth.json",
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": false,
-            "schema": {
-              "$ref": "#/definitions/GenericToolRequest"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Tool execution response",
-            "schema": {
-              "$ref": "#/definitions/ToolResponse"
-            }
-          }
-        },
-        "x-ms-summary": "Auth.json"
       }
     },
     "/tools/browser_analyze_context": {
@@ -676,6 +717,32 @@
         "x-ms-summary": "Execute Workflow"
       }
     },
+    "/tools/browser_export_session_state": {
+      "post": {
+        "summary": "Export Session State",
+        "description": "Execute the browser_export_session_state Darbot Browser MCP tool.",
+        "operationId": "BrowserExportSessionState",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/GenericToolRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tool execution response",
+            "schema": {
+              "$ref": "#/definitions/ToolResponse"
+            }
+          }
+        },
+        "x-ms-summary": "Export Session State"
+      }
+    },
     "/tools/browser_file_upload": {
       "post": {
         "summary": "File Upload",
@@ -830,6 +897,58 @@
           }
         },
         "x-ms-summary": "Hover"
+      }
+    },
+    "/tools/browser_import_session_state": {
+      "post": {
+        "summary": "Import Session State",
+        "description": "Execute the browser_import_session_state Darbot Browser MCP tool.",
+        "operationId": "BrowserImportSessionState",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/GenericToolRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tool execution response",
+            "schema": {
+              "$ref": "#/definitions/ToolResponse"
+            }
+          }
+        },
+        "x-ms-summary": "Import Session State"
+      }
+    },
+    "/tools/browser_import_workspace_metadata": {
+      "post": {
+        "summary": "Import Workspace Metadata",
+        "description": "Execute the browser_import_workspace_metadata Darbot Browser MCP tool.",
+        "operationId": "BrowserImportWorkspaceMetadata",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/GenericToolRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tool execution response",
+            "schema": {
+              "$ref": "#/definitions/ToolResponse"
+            }
+          }
+        },
+        "x-ms-summary": "Import Workspace Metadata"
       }
     },
     "/tools/browser_install": {
@@ -1142,6 +1261,162 @@
           }
         },
         "x-ms-summary": "Save Storage State"
+      }
+    },
+    "/tools/browser_workflow_list": {
+      "post": {
+        "summary": "List Workflow Templates",
+        "description": "Execute the browser_workflow_list Darbot Browser MCP tool.",
+        "operationId": "BrowserWorkflowList",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/GenericToolRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tool execution response",
+            "schema": {
+              "$ref": "#/definitions/ToolResponse"
+            }
+          }
+        },
+        "x-ms-summary": "List Workflow Templates"
+      }
+    },
+    "/tools/browser_workflow_active": {
+      "post": {
+        "summary": "List Active Workflows",
+        "description": "Execute the browser_workflow_active Darbot Browser MCP tool.",
+        "operationId": "BrowserWorkflowActive",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/GenericToolRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tool execution response",
+            "schema": {
+              "$ref": "#/definitions/ToolResponse"
+            }
+          }
+        },
+        "x-ms-summary": "List Active Workflows"
+      }
+    },
+    "/tools/browser_workflow_cancel": {
+      "post": {
+        "summary": "Cancel Workflow",
+        "description": "Execute the browser_workflow_cancel Darbot Browser MCP tool.",
+        "operationId": "BrowserWorkflowCancel",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/GenericToolRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tool execution response",
+            "schema": {
+              "$ref": "#/definitions/ToolResponse"
+            }
+          }
+        },
+        "x-ms-summary": "Cancel Workflow"
+      }
+    },
+    "/tools/browser_workflow_register": {
+      "post": {
+        "summary": "Register Workflow",
+        "description": "Execute the browser_workflow_register Darbot Browser MCP tool.",
+        "operationId": "BrowserWorkflowRegister",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/GenericToolRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tool execution response",
+            "schema": {
+              "$ref": "#/definitions/ToolResponse"
+            }
+          }
+        },
+        "x-ms-summary": "Register Workflow"
+      }
+    },
+    "/tools/browser_memory_list": {
+      "post": {
+        "summary": "List Crawl Memory",
+        "description": "Execute the browser_memory_list Darbot Browser MCP tool.",
+        "operationId": "BrowserMemoryList",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/GenericToolRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tool execution response",
+            "schema": {
+              "$ref": "#/definitions/ToolResponse"
+            }
+          }
+        },
+        "x-ms-summary": "List Crawl Memory"
+      }
+    },
+    "/tools/browser_memory_clear": {
+      "post": {
+        "summary": "Clear Crawl Memory",
+        "description": "Execute the browser_memory_clear Darbot Browser MCP tool.",
+        "operationId": "BrowserMemoryClear",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "$ref": "#/definitions/GenericToolRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tool execution response",
+            "schema": {
+              "$ref": "#/definitions/ToolResponse"
+            }
+          }
+        },
+        "x-ms-summary": "Clear Crawl Memory"
       }
     },
     "/tools/browser_screen_capture": {
@@ -1662,84 +1937,6 @@
           }
         },
         "x-ms-summary": "Wait For"
-      }
-    },
-    "/tools/github-logged-in": {
-      "post": {
-        "summary": "Github-logged-in",
-        "description": "Execute the github-logged-in Darbot Browser MCP tool.",
-        "operationId": "Github-logged-in",
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": false,
-            "schema": {
-              "$ref": "#/definitions/GenericToolRequest"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Tool execution response",
-            "schema": {
-              "$ref": "#/definitions/ToolResponse"
-            }
-          }
-        },
-        "x-ms-summary": "Github-logged-in"
-      }
-    },
-    "/tools/session": {
-      "post": {
-        "summary": "Session",
-        "description": "Execute the session Darbot Browser MCP tool.",
-        "operationId": "Session",
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": false,
-            "schema": {
-              "$ref": "#/definitions/GenericToolRequest"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Tool execution response",
-            "schema": {
-              "$ref": "#/definitions/ToolResponse"
-            }
-          }
-        },
-        "x-ms-summary": "Session"
-      }
-    },
-    "/tools/stale-snapshot": {
-      "post": {
-        "summary": "Stale-snapshot",
-        "description": "Execute the stale-snapshot Darbot Browser MCP tool.",
-        "operationId": "Stale-snapshot",
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": false,
-            "schema": {
-              "$ref": "#/definitions/GenericToolRequest"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Tool execution response",
-            "schema": {
-              "$ref": "#/definitions/ToolResponse"
-            }
-          }
-        },
-        "x-ms-summary": "Stale-snapshot"
       }
     }
   },

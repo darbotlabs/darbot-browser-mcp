@@ -41,7 +41,7 @@ az account show >/dev/null 2>&1 || fail "Azure CLI is not authenticated. Run az 
 : "${AZURE_REGION_CODE:?Set AZURE_REGION_CODE, for example eus.}"
 
 CONTAINER_REPOSITORY="${CONTAINER_REPOSITORY:-darbot-browser-mcp}"
-CONTAINER_TAG="${CONTAINER_TAG:-2.1.1}"
+CONTAINER_TAG="${CONTAINER_TAG:-2.1.4}"
 APP_SERVICE_SKU="${APP_SERVICE_SKU:-B1}"
 CONTAINER_REGISTRY_SKU="${CONTAINER_REGISTRY_SKU:-Basic}"
 ENTRA_CLIENT_ID="${ENTRA_CLIENT_ID:-}"
@@ -113,4 +113,4 @@ fi
 log "Deployment complete."
 log "App URL: ${app_url}"
 log "ACR login server: ${acr_login_server}"
-log "Health check: ${app_url}/healthz"
+log "Health check: ${app_url}/health"

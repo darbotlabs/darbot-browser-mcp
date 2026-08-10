@@ -38,6 +38,7 @@ import clock from './tools/clock.js';
 import emulation from './tools/emulation.js';
 import diagnostics from './tools/diagnostics.js';
 import storage from './tools/storage.js';
+import workflowManagement from './tools/workflow-management.js';
 
 import type { Tool } from './tools/tool.js';
 
@@ -56,6 +57,9 @@ export const snapshotTools: Tool<any>[] = [
   profiles.browserSwitchProfile,
   profiles.browserListProfiles,
   profiles.browserDeleteProfile,
+  profiles.browserExportSessionState,
+  profiles.browserImportSessionState,
+  profiles.browserImportWorkspaceMetadata,
   profiles.browserDiscoverProfiles,
   ...screenshot,
   ...snapshot,
@@ -69,6 +73,7 @@ export const snapshotTools: Tool<any>[] = [
   ...emulation(true),
   ...diagnostics,
   ...storage,
+  ...workflowManagement,
 ];
 
 export const visionTools: Tool<any>[] = [
@@ -86,6 +91,9 @@ export const visionTools: Tool<any>[] = [
   profiles.browserSwitchProfile,
   profiles.browserListProfiles,
   profiles.browserDeleteProfile,
+  profiles.browserExportSessionState,
+  profiles.browserImportSessionState,
+  profiles.browserImportWorkspaceMetadata,
   profiles.browserDiscoverProfiles,
   ...tabs(false),
   ...testing,
@@ -98,4 +106,35 @@ export const visionTools: Tool<any>[] = [
   ...emulation(false),
   ...diagnostics,
   ...storage,
+  ...workflowManagement,
 ];
+
+/**
+ * Coordinate-based vision tools (`browser_screen_*`).
+ *
+ * These drive the mouse/keyboard by viewport coordinates instead of accessibility
+ * refs, so they carry no dependency on the aria snapshot pipeline and can be served
+ * alongside the snapshot tools rather than replacing them.
+ */
+export const visionOnlyTools: Tool<any>[] = [...vision];
+
+function dedupeByName(tools: Tool<any>[]): Tool<any>[] {
+  const byName = new Map<string, Tool<any>>();
+  for (const tool of tools) {
+    if (!byName.has(tool.schema.name))
+      byName.set(tool.schema.name, tool);
+  }
+  return [...byName.values()];
+}
+
+/**
+ * The full natively-registered tool surface: every snapshot tool plus the
+ * five coordinate-based screen tools (`browser_screen_*`). Tool names across the
+ * two families are disjoint (`browser_click` vs `browser_screen_click`), so both
+ * remain reachable in a single session without any mode flag.
+ * All five screen tools carry capability 'core' and are always available.
+ */
+export const allTools: Tool<any>[] = dedupeByName([
+  ...snapshotTools,
+  ...visionOnlyTools,
+]);

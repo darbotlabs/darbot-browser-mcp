@@ -28,6 +28,8 @@ suite('Extension Test Suite', () => {
   test('Extension should activate', async () => {
     const extension = vscode.extensions.getExtension('darbotlabs.darbot-browser-mcp');
     assert.ok(extension, 'Extension should be installed');
+    if (!extension)
+      return;
     await extension.activate();
     assert.strictEqual(extension.isActive, true, 'Extension should be active');
   });
@@ -40,6 +42,7 @@ suite('Extension Test Suite', () => {
       'darbot-browser-mcp.stopServer',
       'darbot-browser-mcp.restartServer',
       'darbot-browser-mcp.showStatus',
+      'darbot-browser-mcp.openBridgeStatus',
     ];
 
     for (const cmd of expectedCommands) {
@@ -55,7 +58,7 @@ suite('Extension Test Suite', () => {
     
     assert.strictEqual(
       config.get('serverPath'),
-      'npx @darbotlabs/darbot-browser-mcp@latest',
+      'npx @darbotlabs/darbot-browser-mcp@2.1.4',
       'serverPath should have default value'
     );
     assert.strictEqual(
@@ -80,7 +83,7 @@ suite('Status Notification Test Suite', () => {
   test('Status message format should be correct', () => {
     // Test the expected format of the status message
     const status = 'Stopped';
-    const serverPath = 'npx @darbotlabs/darbot-browser-mcp@latest';
+    const serverPath = 'npx @darbotlabs/darbot-browser-mcp@2.1.4';
     const browser = 'msedge';
     const headless = false;
     const noSandbox = true;
@@ -96,7 +99,7 @@ suite('Status Notification Test Suite', () => {
     // Verify the format matches expected output
     const expectedLines = [
       'Darbot Browser Status: Stopped',
-      'npx @darbotlabs/darbot-browser-mcp@latest',
+      'npx @darbotlabs/darbot-browser-mcp@2.1.4',
       'Browser: msedge',
       'Headless: false',
       'No Sandbox: true',
@@ -117,7 +120,7 @@ suite('Status Notification Test Suite', () => {
 
   test('Status message should show Running state correctly', () => {
     const status = 'Running';
-    const serverPath = '@darbotlabs/darbot-browser-mcp@latest';
+    const serverPath = '@darbotlabs/darbot-browser-mcp@2.1.4';
     const browser = 'chrome';
     const headless = true;
     const noSandbox = false;

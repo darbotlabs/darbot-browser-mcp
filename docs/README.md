@@ -1,6 +1,6 @@
 # Darbot Browser MCP documentation
 
-This documentation index maps every supported v2.0.0 deployment path, integration, and reference surface.
+This documentation index maps every supported v2.1.4 deployment path, integration, and reference surface.
 
 You'll learn:
 
@@ -21,7 +21,7 @@ You'll learn:
 
 - [Autonomous features](guides/autonomous-features.md) explains crawl planning, memory, guardrails, and reporting.
 - [Bridge auto-detection](guides/bridge-auto-detection.md) explains ports `9223`-`9225`, `/bridge`, and the Chrome/Edge extension.
-- [Session states](guides/session-states.md) explains save, restore, and storage-state conventions.
+- [Session states](guides/session-states.md) explains save, restore, portable import/export, and storage-state conventions.
 - [Profiles and multi-account](guides/profiles-and-multi-account.md) explains Microsoft Edge profile discovery and account-aware workflows.
 - [Cloud vs local vs hosted](guides/cloud-vs-local-vs-hosted.md) compares deployment modes.
 
@@ -48,7 +48,7 @@ You'll learn:
 ## Historical and planning material
 
 - [Backlog](backlog/darbot-browser_backlog.md)
-- [Release tracker archive](legacy/release-tracker-archive.md)
+- [Release tracker archive](history/release-tracker-archive.md)
 ---
 
-_Last updated: 2026-05-18 (v2.0.0)_
+_Last updated: 2026-08-10 (v2.1.4)_

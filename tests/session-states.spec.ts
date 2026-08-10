@@ -21,6 +21,9 @@ import os from 'node:os';
 import { test, expect } from './fixtures.js';
 
 function getSessionStatesDir(): string {
+  if (process.env.DARBOT_SESSION_STATE_DIR)
+    return path.resolve(process.env.DARBOT_SESSION_STATE_DIR);
+
   let profilesDir: string;
   if (process.platform === 'linux')
     profilesDir = process.env.XDG_DATA_HOME || path.join(os.homedir(), '.local', 'share');
@@ -32,6 +35,11 @@ function getSessionStatesDir(): string {
     throw new Error('Unsupported platform: ' + process.platform);
 
   return path.join(profilesDir, 'darbot-browser-mcp', 'session-states');
+}
+
+async function removeSessionState(name: string): Promise<void> {
+  const sessionDir = path.join(getSessionStatesDir(), name.replace(/[^a-zA-Z0-9-_]/g, '_'));
+  await fs.promises.rm(sessionDir, { recursive: true, force: true });
 }
 
 test.describe('Session State Management', () => {
@@ -214,5 +222,170 @@ test.describe('Session State Management', () => {
     });
 
     expect(result).toContainTextContent('Session state "non-existent-profile-67890" not found');
+  });
+
+  test('portable session-state bundles export and import storage state', async ({ startClient, server }, testInfo) => {
+    const outputDir = testInfo.outputPath('portable-session-state');
+    const sourceName = `portable-source-${Date.now()}`;
+    const importedName = `portable-import-${Date.now()}`;
+    const bundleName = 'portable-session.darbot-session-state.json';
+    await fs.promises.mkdir(outputDir, { recursive: true });
+
+    const { client } = await startClient({
+      args: ['--output-dir', outputDir],
+    });
+
+    try {
+      server.setContent('/portable', `
+        <title>Portable Session</title>
+        <body>Portable session state</body>
+      `, 'text/html');
+
+      await client.callTool({
+        name: 'browser_navigate',
+        arguments: { url: server.PREFIX + 'portable' },
+      });
+      await client.callTool({
+        name: 'browser_set_local_storage',
+        arguments: { key: 'portable-key', value: 'portable-value' },
+      });
+      await client.callTool({
+        name: 'browser_save_profile',
+        arguments: { name: sourceName, description: 'Portable round-trip source' },
+      });
+
+      const exportResult = await client.callTool({
+        name: 'browser_export_session_state',
+        arguments: { name: sourceName, filename: bundleName },
+      });
+      expect(exportResult).toContainTextContent(`Session state "${sourceName}" exported`);
+
+      const duplicateExportResult = await client.callTool({
+        name: 'browser_export_session_state',
+        arguments: { name: sourceName, filename: bundleName },
+      });
+      expect(duplicateExportResult).toContainTextContent('Export file already exists');
+
+      const bundlePath = path.join(outputDir, bundleName);
+      const bundle = JSON.parse(await fs.promises.readFile(bundlePath, 'utf8'));
+      expect(bundle.bundleVersion).toBe('1.0');
+      expect(bundle.type).toBe('darbot-session-state-bundle');
+      expect(bundle.profile.name).toBe(sourceName);
+      expect(bundle.storageState.origins).toContainEqual(expect.objectContaining({
+        localStorage: expect.arrayContaining([
+          expect.objectContaining({ name: 'portable-key', value: 'portable-value' }),
+        ]),
+      }));
+
+      await client.callTool({
+        name: 'browser_delete_profile',
+        arguments: { name: sourceName },
+      });
+      await client.callTool({
+        name: 'browser_set_local_storage',
+        arguments: { key: 'portable-key', value: 'changed-after-export' },
+      });
+
+      const importResult = await client.callTool({
+        name: 'browser_import_session_state',
+        arguments: { filename: bundleName, name: importedName },
+      });
+      expect(importResult).toContainTextContent(`Session state "${importedName}" imported successfully`);
+      expect(importResult).toContainTextContent('Storage state: Included');
+
+      const duplicateResult = await client.callTool({
+        name: 'browser_import_session_state',
+        arguments: { filename: bundleName, name: importedName },
+      });
+      expect(duplicateResult).toContainTextContent(`Session state "${importedName}" already exists`);
+
+      const switchResult = await client.callTool({
+        name: 'browser_switch_profile',
+        arguments: { name: importedName },
+      });
+      expect(switchResult).toContainTextContent('**Storage:** Fully restored');
+
+      const storageResult = await client.callTool({
+        name: 'browser_get_local_storage',
+        arguments: {},
+      });
+      expect(storageResult).toContainTextContent('portable-key');
+      expect(storageResult).toContainTextContent('portable-value');
+    } finally {
+      await removeSessionState(sourceName);
+      await removeSessionState(importedName);
+    }
+  });
+
+  test('workspace metadata import is session-scoped and recorded in saved states', async ({ startClient, server }, testInfo) => {
+    const outputDir = testInfo.outputPath('workspace-metadata');
+    const workspaceFilename = 'darbot.code-workspace';
+    const profileName = `workspace-import-${Date.now()}`;
+    await fs.promises.mkdir(outputDir, { recursive: true });
+    await fs.promises.writeFile(path.join(outputDir, workspaceFilename), `{
+      // JSONC comments and trailing commas are accepted.
+      "folders": [
+        { "name": "Browser", "path": "src" },
+        { "uri": "vscode-remote://ssh-remote+dev/workspaces/browser" },
+      ],
+      "settings": {
+        "editor.formatOnSave": true,
+        "typescript.tsdk": "node_modules/typescript/lib",
+      },
+      "extensions": {
+        "recommendations": ["dbaeumer.vscode-eslint"],
+      },
+      "remoteAuthority": "ssh-remote+dev",
+    }`);
+
+    const { client } = await startClient({
+      args: ['--output-dir', outputDir],
+    });
+
+    try {
+      const importResult = await client.callTool({
+        name: 'browser_import_workspace_metadata',
+        arguments: { filename: workspaceFilename, name: 'Darbot Browser Workspace' },
+      });
+      expect(importResult).toContainTextContent('Workspace metadata "Darbot Browser Workspace" imported');
+      expect(importResult).toContainTextContent('Folders: 2');
+      expect(importResult).toContainTextContent('Setting keys recorded: 2');
+      expect(importResult).toContainTextContent('were not executed or applied');
+
+      server.setContent('/workspace', '<title>Workspace Metadata</title><body>Workspace metadata</body>', 'text/html');
+      await client.callTool({
+        name: 'browser_navigate',
+        arguments: { url: server.PREFIX + 'workspace' },
+      });
+      await client.callTool({
+        name: 'browser_save_profile',
+        arguments: { name: profileName },
+      });
+
+      const profilePath = path.join(getSessionStatesDir(), profileName, 'profile.json');
+      const profile = JSON.parse(await fs.promises.readFile(profilePath, 'utf8'));
+      expect(profile.workspace).toEqual({
+        name: 'Darbot Browser Workspace',
+        path: path.join(outputDir, workspaceFilename),
+        folders: [
+          { name: 'Browser', path: 'src' },
+          { uri: 'vscode-remote://ssh-remote+dev/workspaces/browser' },
+        ],
+        settingKeys: ['editor.formatOnSave', 'typescript.tsdk'],
+        extensionRecommendations: ['dbaeumer.vscode-eslint'],
+        remoteAuthority: 'ssh-remote+dev',
+      });
+    } finally {
+      await removeSessionState(profileName);
+    }
+  });
+
+  test('portable imports reject filesystem paths outside the output directory', async ({ client }) => {
+    const result = await client.callTool({
+      name: 'browser_import_session_state',
+      arguments: { filename: '../session-state.json' },
+    });
+
+    expect(result).toContainTextContent('Use a filename only');
   });
 });

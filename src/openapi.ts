@@ -260,6 +260,7 @@ export class OpenAPIGenerator {
                   type: 'object',
                   properties: {
                     tools: { type: 'array', items: { $ref: '#/components/schemas/Tool' } },
+                    count: { type: 'integer' },
                   },
                 },
               },
@@ -274,9 +275,16 @@ export class OpenAPIGenerator {
       paths[toolPath] = {
         post: {
           summary: tool.schema.title || tool.schema.name,
-          description: tool.schema.description,
+          description: `${tool.schema.description} Calls from the same authenticated principal reuse a browser session by default; send X-Darbot-Session-Id to select a returned session explicitly.`,
           tags: [getToolCategory(tool)],
           operationId: `execute_${tool.schema.name}`,
+          parameters: [{
+            name: 'X-Darbot-Session-Id',
+            in: 'header',
+            required: false,
+            description: 'Optional browser session identifier returned by a previous REST tool call.',
+            schema: { type: 'string', format: 'uuid' },
+          }],
           requestBody: {
             required: true,
             content: {
@@ -290,13 +298,22 @@ export class OpenAPIGenerator {
           responses: {
             '200': {
               description: 'Tool executed successfully',
+              headers: {
+                'X-Darbot-Session-Id': {
+                  description: 'Browser session identifier that can be supplied on later REST tool calls.',
+                  schema: { type: 'string', format: 'uuid' },
+                },
+              },
               content: {
                 'application/json': {
                   schema: {
                     type: 'object',
                     properties: {
-                      success: { type: 'boolean' },
-                      result: { type: 'object' },
+                      content: {
+                        type: 'array',
+                        items: { type: 'object' },
+                      },
+                      isError: { type: 'boolean' },
                       metadata: { type: 'object' },
                     },
                   },
