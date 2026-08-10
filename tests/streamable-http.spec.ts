@@ -32,7 +32,7 @@ const __filename = url.fileURLToPath(import.meta.url);
 baseTest.setTimeout(120000);
 
 const test = baseTest.extend<{ serverEndpoint: (options?: { args?: string[], noPort?: boolean }) => Promise<{ url: URL, stderr: () => string }> }>({
-  serverEndpoint: async ({ mcpHeadless }, use, testInfo) => {
+  serverEndpoint: async ({ mcpHeadless, mcpBrowser }, use, testInfo) => {
     let cp: ChildProcess | undefined;
     const userDataDir = testInfo.outputPath('user-data-dir');
     await use(async (options?: { args?: string[], noPort?: boolean }) => {
@@ -43,7 +43,9 @@ const test = baseTest.extend<{ serverEndpoint: (options?: { args?: string[], noP
         path.join(path.dirname(__filename), '../cli.js'),
         ...(options?.noPort ? [] : ['--port=0']),
         '--user-data-dir=' + userDataDir,
+        ...(process.env.CI && process.platform === 'linux' ? ['--no-sandbox'] : []),
         ...(mcpHeadless ? ['--headless'] : []),
+        ...(mcpBrowser ? [`--browser=${mcpBrowser}`] : []),
         ...(options?.args || []),
       ], {
         stdio: 'pipe',
