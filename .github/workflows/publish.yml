@@ -22,9 +22,14 @@ on:
   workflow_dispatch:
     inputs:
       ref:
-        description: 'Git ref (tag) to publish'
+        description: 'Git ref to build and publish; package.json supplies the version'
         required: true
         type: string
+      docker_only:
+        description: 'Publish only the GHCR image after the shared build and test job'
+        required: false
+        default: false
+        type: boolean
 
 concurrency:
   group: publish-${{ github.ref }}
@@ -49,9 +54,15 @@ jobs:
       - name: Resolve version
         id: version
         run: |
-          REF="${{ inputs.ref || github.ref_name }}"
-          # Strip leading 'v' if present
-          echo "version=${REF#v}" >> "$GITHUB_OUTPUT"
+          PACKAGE_VERSION="$(node -p "require('./package.json').version")"
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+            TAG_VERSION="${GITHUB_REF_NAME#v}"
+            if [[ "$TAG_VERSION" != "$PACKAGE_VERSION" ]]; then
+              echo "Tag version $TAG_VERSION does not match package.json version $PACKAGE_VERSION" >&2
+              exit 1
+            fi
+          fi
+          echo "version=$PACKAGE_VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Use Node.js (from .nvmrc)
         uses: actions/setup-node@v4
@@ -78,6 +89,7 @@ jobs:
   publish-npm:
     name: Publish to npm
     needs: build
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.docker_only != true }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -108,6 +120,7 @@ jobs:
   publish-vsix-core:
     name: Publish vscode-extension to Marketplace
     needs: [build, publish-npm]
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.docker_only != true }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -148,6 +161,7 @@ jobs:
   publish-vsix-cloud:
     name: Publish vscode-extension-cloud to Marketplace
     needs: build
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.docker_only != true }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -188,6 +202,7 @@ jobs:
   publish-vsix-hosted:
     name: Publish vscode-extension-hosted to Marketplace
     needs: build
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.docker_only != true }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -228,6 +243,7 @@ jobs:
   publish-nuget:
     name: Publish to NuGet
     needs: [build, publish-npm]
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.docker_only != true }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
