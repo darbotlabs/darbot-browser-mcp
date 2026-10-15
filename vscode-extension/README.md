@@ -21,13 +21,12 @@ CLI. It does **not** bundle a browser or implement any tool logic itself.
 
 It exposes two integration paths:
 
-1. **Agent mode (recommended)** — registers a `McpServerDefinitionProvider`
-   with `vscode.lm`. VS Code spawns and supervises the MCP server only when
-   the user enables it in agent mode.
-2. **Self-managed server** — start/stop/restart commands spawn the server
-   in a child process and stream its output to the *Darbot Browser MCP*
-   output channel. Useful when running an MCP client that lives outside
-   VS Code or for ad-hoc debugging.
+1. **Managed HTTP mode (default)** — the extension supervises one local
+   server on port 3000 and registers `http://127.0.0.1:3000/mcp` with
+   VS Code. The same process exposes `/api/v1`, health, and OpenAPI routes
+   for Copilot Studio, Power Platform, and Dev Tunnels.
+2. **Stdio mode** — set `darbot-browser-mcp.transport` to `stdio` to retain
+   process-only MCP behavior without an HTTP listener.
 
 ## Install
 
@@ -54,6 +53,8 @@ On first activation the extension:
    and offers to flip it on.
 5. Auto-starts the stand-alone server only if
    `darbot-browser-mcp.autoStart` is `true` (default: `false`).
+6. Adds a **Darbot Browser MCP** Explorer view with server, MCP, REST,
+   OpenAPI, and Dev Tunnel controls.
 
 ## Commands
 
@@ -64,6 +65,14 @@ On first activation the extension:
 | Darbot Browser MCP: **Restart MCP Server**         | `darbot-browser-mcp.restartServer`                   |
 | Darbot Browser MCP: **Show Server Status**         | `darbot-browser-mcp.showStatus`                      |
 | Darbot Browser MCP: **Open Bridge Status**         | `darbot-browser-mcp.openBridgeStatus`                |
+| Darbot Browser MCP: **Open Health Endpoint**       | `darbot-browser-mcp.openHealth`                      |
+| Darbot Browser MCP: **Open REST Tool List**        | `darbot-browser-mcp.openRestTools`                   |
+| Darbot Browser MCP: **Open OpenAPI Document**      | `darbot-browser-mcp.openOpenApi`                     |
+| Darbot Browser MCP: **Copy MCP Endpoint**          | `darbot-browser-mcp.copyMcpEndpoint`                 |
+| Darbot Browser MCP: **Copy Power Platform REST URL** | `darbot-browser-mcp.copyPowerPlatformEndpoint`     |
+| Darbot Browser MCP: **Forward HTTP Port with VS Code** | `darbot-browser-mcp.forwardDevTunnel`             |
+| Darbot Browser MCP: **Set Dev Tunnel URL**         | `darbot-browser-mcp.setDevTunnelUrl`                 |
+| Darbot Browser MCP: **Test Local and Dev Tunnel Endpoints** | `darbot-browser-mcp.testEndpoints`           |
 
 ## Settings
 
@@ -72,11 +81,33 @@ On first activation the extension:
 | `darbot-browser-mcp.serverPath`               | `npx @darbotlabs/darbot-browser-mcp@2.1.4`             | Command line used to start the server. First whitespace-separated token is the executable.            |
 | `darbot-browser-mcp.autoStart`                | `false`                                                | Spawn the server automatically when VS Code starts.                                                  |
 | `darbot-browser-mcp.autoConfigureMCP`         | `true`                                                 | Offer to enable `chat.mcp.gallery.enabled` on first activation.                                       |
-| `darbot-browser-mcp.logLevel`                 | `info`                                                 | One of `error` / `warn` / `info` / `debug`. Forwarded as `--log-level`.                              |
+| `darbot-browser-mcp.transport`                | `http`                                                 | Use a shared HTTP server or legacy process-only `stdio`.                                               |
+| `darbot-browser-mcp.logLevel`                 | `info`                                                 | One of `error` / `warn` / `info` / `debug`. Exposed to the server as `DARBOT_LOG_LEVEL`; debug also enables Darbot debug namespaces. |
 | `darbot-browser-mcp.browser`                  | `msedge`                                               | `msedge` / `chrome` / `firefox` / `webkit`.                                                          |
 | `darbot-browser-mcp.headless`                 | `false`                                                | Forward `--headless` to the server.                                                                  |
 | `darbot-browser-mcp.noSandbox`                | `true`                                                 | Forward `--no-sandbox` (required inside many containers; harmless on the desktop).                   |
+| `darbot-browser-mcp.http.host`                | `127.0.0.1`                                            | Bind address for the managed HTTP server.                                                              |
+| `darbot-browser-mcp.http.port`                | `3000`                                                 | Local port exposing `/mcp`, `/api/v1`, health, and OpenAPI.                                            |
+| `darbot-browser-mcp.http.startupTimeout`      | `15000`                                                | Startup wait for the `/live` endpoint, in milliseconds.                                                |
+| `darbot-browser-mcp.devTunnel.url`            | empty                                                   | Public Dev Tunnel base URL used by integration commands and probes.                                    |
+| `darbot-browser-mcp.devTunnel.promptOnStart`  | `false`                                                 | Open VS Code's native **Forward a Port** flow after HTTP startup.                                      |
 | `darbot-browser-mcp.bridgeStatusUrl`          | `http://localhost:9223/health`                         | URL opened by the *Open Bridge Status* command.                                                      |
+
+## Copilot Studio and Power Platform through a Dev Tunnel
+
+1. Run **Darbot Browser MCP: Start MCP Server**.
+2. Run **Darbot Browser MCP: Forward HTTP Port with VS Code** and forward
+   port `3000`.
+3. In the VS Code **Ports** view, set **Port Visibility** to **Public** for
+   development testing.
+4. Run **Darbot Browser MCP: Set Dev Tunnel URL** and paste the generated
+   `https://...devtunnels.ms` URL. URLs ending in `/mcp/` are normalized.
+5. Run **Darbot Browser MCP: Test Local and Dev Tunnel Endpoints**.
+6. Use **Copy MCP Endpoint** for Streamable HTTP clients or **Copy Power
+   Platform REST URL** for the connector's `/api/v1` base.
+
+Dev Tunnels are intended for development. Production connectors should use
+a stable HTTPS service with Microsoft Entra ID authentication.
 
 ## Workspace-local development
 
@@ -100,8 +131,11 @@ Generate a Playwright test for the login flow on https://app.contoso.com.
 ## Troubleshooting
 
 - **Status bar shows `MCP: Stopped` but agent mode works.** That's normal —
-  the status bar tracks the stand-alone process started by *Start MCP
-  Server*. In agent mode VS Code supervises the server lifecycle.
+  this applies only when `darbot-browser-mcp.transport` is `stdio`. In the
+  default HTTP mode, agent discovery starts or reuses the managed port.
+- **Dev Tunnel returns `502 Bad Gateway`.** The forwarding relay exists, but
+  no Darbot HTTP process is listening on the forwarded port. Start the
+  managed server and confirm `http://127.0.0.1:3000/live` returns HTTP 200.
 - **`npx` fetches the server every cold-start.** Set `serverPath` to a
   globally-installed CLI (`darbot-browser-mcp`) after running
   `npm i -g @darbotlabs/darbot-browser-mcp`.

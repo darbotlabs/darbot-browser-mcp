@@ -88,6 +88,16 @@ test('streamable http transport', async ({ serverEndpoint }) => {
   await client.ping();
 });
 
+test('streamable http transport accepts a trailing slash', async ({ serverEndpoint }) => {
+  const { url } = await serverEndpoint();
+  const transport = new StreamableHTTPClientTransport(new URL('/mcp/', url));
+  const client = new Client({ name: 'test', version: '1.3.0' });
+  await client.connect(transport);
+  await client.ping();
+  await transport.terminateSession();
+  await client.close();
+});
+
 test('streamable http transport (config)', async ({ serverEndpoint }) => {
   const config: Config = {
     server: {

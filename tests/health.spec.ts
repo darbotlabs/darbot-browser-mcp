@@ -15,12 +15,26 @@
  */
 
 import { test, expect } from './fixtures.js';
+import { evaluateMemoryHealth } from '../src/health.js';
 
 type HealthOptions = {
   bridgeRequired?: boolean;
   bridgeConnected?: boolean;
   oauthValid?: boolean;
 };
+
+test('memory health uses the V8 heap limit instead of the committed heap', () => {
+  const megabyte = 1024 * 1024;
+  const check = evaluateMemoryHealth(61 * megabyte, 62 * megabyte, 4096 * megabyte);
+
+  expect(check.status).toBe('pass');
+  expect(check.details).toEqual(expect.objectContaining({
+    heapUsedMB: 61,
+    heapTotalMB: 62,
+    heapLimitMB: 4096,
+    usagePercent: 1,
+  }));
+});
 
 async function createHealthTestServer(options: HealthOptions) {
   const health = await import('../src/health.js') as any;

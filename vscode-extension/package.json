@@ -80,8 +80,62 @@
         "command": "darbot-browser-mcp.openBridgeStatus",
         "title": "Open Bridge Status",
         "category": "Darbot Browser MCP"
+      },
+      {
+        "command": "darbot-browser-mcp.openHealth",
+        "title": "Open Health Endpoint",
+        "category": "Darbot Browser MCP"
+      },
+      {
+        "command": "darbot-browser-mcp.openRestTools",
+        "title": "Open REST Tool List",
+        "category": "Darbot Browser MCP"
+      },
+      {
+        "command": "darbot-browser-mcp.openOpenApi",
+        "title": "Open OpenAPI Document",
+        "category": "Darbot Browser MCP"
+      },
+      {
+        "command": "darbot-browser-mcp.copyMcpEndpoint",
+        "title": "Copy MCP Endpoint",
+        "category": "Darbot Browser MCP"
+      },
+      {
+        "command": "darbot-browser-mcp.copyPowerPlatformEndpoint",
+        "title": "Copy Power Platform REST URL",
+        "category": "Darbot Browser MCP"
+      },
+      {
+        "command": "darbot-browser-mcp.forwardDevTunnel",
+        "title": "Forward HTTP Port with VS Code",
+        "category": "Darbot Browser MCP"
+      },
+      {
+        "command": "darbot-browser-mcp.setDevTunnelUrl",
+        "title": "Set Dev Tunnel URL",
+        "category": "Darbot Browser MCP"
+      },
+      {
+        "command": "darbot-browser-mcp.testEndpoints",
+        "title": "Test Local and Dev Tunnel Endpoints",
+        "category": "Darbot Browser MCP"
+      },
+      {
+        "command": "darbot-browser-mcp.openSettings",
+        "title": "Open Settings",
+        "category": "Darbot Browser MCP"
       }
     ],
+    "views": {
+      "explorer": [
+        {
+          "id": "darbot-browser-mcp.connections",
+          "name": "Darbot Browser MCP",
+          "visibility": "collapsed"
+        }
+      ]
+    },
     "configuration": {
       "title": "Darbot Browser MCP",
       "properties": {
@@ -99,6 +153,15 @@
           "type": "boolean",
           "default": true,
           "description": "When set, the extension offers to enable VS Code's MCP Gallery (chat.mcp.gallery.enabled) the first time it activates."
+        },
+        "darbot-browser-mcp.transport": {
+          "type": "string",
+          "enum": [
+            "http",
+            "stdio"
+          ],
+          "default": "http",
+          "description": "Transport used by the extension. HTTP exposes /mcp and /api/v1 routes for VS Code, Copilot Studio, Power Platform, and Dev Tunnels; stdio preserves process-only MCP behavior."
         },
         "darbot-browser-mcp.logLevel": {
           "type": "string",
@@ -131,6 +194,35 @@
           "type": "boolean",
           "default": true,
           "description": "Disable the Chromium sandbox. Required inside many containers; safe to leave enabled on the desktop."
+        },
+        "darbot-browser-mcp.http.host": {
+          "type": "string",
+          "default": "127.0.0.1",
+          "description": "Host used by the managed Streamable HTTP server. Loopback is sufficient for VS Code Dev Tunnels and avoids exposing the port directly to the LAN."
+        },
+        "darbot-browser-mcp.http.port": {
+          "type": "integer",
+          "default": 3000,
+          "minimum": 1,
+          "maximum": 65535,
+          "description": "Local port that exposes /mcp, /api/v1, health, and OpenAPI routes."
+        },
+        "darbot-browser-mcp.http.startupTimeout": {
+          "type": "integer",
+          "default": 15000,
+          "minimum": 1000,
+          "maximum": 120000,
+          "description": "Milliseconds to wait for the managed HTTP server's /live endpoint during startup."
+        },
+        "darbot-browser-mcp.devTunnel.url": {
+          "type": "string",
+          "default": "",
+          "description": "Public VS Code Dev Tunnel base URL. Endpoint suffixes such as /mcp or /api/v1 are normalized automatically by the Set Dev Tunnel URL command."
+        },
+        "darbot-browser-mcp.devTunnel.promptOnStart": {
+          "type": "boolean",
+          "default": false,
+          "description": "Open VS Code's native Forward a Port flow after the managed HTTP server starts."
         },
         "darbot-browser-mcp.bridgeStatusUrl": {
           "type": "string",

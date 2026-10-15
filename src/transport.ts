@@ -202,7 +202,7 @@ export async function startHttpServer(config: { host?: string, port?: number }):
 
   // MCP transports handle their own request bodies.
   app.use((req, res, next) => {
-    if (req.path === '/mcp')
+    if (req.path === '/mcp' || req.path === '/mcp/')
       return next();
 
     return express.json()(req, res, next);
@@ -408,7 +408,7 @@ export function startHttpTransport(httpServer: http.Server, mcpServer: Server, a
     return session;
   };
 
-  app.all('/mcp', async (req, res) => {
+  app.all(['/mcp', '/mcp/'], async (req, res) => {
     if (!(await enforceAuthIfEnabled(req, res)))
       return;
     await handleStreamable(

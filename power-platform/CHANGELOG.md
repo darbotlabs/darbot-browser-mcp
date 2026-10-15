@@ -1,5 +1,10 @@
 # Darbot Browser MCP Power Platform connector changelog
 
+## Unreleased
+
+- Modeled upstream and Dev Tunnel HTTP 502 text responses separately from
+  successful Darbot JSON tool responses.
+
 ## 2.1.4
 
 - Added individual operations for portable session-state export/import and

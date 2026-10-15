@@ -16,6 +16,7 @@
 
 import debug from 'debug';
 import express from 'express';
+import { getHeapStatistics } from 'node:v8';
 
 import { packageJSON } from './package.js';
 
@@ -74,6 +75,29 @@ export interface HealthCheckServiceOptions {
 type HealthCheckFn = () => Promise<HealthCheck>;
 
 const REQUIRED_AZURE_ENV = ['AZURE_TENANT_ID', 'AZURE_CLIENT_ID', 'AZURE_CLIENT_SECRET'] as const;
+
+export function evaluateMemoryHealth(
+  heapUsedBytes: number,
+  heapTotalBytes: number,
+  heapLimitBytes: number,
+): HealthCheck {
+  const heapUsedMB = Math.round(heapUsedBytes / 1024 / 1024);
+  const heapTotalMB = Math.round(heapTotalBytes / 1024 / 1024);
+  const heapLimitMB = Math.round(heapLimitBytes / 1024 / 1024);
+  const usagePercent = heapLimitBytes > 0 ? (heapUsedBytes / heapLimitBytes) * 100 : 0;
+  const status: HealthCheck['status'] = usagePercent > 98 ? 'fail' : usagePercent > 95 ? 'warn' : 'pass';
+  return {
+    name: 'memory',
+    status,
+    duration: 0,
+    details: {
+      heapUsedMB,
+      heapTotalMB,
+      heapLimitMB,
+      usagePercent: Math.round(usagePercent),
+    },
+  };
+}
 
 /**
  * Health check service for monitoring system status.
@@ -204,17 +228,11 @@ export class HealthCheckService {
     // Memory usage
     this.registerCheck('memory', async () => {
       const memUsage = process.memoryUsage();
-      const heapUsedMB = Math.round(memUsage.heapUsed / 1024 / 1024);
-      const heapTotalMB = Math.round(memUsage.heapTotal / 1024 / 1024);
-      const usagePercent = heapTotalMB > 0 ? (heapUsedMB / heapTotalMB) * 100 : 0;
-      // Playwright workloads churn heap aggressively; only warn near saturation.
-      const status: HealthCheck['status'] = usagePercent > 98 ? 'fail' : usagePercent > 95 ? 'warn' : 'pass';
-      return {
-        name: 'memory',
-        status,
-        duration: 0,
-        details: { heapUsedMB, heapTotalMB, usagePercent: Math.round(usagePercent) },
-      };
+      return evaluateMemoryHealth(
+          memUsage.heapUsed,
+          memUsage.heapTotal,
+          getHeapStatistics().heap_size_limit,
+      );
     });
 
     // Process uptime

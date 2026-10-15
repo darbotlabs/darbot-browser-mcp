@@ -53,6 +53,12 @@
             "schema": {
               "$ref": "#/definitions/HealthStatus"
             }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
+            }
           }
         },
         "x-ms-visibility": "internal"
@@ -68,6 +74,12 @@
             "description": "Service is ready",
             "schema": {
               "$ref": "#/definitions/HealthStatus"
+            }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
             }
           }
         },
@@ -85,6 +97,12 @@
             "schema": {
               "type": "object"
             }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
+            }
           }
         },
         "x-ms-visibility": "internal"
@@ -100,6 +118,12 @@
             "description": "OpenAPI JSON document",
             "schema": {
               "type": "object"
+            }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
             }
           }
         },
@@ -120,6 +144,12 @@
             "schema": {
               "type": "string"
             }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
+            }
           }
         },
         "x-ms-visibility": "internal"
@@ -135,6 +165,12 @@
             "description": "Available tools",
             "schema": {
               "$ref": "#/definitions/ListToolsResponse"
+            }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
             }
           }
         }
@@ -167,6 +203,12 @@
             "schema": {
               "$ref": "#/definitions/ToolResponse"
             }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
+            }
           }
         }
       }
@@ -191,6 +233,12 @@
             "description": "Tool execution response",
             "schema": {
               "$ref": "#/definitions/ToolResponse"
+            }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
             }
           }
         },
@@ -218,6 +266,12 @@
             "schema": {
               "$ref": "#/definitions/ToolResponse"
             }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
+            }
           }
         },
         "x-ms-summary": "Clear Cookies"
@@ -243,6 +297,12 @@
             "description": "Tool execution response",
             "schema": {
               "$ref": "#/definitions/ToolResponse"
+            }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
             }
           }
         },
@@ -270,6 +330,12 @@
             "schema": {
               "$ref": "#/definitions/ToolResponse"
             }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
+            }
           }
         },
         "x-ms-summary": "Clock Fast Forward"
@@ -295,6 +361,12 @@
             "description": "Tool execution response",
             "schema": {
               "$ref": "#/definitions/ToolResponse"
+            }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
             }
           }
         },
@@ -322,6 +394,12 @@
             "schema": {
               "$ref": "#/definitions/ToolResponse"
             }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
+            }
           }
         },
         "x-ms-summary": "Clock Pause"
@@ -347,6 +425,12 @@
             "description": "Tool execution response",
             "schema": {
               "$ref": "#/definitions/ToolResponse"
+            }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
             }
           }
         },
@@ -374,6 +458,12 @@
             "schema": {
               "$ref": "#/definitions/ToolResponse"
             }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
+            }
           }
         },
         "x-ms-summary": "Clock Set Fixed Time"
@@ -399,6 +489,12 @@
             "description": "Tool execution response",
             "schema": {
               "$ref": "#/definitions/ToolResponse"
+            }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
             }
           }
         },
@@ -426,6 +522,12 @@
             "schema": {
               "$ref": "#/definitions/ToolResponse"
             }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
+            }
           }
         },
         "x-ms-summary": "Configure Memory"
@@ -451,6 +553,12 @@
             "description": "Tool execution response",
             "schema": {
               "$ref": "#/definitions/ToolResponse"
+            }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
             }
           }
         },
@@ -478,6 +586,12 @@
             "schema": {
               "$ref": "#/definitions/ToolResponse"
             }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
+            }
           }
         },
         "x-ms-summary": "Console Messages"
@@ -503,6 +617,12 @@
             "description": "Tool execution response",
             "schema": {
               "$ref": "#/definitions/ToolResponse"
+            }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
             }
           }
         },
@@ -530,6 +650,12 @@
             "schema": {
               "$ref": "#/definitions/ToolResponse"
             }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
+            }
           }
         },
         "x-ms-summary": "Discover Profiles"
@@ -555,6 +681,12 @@
             "description": "Tool execution response",
             "schema": {
               "$ref": "#/definitions/ToolResponse"
+            }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
             }
           }
         },
@@ -582,6 +714,12 @@
             "schema": {
               "$ref": "#/definitions/ToolResponse"
             }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
+            }
           }
         },
         "x-ms-summary": "Emulate Geolocation"
@@ -607,6 +745,12 @@
             "description": "Tool execution response",
             "schema": {
               "$ref": "#/definitions/ToolResponse"
+            }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
             }
           }
         },
@@ -634,6 +778,12 @@
             "schema": {
               "$ref": "#/definitions/ToolResponse"
             }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
+            }
           }
         },
         "x-ms-summary": "Emulate Timezone"
@@ -659,6 +809,12 @@
             "description": "Tool execution response",
             "schema": {
               "$ref": "#/definitions/ToolResponse"
+            }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
             }
           }
         },
@@ -686,6 +842,12 @@
             "schema": {
               "$ref": "#/definitions/ToolResponse"
             }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
+            }
           }
         },
         "x-ms-summary": "Execute Intent"
@@ -711,6 +873,12 @@
             "description": "Tool execution response",
             "schema": {
               "$ref": "#/definitions/ToolResponse"
+            }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
             }
           }
         },
@@ -738,6 +906,12 @@
             "schema": {
               "$ref": "#/definitions/ToolResponse"
             }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
+            }
           }
         },
         "x-ms-summary": "Export Session State"
@@ -763,6 +937,12 @@
             "description": "Tool execution response",
             "schema": {
               "$ref": "#/definitions/ToolResponse"
+            }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
             }
           }
         },
@@ -790,6 +970,12 @@
             "schema": {
               "$ref": "#/definitions/ToolResponse"
             }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
+            }
           }
         },
         "x-ms-summary": "Generate Playwright Test"
@@ -815,6 +1001,12 @@
             "description": "Tool execution response",
             "schema": {
               "$ref": "#/definitions/ToolResponse"
+            }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
             }
           }
         },
@@ -842,6 +1034,12 @@
             "schema": {
               "$ref": "#/definitions/ToolResponse"
             }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
+            }
           }
         },
         "x-ms-summary": "Get Local Storage"
@@ -867,6 +1065,12 @@
             "description": "Tool execution response",
             "schema": {
               "$ref": "#/definitions/ToolResponse"
+            }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
             }
           }
         },
@@ -894,6 +1098,12 @@
             "schema": {
               "$ref": "#/definitions/ToolResponse"
             }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
+            }
           }
         },
         "x-ms-summary": "Hover"
@@ -919,6 +1129,12 @@
             "description": "Tool execution response",
             "schema": {
               "$ref": "#/definitions/ToolResponse"
+            }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
             }
           }
         },
@@ -946,6 +1162,12 @@
             "schema": {
               "$ref": "#/definitions/ToolResponse"
             }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
+            }
           }
         },
         "x-ms-summary": "Import Workspace Metadata"
@@ -971,6 +1193,12 @@
             "description": "Tool execution response",
             "schema": {
               "$ref": "#/definitions/ToolResponse"
+            }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
             }
           }
         },
@@ -998,6 +1226,12 @@
             "schema": {
               "$ref": "#/definitions/ToolResponse"
             }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
+            }
           }
         },
         "x-ms-summary": "List Profiles"
@@ -1023,6 +1257,12 @@
             "description": "Tool execution response",
             "schema": {
               "$ref": "#/definitions/ToolResponse"
+            }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
             }
           }
         },
@@ -1050,6 +1290,12 @@
             "schema": {
               "$ref": "#/definitions/ToolResponse"
             }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
+            }
           }
         },
         "x-ms-summary": "Navigate Back"
@@ -1075,6 +1321,12 @@
             "description": "Tool execution response",
             "schema": {
               "$ref": "#/definitions/ToolResponse"
+            }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
             }
           }
         },
@@ -1102,6 +1354,12 @@
             "schema": {
               "$ref": "#/definitions/ToolResponse"
             }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
+            }
           }
         },
         "x-ms-summary": "Network Requests"
@@ -1127,6 +1385,12 @@
             "description": "Tool execution response",
             "schema": {
               "$ref": "#/definitions/ToolResponse"
+            }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
             }
           }
         },
@@ -1154,6 +1418,12 @@
             "schema": {
               "$ref": "#/definitions/ToolResponse"
             }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
+            }
           }
         },
         "x-ms-summary": "Performance Metrics"
@@ -1179,6 +1449,12 @@
             "description": "Tool execution response",
             "schema": {
               "$ref": "#/definitions/ToolResponse"
+            }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
             }
           }
         },
@@ -1206,6 +1482,12 @@
             "schema": {
               "$ref": "#/definitions/ToolResponse"
             }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
+            }
           }
         },
         "x-ms-summary": "Resize"
@@ -1231,6 +1513,12 @@
             "description": "Tool execution response",
             "schema": {
               "$ref": "#/definitions/ToolResponse"
+            }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
             }
           }
         },
@@ -1258,6 +1546,12 @@
             "schema": {
               "$ref": "#/definitions/ToolResponse"
             }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
+            }
           }
         },
         "x-ms-summary": "Save Storage State"
@@ -1283,6 +1577,12 @@
             "description": "Tool execution response",
             "schema": {
               "$ref": "#/definitions/ToolResponse"
+            }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
             }
           }
         },
@@ -1310,6 +1610,12 @@
             "schema": {
               "$ref": "#/definitions/ToolResponse"
             }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
+            }
           }
         },
         "x-ms-summary": "List Active Workflows"
@@ -1335,6 +1641,12 @@
             "description": "Tool execution response",
             "schema": {
               "$ref": "#/definitions/ToolResponse"
+            }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
             }
           }
         },
@@ -1362,6 +1674,12 @@
             "schema": {
               "$ref": "#/definitions/ToolResponse"
             }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
+            }
           }
         },
         "x-ms-summary": "Register Workflow"
@@ -1387,6 +1705,12 @@
             "description": "Tool execution response",
             "schema": {
               "$ref": "#/definitions/ToolResponse"
+            }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
             }
           }
         },
@@ -1414,6 +1738,12 @@
             "schema": {
               "$ref": "#/definitions/ToolResponse"
             }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
+            }
           }
         },
         "x-ms-summary": "Clear Crawl Memory"
@@ -1439,6 +1769,12 @@
             "description": "Tool execution response",
             "schema": {
               "$ref": "#/definitions/ToolResponse"
+            }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
             }
           }
         },
@@ -1466,6 +1802,12 @@
             "schema": {
               "$ref": "#/definitions/ToolResponse"
             }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
+            }
           }
         },
         "x-ms-summary": "Screen Click"
@@ -1491,6 +1833,12 @@
             "description": "Tool execution response",
             "schema": {
               "$ref": "#/definitions/ToolResponse"
+            }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
             }
           }
         },
@@ -1518,6 +1866,12 @@
             "schema": {
               "$ref": "#/definitions/ToolResponse"
             }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
+            }
           }
         },
         "x-ms-summary": "Screen Move Mouse"
@@ -1543,6 +1897,12 @@
             "description": "Tool execution response",
             "schema": {
               "$ref": "#/definitions/ToolResponse"
+            }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
             }
           }
         },
@@ -1570,6 +1930,12 @@
             "schema": {
               "$ref": "#/definitions/ToolResponse"
             }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
+            }
           }
         },
         "x-ms-summary": "Scroll"
@@ -1595,6 +1961,12 @@
             "description": "Tool execution response",
             "schema": {
               "$ref": "#/definitions/ToolResponse"
+            }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
             }
           }
         },
@@ -1622,6 +1994,12 @@
             "schema": {
               "$ref": "#/definitions/ToolResponse"
             }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
+            }
           }
         },
         "x-ms-summary": "Select Option"
@@ -1647,6 +2025,12 @@
             "description": "Tool execution response",
             "schema": {
               "$ref": "#/definitions/ToolResponse"
+            }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
             }
           }
         },
@@ -1674,6 +2058,12 @@
             "schema": {
               "$ref": "#/definitions/ToolResponse"
             }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
+            }
           }
         },
         "x-ms-summary": "Set Local Storage"
@@ -1699,6 +2089,12 @@
             "description": "Tool execution response",
             "schema": {
               "$ref": "#/definitions/ToolResponse"
+            }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
             }
           }
         },
@@ -1726,6 +2122,12 @@
             "schema": {
               "$ref": "#/definitions/ToolResponse"
             }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
+            }
           }
         },
         "x-ms-summary": "Start Autonomous Crawl"
@@ -1751,6 +2153,12 @@
             "description": "Tool execution response",
             "schema": {
               "$ref": "#/definitions/ToolResponse"
+            }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
             }
           }
         },
@@ -1778,6 +2186,12 @@
             "schema": {
               "$ref": "#/definitions/ToolResponse"
             }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
+            }
           }
         },
         "x-ms-summary": "Tab Close"
@@ -1803,6 +2217,12 @@
             "description": "Tool execution response",
             "schema": {
               "$ref": "#/definitions/ToolResponse"
+            }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
             }
           }
         },
@@ -1830,6 +2250,12 @@
             "schema": {
               "$ref": "#/definitions/ToolResponse"
             }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
+            }
           }
         },
         "x-ms-summary": "Tab New"
@@ -1855,6 +2281,12 @@
             "description": "Tool execution response",
             "schema": {
               "$ref": "#/definitions/ToolResponse"
+            }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
             }
           }
         },
@@ -1882,6 +2314,12 @@
             "schema": {
               "$ref": "#/definitions/ToolResponse"
             }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
+            }
           }
         },
         "x-ms-summary": "Take Screenshot"
@@ -1908,6 +2346,12 @@
             "schema": {
               "$ref": "#/definitions/ToolResponse"
             }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
+            }
           }
         },
         "x-ms-summary": "Type"
@@ -1933,6 +2377,12 @@
             "description": "Tool execution response",
             "schema": {
               "$ref": "#/definitions/ToolResponse"
+            }
+          },
+          "502": {
+            "description": "Upstream gateway or development tunnel is unavailable.",
+            "schema": {
+              "$ref": "#/definitions/GatewayErrorResponse"
             }
           }
         },
@@ -2022,6 +2472,10 @@
           "additionalProperties": true
         }
       }
+    },
+    "GatewayErrorResponse": {
+      "type": "string",
+      "description": "Text or empty response returned by an upstream gateway or development tunnel before Darbot Browser MCP handles the request."
     }
   },
   "x-ms-connector-metadata": [

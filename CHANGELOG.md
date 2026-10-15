@@ -4,6 +4,23 @@ All notable changes to Darbot Browser MCP are documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project uses semantic versioning.
 
+## [Unreleased]
+
+### Added
+
+- Added managed HTTP, endpoint, and VS Code Dev Tunnel controls to the local
+  VS Code extension for Copilot Studio and Power Platform development.
+
+### Fixed
+
+- Accepted `/mcp/` as an alias for `/mcp` without consuming the Streamable HTTP
+  request body in Express.
+- Modeled Dev Tunnel HTTP 502 text responses in the Power Platform connector
+  so gateway failures do not masquerade as malformed Darbot JSON responses.
+- Calculated memory health against V8's actual heap limit instead of the
+  currently committed heap, preventing low-memory local servers from flapping
+  between healthy and unhealthy.
+
 ## [2.1.4] - 2026-08-10
 
 ### Added

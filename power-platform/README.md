@@ -86,4 +86,12 @@ The **v2.1.4** connector includes individual operations for the registration-tru
 - `pac` authentication failures: run `pac auth clear` and recreate the profile.
 - OAuth consent failures: verify redirect URL `https://global.consent.azure-apim.net/redirect` and resource scopes.
 - Connector action failures: call `/health`, then `GET /api/v1/tools` on the hosted service.
+- Dev Tunnel `502 Bad Gateway` with an empty body: the tunnel relay is active
+  but no Darbot HTTP server is listening on its forwarded port. In the VS
+  Code extension, use HTTP transport on port 3000, test `/live`, then test
+  the public `/api/v1/tools` URL.
+- `Property "" type mismatch, Expected: "object", Actual: "string"` after a
+  tunnel failure: the connector received the gateway's empty/text `502`
+  response instead of a Darbot JSON object. The connector models this `502`
+  separately; restore the backend listener rather than changing tool output.
 - Browser timeouts: verify the host has enough CPU/memory and that Edge/Playwright dependencies are installed.

@@ -16,6 +16,7 @@
 
 import * as assert from 'assert';
 import * as vscode from 'vscode';
+import { createEndpointUrls, normalizeBaseUrl } from '../../endpoints';
 
 suite('Extension Test Suite', () => {
   vscode.window.showInformationMessage('Start all tests.');
@@ -43,6 +44,15 @@ suite('Extension Test Suite', () => {
       'darbot-browser-mcp.restartServer',
       'darbot-browser-mcp.showStatus',
       'darbot-browser-mcp.openBridgeStatus',
+      'darbot-browser-mcp.openHealth',
+      'darbot-browser-mcp.openRestTools',
+      'darbot-browser-mcp.openOpenApi',
+      'darbot-browser-mcp.copyMcpEndpoint',
+      'darbot-browser-mcp.copyPowerPlatformEndpoint',
+      'darbot-browser-mcp.forwardDevTunnel',
+      'darbot-browser-mcp.setDevTunnelUrl',
+      'darbot-browser-mcp.testEndpoints',
+      'darbot-browser-mcp.openSettings',
     ];
 
     for (const cmd of expectedCommands) {
@@ -76,6 +86,42 @@ suite('Extension Test Suite', () => {
       true,
       'noSandbox should default to true'
     );
+    assert.strictEqual(
+      config.get('transport'),
+      'http',
+      'transport should default to http'
+    );
+    assert.strictEqual(
+      config.get('http.host'),
+      '127.0.0.1',
+      'HTTP host should default to loopback'
+    );
+    assert.strictEqual(
+      config.get('http.port'),
+      3000,
+      'HTTP port should default to 3000'
+    );
+  });
+});
+
+suite('Endpoint Configuration Test Suite', () => {
+  test('Normalizes endpoint URLs to their server base', () => {
+    assert.strictEqual(
+      normalizeBaseUrl('https://gp7hw9ml-3000.usw2.devtunnels.ms/mcp/'),
+      'https://gp7hw9ml-3000.usw2.devtunnels.ms'
+    );
+    assert.strictEqual(
+      normalizeBaseUrl('https://example.test/api/v1/tools'),
+      'https://example.test'
+    );
+  });
+
+  test('Builds MCP and Power Platform routes from one base URL', () => {
+    const endpoints = createEndpointUrls('http://127.0.0.1:3000');
+    assert.strictEqual(endpoints.mcp, 'http://127.0.0.1:3000/mcp');
+    assert.strictEqual(endpoints.restTools, 'http://127.0.0.1:3000/api/v1/tools');
+    assert.strictEqual(endpoints.powerPlatformBase, 'http://127.0.0.1:3000/api/v1');
+    assert.strictEqual(endpoints.openApi, 'http://127.0.0.1:3000/openapi.json');
   });
 });
 
