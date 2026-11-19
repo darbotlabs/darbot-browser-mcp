@@ -1,14 +1,5 @@
 # Darbot Browser MCP - Azure Cloud Configuration Summary
 
-**Deployment Date**: November 11, 2025  
-**Last Validated**: January 23, 2026  
-**Deployment Status**: [VALIDATED] **FULLY OPERATIONAL**  
-**Current Build**: ca18 (deployed to Azure Container Registry)
-
----
-
-## Executive Summary
-
 Successfully deployed Darbot Browser MCP to Azure App Service with full enterprise features, including:
 - [VALIDATED] Docker containerization with Azure Container Registry (ca18 deployed)
 - [VALIDATED] Managed identity with RBAC permissions (Key Vault, Storage, ACR)
@@ -104,7 +95,7 @@ Successfully tagged darbotbrowsermcp.azurecr.io/darbot-browser-mcp:latest
 - **Location**: East US (primary), West US 2 (App Service)
 - **Subscription**: `88dc9c38-361e-4516-9072-ae9504620c0f`
 - **Subscription Name**: MSFT_funded
-- **Status**: [PENDING VALIDATION] Active
+- **Status**: Active
 
 ### 1. Log Analytics Workspace
 - **Resource Name**: `darbot-browser-mcp-workspace`
@@ -165,7 +156,7 @@ Successfully tagged darbotbrowsermcp.azurecr.io/darbot-browser-mcp:latest
 - **Login Server**: `darbotbrowsermcp.azurecr.io`
 - **SKU**: Basic
 - **Admin User**: Enabled
-- **Status**: [PENDING VALIDATION] Active
+- **Status**: Active
 
 ### 6. App Service Plan
 - **Resource Name**: `darbot-browser-mcp-plan`
@@ -186,7 +177,7 @@ Successfully tagged darbotbrowsermcp.azurecr.io/darbot-browser-mcp:latest
 - **Resource ID**: `/subscriptions/88dc9c38-361e-4516-9072-ae9504620c0f/resourceGroups/darbot-browser-mcp/providers/Microsoft.Web/sites/darbot-browser-mcp`
 - **Location**: West US 2
 - **Default Hostname**: `darbot-browser-mcp.azurewebsites.net`
-- **State**: [PENDING VALIDATION] Running
+- **State**: Running
 - **Runtime**: Linux Container (Docker)
 - **Container Image**: `darbotbrowsermcp.azurecr.io/darbot-browser-mcp:latest`
 - **Platform**: 64-bit
@@ -298,8 +289,8 @@ Successfully tagged darbotbrowsermcp.azurecr.io/darbot-browser-mcp:latest
 - **OpenAPI Spec**: `https://darbot-browser-mcp.azurewebsites.net/openapi.json`
 
 ### MCP Protocol Endpoints
-- **MCP Server**: `https://darbot-browser-mcp.azurewebsites.net/mcp`
-- **SSE Transport**: `https://darbot-browser-mcp.azurewebsites.net/sse`
+- **MCP Server (Primary)**: `https://darbot-browser-mcp.azurewebsites.net/mcp`
+- **SSE Transport (Legacy)**: `https://darbot-browser-mcp.azurewebsites.net/sse`
 
 ### Authentication Endpoints
 - **OAuth Entry**: `https://darbot-browser-mcp.azurewebsites.net/auth`
@@ -623,8 +614,8 @@ Invoke-RestMethod -Uri "https://darbot-browser-mcp.azurewebsites.net/mcp" -Metho
 {
   "mcpServers": {
     "darbot-browser-cloud": {
-      "url": "https://darbot-browser-mcp.azurewebsites.net/sse",
-      "transport": "sse"
+      "url": "https://darbot-browser-mcp.azurewebsites.net/mcp",
+      "transport": "http"
     }
   }
 }
@@ -637,63 +628,32 @@ export DARBOT_MCP_HEALTH="https://darbot-browser-mcp.azurewebsites.net/health"
 export DARBOT_MCP_OPENAPI="https://darbot-browser-mcp.azurewebsites.net/openapi.json"
 ```
 
----
+## Deployment Timeline
 
-## [DOCS] Deployment Timeline & History
+| Component | Status |
+|-----------|--------|
+| Log Analytics Workspace | VALIDATED |
+| Application Insights | VALIDATED |
+| Storage Account | VALIDATED |
+| Blob containers (browser-sessions, audit-logs) | VALIDATED |
+| Key Vault | VALIDATED |
+| Client secret (azure-client-secret) | VALIDATED |
+| App Service Plan (West US 2, P1v3) | VALIDATED |
+| Web App | VALIDATED |
+| App settings (29 configured) | VALIDATED |
+| Managed identity | VALIDATED |
+| RBAC permissions (Key Vault, Storage, ACR) | VALIDATED |
+| Packages updated | VALIDATED |
+| Dockerfile.acr | VALIDATED |
+| ACR build (ca18 current) | VALIDATED |
+| Docker image in ACR | VALIDATED |
+| Web App ACR configuration | VALIDATED |
+| ACR pull permission | VALIDATED |
+| Health check responding | VALIDATED |
 
-| Timestamp | Event | Status |
-|-----------|-------|--------|
-| 2025-10-17 21:40 | Log Analytics Workspace created | [PENDING VALIDATION] Success |
-| 2025-10-17 21:42 | Application Insights created | [PENDING VALIDATION] Success |
-| 2025-10-17 21:45 | Storage Account created | [PENDING VALIDATION] Success |
-| 2025-10-17 21:46 | Blob containers created | [PENDING VALIDATION] Success |
-| 2025-10-17 21:47 | Key Vault created | [PENDING VALIDATION] Success |
-| 2025-10-17 21:48 | Client secret stored | [PENDING VALIDATION] Success |
-| 2025-10-17 22:13 | App Service Plan created (West US 2) | [PENDING VALIDATION] Success |
-| 2025-10-17 22:14 | Web App created | [PENDING VALIDATION] Success |
-| 2025-10-17 22:15 | App settings configured | [PENDING VALIDATION] Success |
-| 2025-10-17 22:16 | Managed identity enabled | [PENDING VALIDATION] Success |
-| 2025-10-17 22:18 | RBAC permissions granted | [PENDING VALIDATION] Success |
-| 2025-11-11 05:56 | First ACR build attempted (ca1) | [FAILED] BuildKit error |
-| 2025-11-11 05:57 | Second ACR build (ca2) | [FAILED] tsc not found |
-| 2025-11-11 22:03 | Third ACR build (ca3) | [FAILED] tsc not found |
-| 2025-11-11 22:07 | Fourth ACR build (ca4) | [FAILED] Type definitions missing |
-| 2025-11-11 22:06 | Packages updated (npm update) | [PENDING VALIDATION] Success |
-| 2025-11-11 22:08 | Dockerfile.acr fixed (NODE_ENV) | [PENDING VALIDATION] Success |
-| 2025-11-11 22:09 | **Final ACR build (ca5)** | [PENDING VALIDATION] **SUCCESS** |
-| 2025-11-11 22:17 | Docker image pushed to ACR | [PENDING VALIDATION] Success |
-| 2025-11-11 22:18 | Web App configured for ACR | [PENDING VALIDATION] Success |
-| 2025-11-11 22:18 | ACR pull permission granted | [PENDING VALIDATION] Success |
-| 2025-11-11 22:19 | Web App restarted | [PENDING VALIDATION] Success |
-| 2025-11-11 22:20 | **Health check responding** | [PENDING VALIDATION] **OPERATIONAL** |
+**Last Validated**: January 24, 2026 
 
 ---
-
-## 🎓 Lessons Learned & Best Practices
-
-### Docker Build Issues Resolved
-1. **BuildKit Features**: ACR doesn't support `--mount` flags; use standard RUN commands
-2. **npm ci Behavior**: With `NODE_ENV=production`, devDependencies are skipped
-3. **Solution**: Use `NODE_ENV=development npm ci` then `npm prune --omit=dev`
-4. **Type Definitions**: Ensure all peer dependencies are included in package-lock.json
-
-### Azure Deployment Best Practices
-1. **Regional Flexibility**: Be prepared for quota limitations; deploy App Service where quota available
-2. **Managed Identity**: Always use managed identity over connection strings
-3. **RBAC Over Keys**: Grant permissions via RBAC roles, not access keys
-4. **Container Startup**: Allow 600+ seconds for first-time browser installation
-5. **Health Checks**: Implement comprehensive health endpoints for monitoring
-
-### Security Configuration
-1. **Secrets in Key Vault**: Never store secrets in app settings directly
-2. **Managed Identity**: Use for all Azure service authentication
-3. **HTTPS Enforcement**: Enable `httpsOnly` for production
-4. **TLS 1.2 Minimum**: Enforce modern TLS versions
-5. **Disable FTP**: No FTP/FTPS access in production
-
----
-
-## Additional Resources
 
 ### Documentation
 - [Azure Deployment Guide](./README.md)
@@ -713,8 +673,3 @@ export DARBOT_MCP_OPENAPI="https://darbot-browser-mcp.azurewebsites.net/openapi.
 - GitHub Issues: https://github.com/darbotlabs/darbot-browser-mcp/issues
 
 ---
-
-**Document Version**: 1.1  
-**Last Updated**: January 23, 2026  
-**Author**: Automated deployment via Azure CLI  
-**Status**: [VALIDATED] Production-Ready Configuration

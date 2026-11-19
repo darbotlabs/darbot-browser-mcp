@@ -198,17 +198,24 @@ TUNNEL_ACCESS=private
 ### Step 3: Build and Run
 
 ```bash
-# Navigate to hosted directory
-cd darbot-browser-hosted
+# Navigate to PROJECT ROOT (not darbot-browser-hosted)
+cd darbot-browser-mcp
 
-# Build Docker image
-docker build -t darbot-browser-hosted -f Dockerfile .
+# Build Docker image (context must be root)
+docker build -t darbot-browser-hosted -f darbot-browser-hosted/Dockerfile .
 
 # Run container
 docker run -d \
   --name darbot-browser-hosted \
   -p 8080:8080 \
-  --env-file .env \
+  -e ALLOW_ANONYMOUS_ACCESS=true \
+  darbot-browser-hosted
+
+# Or with .env file for MSAL auth
+docker run -d \
+  --name darbot-browser-hosted \
+  -p 8080:8080 \
+  --env-file darbot-browser-hosted/.env \
   darbot-browser-hosted
 
 # Check logs

@@ -17,8 +17,10 @@
 import * as playwright from 'playwright';
 import { callOnPageNoTrace } from './tools/utils.js';
 
+type SnapshotResult = string | { full: string };
+
 type PageEx = playwright.Page & {
-  _snapshotForAI: () => Promise<string>;
+  _snapshotForAI: () => Promise<SnapshotResult>;
 };
 
 export class PageSnapshot {
@@ -40,7 +42,20 @@ export class PageSnapshot {
   }
 
   private async _build() {
-    const snapshot = await callOnPageNoTrace(this._page, page => (page as PageEx)._snapshotForAI());
+    const snapshotResult = await callOnPageNoTrace(this._page, page => (page as PageEx)._snapshotForAI());
+    // Handle both old (string) and new (object with full property) Playwright snapshot formats
+    let snapshot: string;
+    if (typeof snapshotResult === 'string') {
+      snapshot = snapshotResult;
+    } else if (snapshotResult && typeof snapshotResult === 'object') {
+      // Try different known property names for the snapshot text
+      snapshot = (snapshotResult as any).full 
+        ?? (snapshotResult as any).text 
+        ?? (snapshotResult as any).snapshot
+        ?? JSON.stringify(snapshotResult, null, 2);
+    } else {
+      snapshot = String(snapshotResult);
+    }
     this._text = [
       `- Page Snapshot`,
       '```yaml',

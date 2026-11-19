@@ -20,15 +20,25 @@ secrets/
 config/local.json
 
 .idea
+.vs/
 .DS_Store
 
 # VS Code extension build artifacts
 vscode-extension/out/
 vscode-extension/node_modules/
+darbot-browser-hosted/vscode-extension-hosted/out/
 
 # .NET build artifacts
 dotnet/*/bin/
 dotnet/*/obj/
+dotnet/**/bin/
+dotnet/**/obj/
 *.nupkg
+
+# Build artifacts and logs
+*.tgz
+*.zip
+stderr.log
+stdout.log
 
 .fake

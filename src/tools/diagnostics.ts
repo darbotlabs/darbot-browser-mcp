@@ -114,7 +114,7 @@ const performanceMetrics = defineTool({
       const output = [
         '=== Performance Metrics ===',
         '',
-        '📊 Core Timings:',
+        'Core Timings:',
         `  • DOM Content Loaded: ${metrics.domContentLoaded}ms`,
         `  • Load Complete: ${metrics.loadComplete}ms`,
         `  • DOM Interactive: ${metrics.domInteractive}ms`,

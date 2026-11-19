@@ -113,33 +113,62 @@ test.describe('Session State Management', () => {
   });
 
   test('browser_switch_profile restores session state', async ({ client, server }) => {
-    server.setContent('/', `
+    // Create a unique profile for this test  
+    const switchTestProfile = `switch-test-${Date.now()}`;
+    
+    server.setContent('/save-page', `
+      <title>Original Page</title>
+      <body>Original content</body>
+    `, 'text/html');
+    
+    server.setContent('/different', `
       <title>Different Page</title>
       <body>This is a different page</body>
     `, 'text/html');
 
+    // Navigate to a page and wait for it to be stable
+    const navResult = await client.callTool({
+      name: 'browser_navigate',
+      arguments: { url: server.PREFIX + 'save-page' },
+    });
+    expect(navResult).toContainTextContent('Original content');
+    
+    // Take a snapshot to ensure the page is fully loaded
+    await client.callTool({
+      name: 'browser_snapshot',
+      arguments: {},
+    });
+    
+    const saveResult = await client.callTool({
+      name: 'browser_save_profile',
+      arguments: { name: switchTestProfile, description: 'Profile for switch test' },
+    });
+    
+    // Verify save was successful before proceeding
+    expect(saveResult).toContainTextContent(`Session state "${switchTestProfile}" saved successfully`);
+
     // Navigate to a different page
     await client.callTool({
       name: 'browser_navigate',
-      arguments: { url: server.PREFIX + '/different' },
+      arguments: { url: server.PREFIX + 'different' },
     });
 
     // Switch back to saved profile
     const result = await client.callTool({
       name: 'browser_switch_profile',
-      arguments: { name: testProfileName },
+      arguments: { name: switchTestProfile },
     });
 
     // Check response format
-    expect(result).toContainTextContent(`Session state "${testProfileName}" restored`);
+    expect(result).toContainTextContent(`Session state "${switchTestProfile}" restored`);
     expect(result).toContainTextContent('### Session State Details');
     expect(result).toContainTextContent('**Storage:**');
     
-    // Should show original context if available
-    if (result.content?.[0]?.text?.includes('Original Context')) {
-      expect(result).toContainTextContent('### Original Context');
-      expect(result).toContainTextContent('**Edge Profile:**');
-    }
+    // Cleanup
+    await client.callTool({
+      name: 'browser_delete_profile',
+      arguments: { name: switchTestProfile },
+    });
   });
 
   test('browser_delete_profile removes session state', async ({ client }) => {

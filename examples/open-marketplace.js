@@ -1,18 +1,29 @@
 #!/usr/bin/env node
 /**
- * Simple browser launcher for VS Code marketplace
+ * Darbot Browser MCP - Programmatic Usage Example
+ * 
+ * This example shows how to use Darbot Browser MCP as a library
+ * from a Node.js script using the MCP SDK.
+ * 
+ * Usage: node open-marketplace.js [url]
+ * 
+ * Examples:
+ *   node open-marketplace.js
+ *   node open-marketplace.js https://github.com/darbotlabs
  */
 
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 
-async function openMarketplace() {
-  console.log('[DEPLOY] Opening VS Code marketplace with Darbot Browser MCP...');
+const DEFAULT_URL = 'https://marketplace.visualstudio.com/manage/publishers/darbotlabs';
+
+async function openBrowser(url = DEFAULT_URL) {
+  console.log('Starting Darbot Browser MCP...');
   
-  const client = new Client({ name: 'marketplace-opener', version: '1.3.0' });
+  const client = new Client({ name: 'darbot-example', version: '1.3.0' });
   
   try {
-    // Connect to the published NPM package directly
+    // Connect to the Darbot Browser MCP server via stdio
     const transport = new StdioClientTransport({
       command: 'npx',
       args: ['@darbotlabs/darbot-browser-mcp@latest', '--browser', 'msedge'],
@@ -20,42 +31,28 @@ async function openMarketplace() {
     });
     
     await client.connect(transport);
-    console.log('[PENDING VALIDATION] Connected to Darbot Browser MCP');
+    console.log('Connected to Darbot Browser MCP');
     
-    // Navigate to the marketplace
-    console.log('Navigating to VS Code marketplace publisher page...');
-    await client.callTool({
+    // Navigate to the target URL
+    console.log(`Navigating to: ${url}`);
+    const result = await client.callTool({
       name: 'browser_navigate',
-      arguments: { url: 'https://marketplace.visualstudio.com/manage/publishers/darbotlabs' }
+      arguments: { url }
     });
     
-    console.log('[PENDING VALIDATION] Marketplace opened successfully!');
-    console.log(' Ready to upload: vscode-extension/darbot-browser-mcp-1.2.0.vsix');
-    console.log('The browser will remain open for you to upload the extension');
+    console.log('Navigation complete!');
     
-    // Keep process alive to maintain browser session
-    console.log('\n⏳ Browser session active. Press Ctrl+C to close when done.');
-    
-    // Handle cleanup on exit
-    process.on('SIGINT', async () => {
-      console.log('\n(reload) Closing browser session...');
-      try {
-        await client.callTool({ name: 'browser_close' });
-      } catch (e) {
-        // Ignore errors during cleanup
-      }
-      await client.close();
-      console.log('(wave) Session closed');
-      process.exit(0);
-    });
-    
-    // Keep alive
-    await new Promise(() => {});
+    // Cleanup
+    await client.callTool({ name: 'browser_close' });
+    await client.close();
+    console.log('Done');
     
   } catch (error) {
-    console.error('[FAILED] Failed to open marketplace:', error.message);
+    console.error('Error:', error.message);
     process.exit(1);
   }
 }
 
-openMarketplace().catch(console.error);
+// Get URL from command line or use default
+const targetUrl = process.argv[2] || DEFAULT_URL;
+openBrowser(targetUrl).catch(console.error);

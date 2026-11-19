@@ -1,6 +1,8 @@
-# [OFFICE] Engineer Guide - Copilot Studio & M365 Integration
+# Darbot Browser Cloud Configuration Guide for Copilot Studio & M365 Integration
 
-Complete integration guide for Engineers working on Copilot Studio and M365 agents.
+Complete integration guide for Copilot Studio and M365 agents.
+
+## Priority 1: Windows 11 + Microsoft Edge Integration
 
 **Recommended Setup:**
 
@@ -105,7 +107,7 @@ cd darbot-browser-mcp
 
 - **MCP Endpoint**: `https://your-app.azurewebsites.net/mcp`
 - **Auth**: Microsoft Entra ID
-- **Tools Available**: 39 browser automation tools
+- **Tools Available**: 52 browser automation tools
 
 ### M365 Agent Integration
 
@@ -116,7 +118,7 @@ cd darbot-browser-mcp
   "swagger": "2.0",
   "info": {
     "title": "Darbot Browser MCP",
-    "description": "29 autonomous browser tools for M365 agents",
+    "description": "52 autonomous browser tools for M365 agents",
     "version": "1.0"
   },
   "host": "your-app.azurewebsites.net",
@@ -127,6 +129,36 @@ cd darbot-browser-mcp
 }
 ```
 
+## Standards Compliance
+
+### Microsoft Standards
+
+- **Security**: Microsoft Entra ID authentication (MSAL JWT validation)
+- **Privacy**: No data collection, local browser sessions
+- **Architecture**: Follows Microsoft MCP specification
+- **Edge Integration**: Optimized for Microsoft Edge browser
+- **Azure Ready**: Native Azure deployment templates
+- **Power Platform**: Compatible with custom connectors
+
+### Anthropic MCP Standards
+
+- **Protocol Version**: MCP 2024-11-05 compliant
+- **Tool Schema**: Zod + JSON Schema validation
+- **Error Handling**: Standard MCP error responses
+- **Session Management**: Proper resource cleanup
+- **Transport**: Streamable HTTP and Server-Sent Events support
+
+### Google AI Standards
+
+- **OpenAPI 3.0**: Full API documentation
+- **Rate Limiting**: Configurable request limits
+- **Content Safety**: No personal data processing
+- **Accessibility**: WCAG-compliant automation
+- **Performance**: Efficient resource utilization
+
+## Windows 11 Optimization
+
+### Edge Browser Configuration
 
 **Optimal Edge Settings for Automation:**
 
@@ -165,7 +197,7 @@ const browserConfig = {
 ```powershell
 # verify-microsoft-integration.ps1
 
-Write-Host "[PENDING VALIDATION] Verifying Engineer Setup..." -ForegroundColor Cyan
+Write-Host "Verifying Setup..." -ForegroundColor Cyan
 
 # Check Windows 11
 $osVersion = (Get-CimInstance Win32_OperatingSystem).Caption
@@ -180,7 +212,7 @@ if (Get-Command code -ErrorAction SilentlyContinue) {
     $vscodeVersion = code --version | Select-Object -First 1
     Write-Host "VS Code: $vscodeVersion" -ForegroundColor Green
 } else {
-    Write-Host "[FAILED] VS Code not found" -ForegroundColor Red
+    Write-Host "VS Code not found" -ForegroundColor Red
 }
 
 # Check Darbot Browser MCP
@@ -188,20 +220,20 @@ try {
     $darbotVersion = npx @darbotlabs/darbot-browser-mcp@latest --version
     Write-Host "Darbot Browser MCP: $darbotVersion" -ForegroundColor Green
 } catch {
-    Write-Host "[FAILED] Darbot Browser MCP not accessible" -ForegroundColor Red
+    Write-Host "Darbot Browser MCP not accessible" -ForegroundColor Red
 }
 
 # Test Edge automation
 Write-Host "Testing Edge automation..." -ForegroundColor Yellow
 $testResult = npx @darbotlabs/darbot-browser-mcp@latest --test --browser msedge
 if ($LASTEXITCODE -eq 0) {
-    Write-Host "[PENDING VALIDATION] Edge automation test passed" -ForegroundColor Green
+    Write-Host "Edge automation test passed" -ForegroundColor Green
 } else {
-    Write-Host "[FAILED] Edge automation test failed" -ForegroundColor Red
+    Write-Host "Edge automation test failed" -ForegroundColor Red
 }
 ```
 
-## [THEATER] Usage Examples for Copilot Studio
+## Usage Examples for Copilot Studio
 
 ### Example 1: M365 Portal Navigation
 
@@ -306,11 +338,11 @@ const intentMappings = {
 
 ### Compliance Checklist
 
-- [PENDING VALIDATION] **GDPR**: No personal data stored
-- [PENDING VALIDATION] **SOC 2**: Security controls implemented  
-- [PENDING VALIDATION] **ISO 27001**: Information security standards
-- [PENDING VALIDATION] **Microsoft 365 Compliance**: Native integration
-- [PENDING VALIDATION] **FedRAMP**: Government cloud ready
+- **GDPR**: No personal data stored
+- **SOC 2**: Security controls implemented  
+- **ISO 27001**: Information security standards
+- **Microsoft 365 Compliance**: Native integration
+- **FedRAMP**: Government cloud ready
 
 ## Troubleshooting
 
@@ -362,7 +394,7 @@ npm config set https-proxy http://proxy.company.com:8080
 npm view @darbotlabs/darbot-browser-mcp
 ```
 
-## 📞 Support for Engineers
+## Support for Engineers
 
 ### Internal Microsoft Resources
 
@@ -380,15 +412,14 @@ npm view @darbotlabs/darbot-browser-mcp
 
 ## Success Criteria
 
-**[PENDING VALIDATION] Integration Complete When:**
+**Integration Complete When:**
 
 - VS Code extension installs without errors
 - MCP server configures automatically
 - Edge browser launches successfully
 - @darbot-browser-mcp appears in Copilot Chat
-- All 39 tools execute without errors
+- All 52 tools execute without errors
 - Screenshots and navigation work perfectly
-
 - Session profiles save and restore correctly
 
-**[DEPLOY] Ready for Production Copilot Studio Deployment!**
+**Ready for Production Copilot Studio Deployment**

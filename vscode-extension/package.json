@@ -1,7 +1,7 @@
 {
   "name": "darbot-browser-mcp",
   "displayName": "Darbot Browser MCP",
-  "description": "Your autonomous browser companion for VS Code. 38 AI-driven autonomous browser tools with Microsoft Edge work profile support and enhanced GitHub Copilot Chat integration for agent mode.",
+  "description": "Your autonomous browser companion for VS Code. 52 AI-driven autonomous browser tools with Microsoft Edge work profile support and enhanced GitHub Copilot Chat integration for agent mode.",
   "version": "1.3.0",
   "publisher": "darbotlabs",
   "engines": {
@@ -86,13 +86,8 @@
         },
         "darbot-browser-mcp.autoStart": {
           "type": "boolean",
-          "default": false,
-          "description": "Automatically start the Browser MCP server when VS Code starts"
-        },
-        "darbot-browser-mcp.autoConfigureMCP": {
-          "type": "boolean",
           "default": true,
-          "description": "Automatically configure MCP settings when the extension is first activated"
+          "description": "Automatically start the Browser MCP server when VS Code starts"
         },
         "darbot-browser-mcp.logLevel": {
           "type": "string",

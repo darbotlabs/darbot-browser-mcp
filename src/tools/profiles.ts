@@ -70,7 +70,8 @@ async function saveCurrentProfile(context: Context, profileName: string, descrip
   // Detect Edge profile info from environment/config
   const edgeProfile = process.env.DARBOT_EDGE_PROFILE || 'default';
   const edgeProfileEmail = process.env.DARBOT_EDGE_PROFILE_EMAIL || undefined;
-  const workspacePath = process.env.VSCODE_WORKSPACE_FOLDER || process.env.PWD || undefined;
+  // DARBOT_WORKSPACE takes precedence over auto-detected workspace paths
+  const workspacePath = process.env.DARBOT_WORKSPACE || process.env.VSCODE_WORKSPACE_FOLDER || process.env.PWD || undefined;
   const workspaceName = workspacePath ? path.basename(workspacePath) : undefined;
 
   // Save session state metadata with unified header

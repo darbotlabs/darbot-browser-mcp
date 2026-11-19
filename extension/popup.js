@@ -17,8 +17,15 @@
 // @ts-check
 
 /**
- * Popup script for Browser MCP Bridge extension
+ * Darbot Browser MCP Bridge Extension - Popup Controller
+ * Version: 1.3.0
  */
+
+/** @constant {string} */
+const POPUP_VERSION = '1.3.0';
+
+/** @constant {string} */
+const DEFAULT_BRIDGE_URL = 'ws://localhost:9223/extension';
 
 class PopupController {
   constructor() {
@@ -27,6 +34,7 @@ class PopupController {
     this.connectBtn = /** @type {HTMLButtonElement} */ (document.getElementById('connect-btn'));
     this.statusContainer = /** @type {HTMLElement} */ (document.getElementById('status-container'));
     this.actionContainer = /** @type {HTMLElement} */ (document.getElementById('action-container'));
+    this.vscodeBtn = /** @type {HTMLButtonElement} */ (document.getElementById('vscode-btn'));
 
     this.init();
   }
@@ -38,20 +46,63 @@ class PopupController {
 
     // Load saved bridge URL
     const result = await chrome.storage.sync.get(['bridgeUrl']);
-    const savedUrl = result.bridgeUrl || 'ws://localhost:9223/extension';
+    const savedUrl = result.bridgeUrl || DEFAULT_BRIDGE_URL;
     this.bridgeUrlInput.value = savedUrl;
     this.bridgeUrlInput.disabled = false;
 
     // Set up event listeners
     this.bridgeUrlInput.addEventListener('input', this.onUrlChange.bind(this));
     this.connectBtn.addEventListener('click', this.onConnectClick.bind(this));
+    
+    // VS Code button - opens VS Code via protocol handler
+    if (this.vscodeBtn) {
+      this.vscodeBtn.addEventListener('click', this.onVSCodeClick.bind(this));
+    }
 
     // Update UI based on current state
     await this.updateUI();
   }
 
+  /**
+   * Check if a URL is a protected browser URL that cannot be debugged
+   * @param {string|undefined} url
+   * @returns {boolean}
+   */
+  isProtectedUrl(url) {
+    if (!url) return true;
+    const protectedPrefixes = [
+      'chrome://',
+      'chrome-extension://',
+      'edge://',
+      'extension://',
+      'about:',
+      'view-source:',
+      'devtools://'
+    ];
+    return protectedPrefixes.some(prefix => url.toLowerCase().startsWith(prefix));
+  }
+
+  /**
+   * Open VS Code desktop application
+   */
+  onVSCodeClick() {
+    // Use the vscode:// protocol handler to open VS Code
+    // This will open the last workspace or a new window
+    window.open('vscode://file/', '_blank');
+  }
+
   async updateUI() {
     if (!this.currentTab?.id) return;
+
+    // Check if current tab is a protected URL
+    if (this.isProtectedUrl(this.currentTab.url)) {
+      if (!this.statusContainer || !this.actionContainer) return;
+      this.statusContainer.innerHTML = '';
+      this.actionContainer.innerHTML = '';
+      this.showStatus('warning', 'Cannot access chrome:// and edge:// URLs');
+      this.showConnectButton(true); // Disabled
+      return;
+    }
 
     // Get connection status from background script
     const response = await chrome.runtime.sendMessage({
@@ -91,11 +142,15 @@ class PopupController {
     this.statusContainer.appendChild(statusDiv);
   }
 
-  showConnectButton() {
+  /**
+   * Show the connect button
+   * @param {boolean} [disabled=false] - Whether the button should be disabled
+   */
+  showConnectButton(disabled = false) {
     if (!this.actionContainer) return;
 
     this.actionContainer.innerHTML = `
-      <button id="connect-btn" class="button">Share This Tab</button>
+      <button id="connect-btn" class="button" ${disabled ? 'disabled' : ''}>Share This Tab</button>
     `;
 
     const connectBtn = /** @type {HTMLButtonElement} */ (document.getElementById('connect-btn'));

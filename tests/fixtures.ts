@@ -118,7 +118,7 @@ export const test = baseTest.extend<TestFixtures & TestOptions, WorkerFixtures>(
     await browserServer.close();
   },
 
-  cdpServer: async ({ mcpBrowser }, use, testInfo) => {
+  cdpServer: async ({ mcpBrowser, mcpHeadless }, use, testInfo) => {
     test.skip(!['chrome', 'msedge', 'chromium'].includes(mcpBrowser!), 'CDP is not supported for non-Chromium browsers');
 
     let browserContext: BrowserContext | undefined;
@@ -128,7 +128,7 @@ export const test = baseTest.extend<TestFixtures & TestOptions, WorkerFixtures>(
       start: async () => {
         browserContext = await chromium.launchPersistentContext(testInfo.outputPath('cdp-user-data-dir'), {
           channel: mcpBrowser,
-          headless: true,
+          headless: mcpHeadless,
           args: [
             `--remote-debugging-port=${port}`,
           ],
@@ -232,7 +232,8 @@ async function createTransport(args: string[], mcpMode: TestOptions['mcpMode']):
     let stderrBuffer = '';
     relay.stderr!.on('data', data => {
       stderrBuffer += data.toString();
-      const match = stderrBuffer.match(/Listening on (http:\/\/.*)/);
+      // Match "listening on http://..." (case insensitive)
+      const match = stderrBuffer.match(/listening on (http:\/\/[^\s]+)/i);
       if (match)
         sseEndpointPromise.resolve(match[1].toString());
       const extensionMatch = stderrBuffer.match(/CDP relay server started on (ws:\/\/.*\/extension)/);

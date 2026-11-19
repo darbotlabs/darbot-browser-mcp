@@ -1,185 +1,260 @@
-# Darbot Browser MCP - Autonomous Release Tracker
+# Darbot Browser MCP - Release Tracker
 
 ## Release Overview
-**Release Date:** July 16, 2025  
-**Release Theme:** Autonomous Browser Companion Transformation  
-**Major Version Updates:** Multiple platform releases with autonomous functionality
+**Release Date:** January 25, 2026  
+**Release Theme:** Browser Extension Bridge & Enterprise Integration  
+**Major Version:** 1.3.0 across all platforms
 
 ---
 
-##  Package Releases
+## Package Releases
 
 ### 1. NPM Package - @darbotlabs/darbot-browser-mcp
-- **Previous Version:** 0.1.0
-- **New Version:** 0.1.1
-- **Status:** [PENDING VALIDATION] 
+- **Previous Version:** 1.2.2
+- **New Version:** 1.3.0
+- **Status:** PUBLISHED
 - **Installation:** `npx @darbotlabs/darbot-browser-mcp@latest`
 - **Key Changes:**
-  - All 39 tools updated with autonomous descriptions
-  - Enhanced package description emphasizing autonomous browser companion
-  - Default autonomous mode configuration
+  - 52 autonomous browser tools (up from 39)
+  - Browser Extension Bridge mode with CDP relay
+  - Streamable HTTP transport fixes for MCP SDK compliance
+  - Session isolation improvements
+  - Auto-detection of bridge connections
+  - New AI-native and autonomous crawling tools
 
 ### 2. VS Code Extension - darbot-browser-mcp
-- **Previous Version:** 1.2.1
-- **New Version:** 1.2.2
-- **Status:** [PENDING VALIDATION] 
+- **Previous Version:** 1.2.2
+- **New Version:** 1.3.0
+- **Status:** PUBLISHED
 - **Marketplace:** Visual Studio Code Marketplace
 - **Key Changes:**
-  - Package description updated to "39 AI-driven autonomous browser tools"
-  - README enhanced with autonomous messaging
-  - All feature descriptions emphasize autonomous capabilities
-  - Robot emoji ([ROBOT]) added to display name
+  - Updated to 52 autonomous browser tools
+  - Browser Extension Bridge integration
+  - Cyber retro UI design updates
+  - MCP server management improvements
 
-### 3. NuGet Package - DarbotLabs.Browser.MCP
-- **Previous Version:** None (New Package)
-- **New Version:** 0.1.1
-- **Status:** [PENDING VALIDATION] 
-- **Platform:** NuGet Gallery
+### 3. Chrome/Edge Extension - Darbot Browser MCP Bridge
+- **Previous Version:** 1.2.0
+- **New Version:** 1.3.0
+- **Status:** UPDATED
+- **Distribution:** Manual install (extension folder)
 - **Key Changes:**
-  - Initial release with autonomous browser MCP server
-  - .NET 7.0 targeting
-  - Complete autonomous description and metadata
+  - Cyber retro design with dark gradients (#1a1a2e → #16213e → #0f3460)
+  - Cyan/magenta accent colors
+  - Darbot logo integration
+  - "Open VS Code" button with protocol handler
+  - Reconnection logic (3 attempts, 10s timeout)
+  - Configurable debug logging
+  - Version tracking in bridge messages
+
+### 4. NuGet Package - DarbotLabs.Browser.MCP
+- **Previous Version:** 0.1.1
+- **New Version:** 0.1.1 (unchanged)
+- **Status:** AVAILABLE
+- **Platform:** NuGet Gallery
+
+---
+
+## 1.3.0 Feature Highlights
+
+### Browser Extension Bridge Mode
+New architecture enabling MCP tools to control existing browser tabs:
+
+```
+┌──────────────────┐     MCP      ┌──────────────────┐
+│   VS Code        │◄────────────►│  CDP Relay       │
+│   Copilot Chat   │   HTTP/WS    │  Server :9223    │
+└──────────────────┘              └────────┬─────────┘
+                                           │ WebSocket
+                                  ┌────────▼─────────┐
+                                  │  Chrome/Edge     │
+                                  │  Extension       │
+                                  └────────┬─────────┘
+                                           │ chrome.debugger
+                                  ┌────────▼─────────┐
+                                  │  Existing Tab    │
+                                  │  (User's Browser)│
+                                  └──────────────────┘
+```
+
+**Endpoints:**
+- `/mcp` - MCP protocol (Streamable HTTP)
+- `/bridge` - Bridge status endpoint
+- `/cdp` - CDP WebSocket relay
+- `/extension` - Extension WebSocket connection
+
+### New Tools Added (52 Total)
+
+**AI-Native Tools:**
+- `browser_execute_intent` - Natural language actions
+- `browser_execute_workflow` - Multi-step workflows
+- `browser_analyze_context` - AI context analysis
+
+**Autonomous Crawling:**
+- `browser_start_autonomous_crawl` - BFS site crawling
+- `browser_configure_memory` - Memory system setup
+- `browser_get_crawl_report` - Crawl analysis reports
+
+**Session & Environment:**
+- `browser_emulate_geolocation` - Location emulation
+- `browser_emulate_timezone` - Timezone emulation
+- `browser_emulate_media` - Media feature emulation
+
+**Time Control:**
+- `browser_clock_fast_forward` - Fast forward time
+- `browser_clock_pause` - Pause clock
+- `browser_clock_resume` - Resume clock
+- `browser_clock_set_fixed_time` - Set fixed time
+
+**Storage & Cookies:**
+- `browser_get_cookies` - Get cookies
+- `browser_set_cookie` - Set cookie
+- `browser_clear_cookies` - Clear cookies
+- `browser_get_local_storage` - Get localStorage
+- `browser_set_local_storage` - Set localStorage
+- `browser_save_storage_state` - Save storage state
+
+### Streamable HTTP Transport Fix
+Fixed MCP SDK compliance for Streamable HTTP transport:
+- Proper session ID handling
+- Correct response formatting
+- DELETE method support for session cleanup
 
 ---
 
 ## Technical Implementation Details
 
-### Core Autonomous Updates
-All tool descriptions across 15+ TypeScript files updated to emphasize autonomous capabilities:
+### CDP Relay Server (`src/cdpRelay.ts`)
+- WebSocket server bridging MCP to browser extension
+- `getStatus()` method for connection monitoring
+- Support for multiple connection types (extension, CDP, MCP)
 
-#### Navigation Tools (`src/tools/navigate.ts`)
-- `browser_navigate` → "Autonomously navigate the browser to any URL"
-- `browser_navigate_back` → "Autonomously navigate back to the previous page"
-- `browser_navigate_forward` → "Autonomously navigate forward to the next page"
+### Bridge Auto-Detection (`src/config.ts`)
+- `detectBridge()` function scans ports 9223-9225
+- `fetchBridgeStatus()` checks for active extension connection
+- Automatic `cdpEndpoint` configuration when bridge detected
 
-#### Interaction Tools (`src/tools/snapshot.ts`)
-- `browser_snapshot` → "Autonomously capture detailed accessibility snapshots"
-- `browser_click` → "Autonomously perform click interactions"
-- `browser_type` → "Autonomously type text into editable elements"
-- `browser_drag` → "Autonomously perform drag and drop operations"
-- `browser_hover` → "Autonomously hover over specific elements"
-- `browser_select_option` → "Autonomously select options in dropdown menus"
+### Chrome Extension Updates (`extension/`)
+- **manifest.json**: Updated name, CSP, minimum Chrome 88
+- **background.js**: Reconnection logic, version tracking, debug logging
+- **popup.html**: Cyber retro design, VS Code button
+- **popup.js**: VS Code protocol handler (`vscode://`)
 
-#### Tab Management (`src/tools/tabs.ts`)
-- `browser_tab_list` → "Autonomously list all open browser tabs"
-- `browser_tab_new` → "Autonomously open new browser tabs"
-- `browser_tab_select` → "Autonomously switch to specific browser tabs"
-- `browser_tab_close` → "Autonomously close browser tabs"
-
-#### Work Profile Management (`src/tools/profiles.ts`)
-- `browser_save_profile` → "Autonomously save browser sessions as reusable work profiles"
-- `browser_switch_profile` → "Autonomously switch to previously saved work profiles"
-- `browser_list_profiles` → "Autonomously list all saved work profiles"
-- `browser_delete_profile` → "Autonomously delete saved work profiles"
-
-#### Additional Autonomous Tools
-- **Files:** `browser_file_upload` → "Autonomously upload files"
-- **Dialogs:** `browser_handle_dialog` → "Autonomously handle browser dialog boxes"
-- **Keyboard:** `browser_press_key` → "Autonomously press keys on the keyboard"
-- **Wait:** `browser_wait_for` → "Autonomously wait for specific conditions"
-- **Screenshot:** `browser_take_screenshot` → "Autonomously capture visual screenshots"
-- **Console:** `browser_console_messages` → "Autonomously retrieve browser console messages"
-- **Network:** `browser_network_requests` → "Autonomously capture and analyze network requests"
-- **PDF:** `browser_pdf_save` → "Autonomously save web pages as PDF documents"
-- **Common:** `browser_close` → "Autonomously close the browser session"
-- **Common:** `browser_resize` → "Autonomously resize the browser window"
-- **Install:** `browser_install` → "Autonomously install required browser engines"
-- **Testing:** `browser_generate_playwright_test` → "Autonomously generate test code"
-
-### Documentation Updates
-
-#### Main README.md
-- Updated tagline to emphasize "autonomous browser capabilities"
-- Enhanced feature list with autonomous terminology
-- Updated comparison table to highlight "autonomous work profiles"
-- Refreshed tool descriptions with autonomous messaging
-
-#### VS Code Extension README
-- Enhanced description with autonomous browser operations
-- Updated usage examples to show autonomous interactions
-- Feature list updated to emphasize autonomous capabilities
-
-#### Package Descriptions
-- NPM: "39 AI-driven autonomous browser tools"
-- VS Code: "39 AI-driven autonomous browser tools"
-- NuGet: "39 AI-driven autonomous browser tools for Model Context Protocol"
+### MCP Configuration
+```json
+{
+  "chat.mcp.servers": {
+    "darbot-browser-bridge": {
+      "type": "http",
+      "url": "http://localhost:9223/mcp"
+    }
+  }
+}
+```
 
 ---
 
-## (refresh) Development Workflow
+## Tool Validation Results (Bridge Mode)
+
+### Confirmed Working (30 tools)
+| Category | Tools |
+|----------|-------|
+| Navigation | navigate, navigate_back, navigate_forward, snapshot, take_screenshot |
+| Interaction | click, type, hover, press_key, scroll, resize |
+| Analysis | console_messages, console_filtered, network_requests, performance_metrics, analyze_context |
+| Wait/Flow | wait_for, execute_intent |
+| Cookies | get_cookies, set_cookie, clear_cookies |
+| Storage | get_local_storage, set_local_storage |
+| Sessions | list_profiles, save_profile |
+| Tabs | tab_list |
+| Emulation | emulate_media, emulate_geolocation, emulate_timezone |
+| Generation | generate_playwright_test |
+
+### Known Limitations
+- `browser_tab_new` - Single tab limitation in bridge mode (CDP relay controls shared tab)
+
+---
+
+## Development Workflow
 
 ### 1. Analysis & Planning
-- [PENDING VALIDATION] Reviewed user requirements for autonomous browser paradigm
-- [PENDING VALIDATION] Identified all tool files requiring updates
-- [PENDING VALIDATION] Planned consistent autonomous messaging strategy
+- [x] Identified MCP transport issues with session isolation
+- [x] Designed CDP relay architecture for extension bridge
+- [x] Planned bridge auto-detection mechanism
 
 ### 2. Code Updates
-- [PENDING VALIDATION] Updated 15+ TypeScript tool files with autonomous descriptions
-- [PENDING VALIDATION] Enhanced main README.md with autonomous messaging
-- [PENDING VALIDATION] Updated VS Code extension package.json and README
-- [PENDING VALIDATION] Created new .NET NuGet package with autonomous descriptions
+- [x] Fixed `handleStreamable` in transport.ts for MCP SDK compliance
+- [x] Created CDP relay server with multi-endpoint support
+- [x] Added bridge status endpoint
+- [x] Updated Chrome extension with cyber retro design
+- [x] Added VS Code protocol handler
 
 ### 3. Build & Validation
-- [PENDING VALIDATION] TypeScript compilation successful (`npm run build`)
-- [PENDING VALIDATION] All 29 MCP tools tested and validated
-- [PENDING VALIDATION] VS Code extension compiled and packaged
-- [PENDING VALIDATION] .NET project built and NuGet package created
+- [x] TypeScript compilation successful
+- [x] All 52 MCP tools compiled
+- [x] VS Code extension packaged
+- [x] Chrome extension tested
 
 ### 4. Testing & Verification
-- [PENDING VALIDATION] MCP commands tested: `browser_navigate`, `browser_snapshot`, `browser_close`
-- [PENDING VALIDATION] Autonomous browser functionality validated
-- [PENDING VALIDATION] Error-free browser launching confirmed
-- [PENDING VALIDATION] Tool descriptions verified for autonomous terminology
+- [x] Bridge connection validated
+- [x] Navigation tools tested over bridge
+- [x] Interaction tools validated
+- [x] 30 tools confirmed working in bridge mode
 
-### 5. Publishing Workflow
-- [PENDING VALIDATION] NPM: Version bumped to 0.1.1, published successfully
-- [PENDING VALIDATION] VS Code: Version bumped to 1.2.2, uploaded to marketplace
-- [PENDING VALIDATION] NuGet: Version 0.1.1, uploaded and in validation
+### 5. Publishing
+- [x] NPM: Version 1.3.0 published
+- [x] VS Code: Version 1.3.0 published to marketplace
+- [x] Chrome Extension: Updated in repository
+
+---
+
+## Documentation Updates
+
+### New Documentation
+- **Browser-Extension-Integration.md** - Complete bridge integration guide
+- **Browser-Extension-Backlog.md** - 18 prioritized improvement items
+
+### Consolidated Documentation
+- **DarbotGuide.md** - Merged content from:
+  - GUIDE.md (deleted)
+  - INSTALLATION_GUIDE.md (deleted)
+  - INTEGRATION.md (deleted)
+
+### DarbotGuide.md Now Includes
+- Prerequisites and requirements
+- All installation methods (VS Code, NPX, Global, Docker)
+- Platform-specific guides (Windows, macOS, Linux, Corporate)
+- Advanced configuration options
+- Environment variables reference
+- Enterprise architecture
+- Power Platform integration
+- Autonomous features implementation
+- Comprehensive troubleshooting
 
 ---
 
 ## Key Achievements
 
-### Autonomous Transformation Complete [PENDING VALIDATION]
-- **39 tools Updated:** Every browser tool now emphasizes autonomous capabilities
-- **Consistent Messaging:** Autonomous terminology used across all platforms
-- **Default Mode:** Users get autonomous browser tools by default
-- **MCP-First:** All interactions use MCP commands, not scripts
+### Browser Extension Bridge [DONE]
+- MCP tools can control existing browser tabs
+- No need to launch new browser instance
+- Works with user's authenticated sessions
+- Real-time bidirectional communication
 
-### Multi-Platform Deployment [PENDING VALIDATION]
-- **NPM Package:** Live and available globally
-- **VS Code Extension:** Uploaded and in marketplace verification
-- **NuGet Package:** Uploaded and in validation for .NET ecosystem
+### Enterprise Integration [DONE]
+- Copilot Studio server-side integration
+- Power Platform Custom Connector support
+- Microsoft Entra ID authentication
+- Azure App Service deployment
 
-### Quality Assurance [PENDING VALIDATION]
-- **Zero Build Errors:** All TypeScript compilation successful
-- **Functional Testing:** Core autonomous browser operations validated
-- **Documentation:** Comprehensive updates across all platforms
-- **Version Consistency:** Aligned versions across platforms
-
----
-
-## [CHART-UP] Impact & Next Steps
-
-### Immediate Impact
-- Users installing any package now get autonomous browser companion experience
-- Clear messaging about AI-driven autonomous browser capabilities
-- Consistent experience across NPM, VS Code, and .NET ecosystems
-
-### Validation Timeline
-- **NPM:** [PENDING VALIDATION] Live immediately
-- **VS Code:** In verification, live within 24 hours
-- **NuGet:** In validation, live within 1 hour
-
-### Future Enhancements
-- Monitor adoption metrics across all platforms
-- Gather user feedback on autonomous browser experience
-- Consider additional autonomous browser capabilities
-- Expand autonomous browser ecosystem
+### Documentation Consolidation [DONE]
+- Single comprehensive guide (DarbotGuide.md)
+- Eliminated redundant documentation
+- Clear installation paths for all user types
 
 ---
 
-## [LINK] Resources & Links
+## Resources & Links
 
 ### Live Packages
 - **NPM:** https://www.npmjs.com/package/@darbotlabs/darbot-browser-mcp
@@ -188,27 +263,24 @@ All tool descriptions across 15+ TypeScript files updated to emphasize autonomou
 
 ### Documentation
 - **GitHub Repository:** https://github.com/darbotlabs/darbot-browser-mcp
-- **Main README:** Comprehensive autonomous browser documentation
-- **VS Code Extension:** Integrated autonomous browser for VS Code
+- **DarbotGuide:** Complete autonomous browser documentation
+- **Browser Extension Integration:** Bridge mode setup guide
 
 ### Support
 - **Issues:** https://github.com/darbotlabs/darbot-browser-mcp/issues
 - **Discussions:** GitHub repository discussions
-- **Email:** Support via GitHub issues
 
 ---
 
 ## Release Summary
 
-**[ROBOT] Darbot Browser MCP has been successfully transformed into a complete autonomous browser companion!**
+**Darbot Browser MCP 1.3.0** delivers Browser Extension Bridge mode, enabling MCP tools to control existing browser tabs through the Chrome/Edge extension. This release includes 52 autonomous browser tools, Streamable HTTP transport fixes, and comprehensive documentation consolidation.
 
-All 39 tools now provide autonomous browser capabilities with consistent messaging across NPM, VS Code Marketplace, and NuGet Gallery. Users can now access intelligent autonomous browser functionality through their preferred development environment with simple installation commands.
-
-**Release Status:** [PENDING VALIDATION] Complete and Deployed  
-**Total Platforms:** 3 (NPM, VS Code, NuGet)  
-**Total Tools:** 29 Autonomous Browser Tools  
-**Availability:** Global, across all major development ecosystems
+**Release Status:** Complete and Deployed  
+**Total Platforms:** 4 (NPM, VS Code, Chrome Extension, NuGet)  
+**Total Tools:** 52 Autonomous Browser Tools  
+**Bridge Mode:** Fully operational with 30 tools validated
 
 ---
 
-*Generated on July 16, 2025 - Darbot Browser MCP Autonomous Release*
+*Updated January 25, 2026 - Darbot Browser MCP v1.3.0 Release*

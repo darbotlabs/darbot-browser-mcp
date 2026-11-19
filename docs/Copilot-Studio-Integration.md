@@ -1,4 +1,4 @@
-# Microsoft Copilot Studio Integration Guide
+# Microsoft Copilot Studio Integration 
 
 This guide provides step-by-step instructions for integrating Darbot Browser with Microsoft Copilot Studio, enabling enterprise-grade autonomous browser automation within your Copilot Studio workflows.
 
@@ -19,6 +19,9 @@ Darbot Browser now includes enterprise features specifically designed for Micros
 - Azure CLI installed and configured
 - Docker (if building custom images)
 - Microsoft Copilot Studio license
+
+
+(this will also work with dev tunnesl and github api through power platform, no need for app registration)
 
 ### For Development
 - Node.js 23 or newer
@@ -84,7 +87,7 @@ RATE_LIMIT_ENABLED=true
 
 ## Available Tools
 
-Darbot Browser MCP provides 39 autonomous browser tools organized into categories:
+Darbot Browser MCP provides 52 autonomous browser tools organized into categories:
 
 ### Navigation Tools
 - `browser_navigate` - Navigate to URLs
@@ -153,7 +156,7 @@ Use the direct MCP server integration for the most comprehensive access to brows
    {
      "mcpServers": {
        "darbot-browser": {
-         "url": "https://your-app.azurewebsites.net/sse",
+         "url": "https://your-app.azurewebsites.net/mcp",
          "auth": {
            "type": "bearer",
            "token": "YOUR_ACCESS_TOKEN"
@@ -163,7 +166,7 @@ Use the direct MCP server integration for the most comprehensive access to brows
    }
    ```
 
-2. **Available in Copilot Studio**: All 39 tools will be available as MCP actions
+2. **Available in Copilot Studio**: All 52 tools will be available as MCP actions
 
 ### Method 2: Custom Connector (Coming Soon)
 

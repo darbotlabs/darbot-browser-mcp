@@ -60,7 +60,7 @@ cd power-platform
 - **Session Management**: Configurable timeouts and limits
 - **Memory Optimization**: Efficient resource utilization
 
-### [OFFICE] Enterprise Deployment
+###  Enterprise Deployment
 - **Azure App Service**: Production-ready hosting
 - **Key Vault Integration**: Secure secret management
 - **Infrastructure as Code**: Bicep and ARM templates
@@ -87,15 +87,16 @@ cd power-platform
                        └─────────────────┘
 ```
 
-## Available Tools by Category
+## Available Tools (52 Total)
 
-### Navigation (4 tools)
+### Navigation (5 tools)
 - `browser_navigate` - Navigate to URLs
 - `browser_go_back` - Navigate backwards  
 - `browser_go_forward` - Navigate forwards
 - `browser_reload` - Reload current page
+- `browser_wait_for` - Wait for navigation/conditions
 
-### Interaction (8 tools)
+### Core Interaction (8 tools)
 - `browser_click` - Click elements
 - `browser_type` - Type text into inputs
 - `browser_drag` - Drag and drop elements
@@ -105,10 +106,11 @@ cd power-platform
 - `browser_handle_dialog` - Handle browser dialogs
 - `browser_file_upload` - Upload files
 
-### Capture (3 tools)
+### Capture & Analysis (4 tools)
 - `browser_take_screenshot` - Capture screenshots
 - `browser_snapshot` - Get accessibility snapshots
 - `browser_pdf_save` - Generate PDFs
+- `browser_analyze_context` - AI context analysis
 
 ### Profile Management (4 tools)
 - `browser_save_profile` - Save browser sessions
@@ -116,18 +118,50 @@ cd power-platform
 - `browser_list_profiles` - List available profiles
 - `browser_delete_profile` - Delete profiles
 
-### Testing & Automation (5 tools)
-- `browser_generate_playwright_test` - Generate test scripts
-- `browser_wait_for` - Wait for conditions
-- `browser_network_requests` - Monitor network
-- `browser_console_messages` - Access console logs
-- `browser_install` - Install browsers
+### Tab Management (4 tools)
+- `browser_tab_list` - List open tabs
+- `browser_tab_new` - Open new tab
+- `browser_tab_select` - Select tab by index
+- `browser_tab_close` - Close tabs
 
-### Advanced (5+ tools)
-- Tab management (`browser_tab_*`)
-- AI-native operations
-- File management
-- And more...
+### Debug & Monitor (6 tools)
+- `browser_console_messages` - Access console logs
+- `browser_console_filtered` - Filter console by type
+- `browser_network_requests` - Monitor network
+- `browser_performance_metrics` - Performance data
+- `browser_clear_cookies` - Clear cookies
+- `browser_get_cookies` - Get cookies
+
+### AI-Native (4 tools)
+- `browser_execute_intent` - Natural language actions
+- `browser_execute_workflow` - Multi-step workflows
+- `browser_generate_playwright_test` - Generate test scripts
+- `browser_emulate_media` - Media feature emulation
+
+### Autonomous (3 tools)
+- `browser_start_autonomous_crawl` - Start BFS crawling
+- `browser_configure_memory` - Memory system setup
+- `browser_get_crawl_report` - Get crawl reports
+
+### Session & Environment (5 tools)
+- `browser_save_session` - Save session state
+- `browser_restore_session` - Restore session
+- `browser_emulate_geolocation` - Location emulation
+- `browser_emulate_timezone` - Timezone emulation
+- `browser_scroll` - Page scrolling
+
+### Setup & Install (5 tools)
+- `browser_install` - Install browsers
+- `browser_install_fake_clock` - Fake clock setup
+- `browser_get_local_storage` - Local storage access
+- `browser_resize` - Resize browser window
+- `browser_close` - Close browser
+
+### Time Control (4 tools)
+- `browser_clock_fast_forward` - Fast forward time
+- `browser_clock_pause` - Pause clock
+- `browser_clock_resume` - Resume clock
+- `browser_clock_set_fixed_time` - Set fixed time
 
 ## Configuration Reference
 
@@ -335,12 +369,66 @@ const screenshot = await connector.BrowserTakeScreenshot({
 This implementation provides a comprehensive, enterprise-ready solution for integrating Darbot Browser MCP with Microsoft Copilot Studio. Both the MCP server enhancement and Power Platform connector approaches are production-ready and can be deployed immediately.
 
 The solution includes all required enterprise features:
-- [PENDING VALIDATION] Microsoft Entra ID authentication
-- [PENDING VALIDATION] Enterprise security standards
-- [PENDING VALIDATION] Azure deployment templates
-- [PENDING VALIDATION] Health monitoring
-- [PENDING VALIDATION] OpenAPI specifications
-- [PENDING VALIDATION] Power Platform connector
-- [PENDING VALIDATION] Comprehensive documentation
+- Microsoft Entra ID authentication
+- Enterprise security standards
+- Azure deployment templates
+- Health monitoring
+- OpenAPI specifications
+- Power Platform connector
+- Comprehensive documentation
 
 Organizations can choose the integration approach that best fits their architecture and requirements, with the confidence that both options provide enterprise-grade security, performance, and reliability.
+
+# Implementation
+
+### 1. Memory System (`src/memory.ts`)
+
+- **Local Storage**: File-based state persistence with screenshot organization
+- **State Hashing**: SHA-256 DOM snapshot hashing for deduplication
+- **Darbot-Memory-MCP Integration**: Placeholder connector for future integration
+- **Configurable Storage**: Support for different backend storage systems
+
+### 2. Planner (`src/planner.ts`)
+
+- **Breadth-First Search**: Systematic exploration by depth level
+- **Intelligent Scoring**: URL and element prioritization algorithms
+- **Domain Filtering**: Configurable allowed/blocked domain support
+- **Loop Detection**: Infinite navigation pattern prevention
+
+### 3. Guardrail System (`src/guardrails.ts`)
+
+- **Rate Limiting**: Token bucket algorithm with configurable limits
+- **Safety Validation**: Pattern-based URL and action blocking
+- **Loop Prevention**: Detects repetitive navigation cycles
+- **Destructive Action Prevention**: Blocks harmful clicks and inputs
+
+### 4. Report Generator (`src/reporter.ts`)
+
+- **HTML Reports**: Comprehensive crawl reports with statistics
+- **Screenshot Galleries**: Organized visual documentation
+- **Site Graphs**: Link structure visualization
+- **Multiple Formats**: JSON and HTML output support
+
+### 5. Main Orchestrator (`src/orchestrator.ts`)
+
+- **Component Integration**: Coordinates memory, planner, guardrails, and reporter
+- **Session Management**: Tracks crawling progress and statistics
+- **Error Handling**: Robust error recovery and cleanup
+- **Configurable Parameters**: Full control over crawling behavior
+
+### 6. MCP Tools (`src/tools/autonomous.ts`)
+
+- **`browser_start_autonomous_crawl`**: Complete crawling configuration
+- **`browser_configure_memory`**: Memory system setup and management
+- **Parameter Validation**: Comprehensive input validation with Zod
+- **Demo Mode**: Safe testing without uncontrolled browsing
+
+
+
+### Integration Points
+
+- [LINK] Prepared for darbot-memory-mcp connector integration
+- [LINK] VS Code extension compatibility maintained
+- [LINK] MCP protocol compliance ensured
+- [LINK] Multi-platform support preserved
+

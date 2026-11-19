@@ -50,14 +50,20 @@ AZURE_CLIENT_SECRET=your-client-secret
 ### 4. Build and Run
 
 ```powershell
-# Build Docker image
-docker build -t darbot-browser-hosted -f Dockerfile ..
+# Navigate to project root (not darbot-browser-hosted)
+cd darbot-browser-mcp
 
-# Run with Docker Compose
-docker-compose up -d
+# Build Docker image (context must be root)
+docker build -t darbot-browser-hosted -f darbot-browser-hosted/Dockerfile .
+
+# Run container (anonymous access for testing)
+docker run -d --name darbot-browser-hosted -p 8080:8080 -e ALLOW_ANONYMOUS_ACCESS=true darbot-browser-hosted
+
+# Or run with Docker Compose
+docker-compose -f darbot-browser-hosted/docker-compose.yml up -d
 
 # View logs
-docker-compose logs -f
+docker logs -f darbot-browser-hosted
 ```
 
 ### 5. Set Up Dev Tunnel (Optional)

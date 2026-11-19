@@ -145,8 +145,6 @@ Provide specific examples of how this feature would be used:
 - [ ] Medium - Would improve workflow
 - [ ] High - Critical for project success
 
-## Additional Context
-Add any other context, mockups, or examples about the feature request here.
 ```
 
 #### 3. Add Enhancement Labels

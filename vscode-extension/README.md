@@ -4,7 +4,7 @@
 
 **Your Autonomous Browser Companion for VS Code**
 
-Transform your coding workflow with intelligent autonomous browser capabilities directly integrated into VS Code. This extension provides seamless access to 38 autonomous browser tools through GitHub Copilot Chat, enabling you to automate web interactions, test applications, and manage browser sessions without leaving your IDE.
+Transform your coding workflow with intelligent autonomous browser capabilities directly integrated into VS Code. This extension provides seamless access to 52 autonomous browser tools through GitHub Copilot Chat, enabling you to automate web interactions, test applications, and manage browser sessions without leaving your IDE.
 
 [![VS Code Marketplace](https://img.shields.io/visual-studio-marketplace/v/darbotlabs.darbot-browser-mcp?style=flat-square&color=0098FF&label=Marketplace)](https://marketplace.visualstudio.com/items?itemName=darbotlabs.darbot-browser-mcp)
 [![Downloads](https://img.shields.io/visual-studio-marketplace/d/darbotlabs.darbot-browser-mcp?style=flat-square&color=0098FF)](https://marketplace.visualstudio.com/items?itemName=darbotlabs.darbot-browser-mcp)
@@ -30,25 +30,23 @@ Transform your coding workflow with intelligent autonomous browser capabilities 
 ### **Automatic Setup (Recommended)**
 1. **Install the extension** from the VS Code marketplace
 2. **Auto-configuration**: The extension automatically:
-   - Prompts to enable MCP in VS Code settings (`"chat.mcp.enabled": true`)
-   - Configures the Darbot Browser MCP server in your MCP settings
-   - Sets up the optimal server path: `npx @darbotlabs/darbot-browser-mcp@latest`
-3. **Start the server**: Use Command Palette → "Darbot Browser MCP: Start Server"
-4. **Test with GitHub Copilot**: Ask Copilot to "take a screenshot of example.com"
+   - Registers the MCP server with VS Code's language model API
+   - Auto-starts the browser server when VS Code launches (configurable)
+   - Provides status bar indicator for server state
+3. **Use with GitHub Copilot**: Ask Copilot to "take a screenshot of example.com"
 
-### **Manual Setup (Advanced)**
-If you prefer manual configuration:
-1. Enable MCP in VS Code settings: `"chat.mcp.enabled": true`  
-2. Configure the server path in extension settings (defaults to NPM CLI detection)
-3. Use the command palette or status bar to start/stop the server
+### **Manual Control**
+Use the Command Palette (`Ctrl+Shift+P`) for manual server control:
+- `Darbot Browser MCP: Start Server` - Start the browser server
+- `Darbot Browser MCP: Stop Server` - Stop the browser server  
+- `Darbot Browser MCP: Show Status` - View current configuration
 
 ### **What Happens After Installation**
 When you first activate the extension:
-- **Auto-detects MCP availability** and prompts to enable if needed
-- **Auto-configures the MCP server** in your VS Code settings (`chat.mcp.servers`)
+- **Registers MCP server** via VS Code's `McpServerDefinitionProvider` API
+- **Auto-starts server** by default (configurable via `darbot-browser-mcp.autoStart`)
 - **Adds status bar indicator** showing server state (Running/Stopped)
 - **Ready to use** with GitHub Copilot Chat immediately
-- **Shows helpful prompts** to restart VS Code or start the server
 
 ## Usage Examples
 
@@ -107,16 +105,15 @@ Common configuration options:
 ## Requirements
 
 - **Node.js**: Version 23.0.0 or higher
-- **VS Code**: Version 1.95.0 or higher
+- **VS Code**: Version 1.96.0 or higher (MCP support required)
 - **Browser**: Microsoft Edge (recommended) or Chrome/Firefox/WebKit
-- **MCP Support**: Enable `"chat.mcp.enabled": true` in VS Code settings
 
 ## Troubleshooting
 
 **Extension not loading?**
 - Check VS Code Developer Console (`Ctrl+Shift+I`)
 - Verify Node.js 23+ is installed
-- Ensure MCP is enabled in settings
+- Ensure VS Code 1.96+ with MCP support
 
 **Browser automation failing?**
 - Confirm Microsoft Edge is installed
@@ -127,7 +124,10 @@ Common configuration options:
 - Restart VS Code after installation
 - Use Command Palette: "MCP: Show Installed Servers"
 - Check extension status in "Extensions" panel
-- If you prefer manual setup, disable auto-configuration: `"darbot-browser-mcp.autoConfigureMCP": false`
+
+**Server not auto-starting?**
+- Check setting: `"darbot-browser-mcp.autoStart": true`
+- Verify in Output panel: "Darbot Browser MCP"
 
 ## License
 

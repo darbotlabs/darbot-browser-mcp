@@ -1,7 +1,7 @@
 # verify-microsoft-integration.ps1
-# Engineer verification script for Windows 11 + Edge integration
+# verification script for Windows 11 + Edge integration
 
-Write-Host "[PENDING VALIDATION] Verifying Engineer Setup..." -ForegroundColor Cyan
+Write-Host "[PENDING VALIDATION] Verifying Setup..." -ForegroundColor Cyan
 
 # Check Windows 11
 $osVersion = (Get-CimInstance Win32_OperatingSystem).Caption
@@ -205,7 +205,7 @@ try {
 }
 
 # Summary
-Write-Host "`nEngineer Setup Summary:" -ForegroundColor Green
+Write-Host "`nSetup Summary:" -ForegroundColor Green
 Write-Host "======================================" -ForegroundColor Green
 
 $checksPassed = 0
@@ -253,7 +253,7 @@ if ($checksPassed -eq $totalChecks) {
 }
 
 Write-Host "`nDocumentation:" -ForegroundColor Cyan
-Write-Host "- Engineer Guide: MICROSOFT_ENGINEER_GUIDE.md" -ForegroundColor White
+Write-Host "- Guide: MICROSOFT_ENGINEER_GUIDE.md" -ForegroundColor White
 Write-Host "- VS Code Installation: VSCODE_INSTALLATION.md" -ForegroundColor White
 Write-Host "- Copilot Studio Integration: COPILOT_STUDIO_INTEGRATION.md" -ForegroundColor White
 Write-Host "- General Installation: INSTALLATION_GUIDE.md" -ForegroundColor White

@@ -42,12 +42,32 @@ export class CDPRelayServer extends EventEmitter {
   private _connectionInfo: {
     targetInfo: any;
     sessionId: string;
+    extensionVersion?: string;
   } | undefined;
 
   constructor(server: http.Server) {
     super();
     this._wss = new WebSocketServer({ server });
     this._wss.on('connection', this._onConnection.bind(this));
+  }
+
+  /**
+   * Get the current bridge status for debugging/monitoring
+   */
+  getStatus(): {
+    extensionConnected: boolean;
+    mcpConnected: boolean;
+    targetInfo: any | null;
+    sessionId: string | null;
+    extensionVersion: string | null;
+  } {
+    return {
+      extensionConnected: this._extensionSocket?.readyState === WebSocket.OPEN,
+      mcpConnected: this._playwrightSocket?.readyState === WebSocket.OPEN,
+      targetInfo: this._connectionInfo?.targetInfo ?? null,
+      sessionId: this._connectionInfo?.sessionId ?? null,
+      extensionVersion: this._connectionInfo?.extensionVersion ?? null,
+    };
   }
 
   stop(): void {
@@ -170,7 +190,8 @@ export class CDPRelayServer extends EventEmitter {
       this._connectionInfo = {
         targetInfo: message.targetInfo,
         // Page sessionId that should be used by this connection.
-        sessionId: message.sessionId
+        sessionId: message.sessionId,
+        extensionVersion: message.extensionVersion,
       };
       return;
     }
@@ -294,7 +315,7 @@ export async function startCDPRelayServer(httpServer: http.Server) {
   process.on('exit', () => cdpRelayServer.stop());
   debugLogger(`CDP relay server started on ${wsAddress}${EXTENSION_PATH} - Connect to it using the browser extension.`);
   const cdpEndpoint = `${wsAddress}${CDP_PATH}`;
-  return cdpEndpoint;
+  return { cdpEndpoint, relayServer: cdpRelayServer };
 }
 
 // CLI usage

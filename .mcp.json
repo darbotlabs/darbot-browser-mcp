@@ -1,0 +1,12 @@
+{
+  "servers": {
+    "darbot-browser-mcp": {
+      "command": "npx",
+      "args": [
+        "@darbotlabs/darbot-browser-mcp@latest",
+        "--browser",
+        "msedge"
+      ]
+    }
+  }
+}

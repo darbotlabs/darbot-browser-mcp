@@ -12,6 +12,32 @@ The custom connector provides access to Darbot Browser MCP's autonomous browser 
 - **Profile Management**: Save, switch, and manage work profiles
 - **Wait Tools**: Wait for text, elements, or time conditions
 
+## Architecture
+
+The connector communicates with Darbot Browser MCP via REST API endpoints exposed at `/api/v1/*`:
+
+```
+┌─────────────────────┐     HTTPS      ┌─────────────────────────────────────┐
+│  Power Platform     │                │     Darbot Browser MCP              │
+│  - Copilot Studio   │◄──────────────►│     (Azure or Dev Tunnel)           │
+│  - Power Automate   │                │                                     │
+└─────────────────────┘                │  Endpoints:                         │
+                                       │    /api/v1/tools         (list)     │
+                                       │    /api/v1/tools/{name}  (execute)  │
+                                       │    /api/v1/browser/*     (shortcuts)│
+                                       │    /api/v1/profiles/*    (profiles) │
+                                       │    /health               (health)   │
+                                       └─────────────────────────────────────┘
+```
+
+### Deployment Options
+
+| Option | URL Format | Best For |
+|--------|------------|----------|
+| **Azure App Service** | `https://your-app.azurewebsites.net` | Production, enterprise |
+| **VS Code Dev Tunnel** | `https://xxx.devtunnels.ms` | Development, on-premises |
+| **Local Docker** | `http://localhost:8080` | Testing |
+
 ## Files
 
 - `apiDefinition.swagger.json` - OpenAPI 2.0 specification for the connector
@@ -35,15 +61,49 @@ The custom connector provides access to Darbot Browser MCP's autonomous browser 
 
 ### 1. Deploy the MCP Server
 
-First, deploy the Darbot Browser MCP server to Azure:
-
+**Option A: Azure App Service (Production)**
 ```bash
 # Deploy using the Azure templates
 cd ../azure
 ./deploy.sh my-resource-group darbot-mcp-prod eastus
 ```
 
-### 2. Configure the Connector
+**Option B: VS Code Dev Tunnel (On-Premises/Development)**
+```bash
+# Build and run hosted Docker container
+cd ..
+docker build -t darbot-browser-hosted -f darbot-browser-hosted/Dockerfile .
+docker run -d --name darbot-browser-hosted -p 8080:8080 -e ALLOW_ANONYMOUS_ACCESS=true darbot-browser-hosted
+
+# Create dev tunnel for remote access
+code tunnel user login
+code tunnel --name darbot-browser-mcp
+# Note the tunnel URL: https://darbot-browser-mcp-xxx.devtunnels.ms
+```
+
+### 2. Verify REST API Endpoints
+
+Before configuring the connector, verify the REST API is accessible:
+
+```bash
+# Test health endpoint
+curl https://your-instance/health
+
+# List available tools (should return 52 tools)
+curl https://your-instance/api/v1/tools
+
+# Test navigation
+curl -X POST https://your-instance/api/v1/tools/browser_navigate \
+  -H "Content-Type: application/json" \
+  -d '{"url":"https://example.com"}'
+
+# Get page snapshot
+curl -X POST https://your-instance/api/v1/tools/browser_snapshot \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+### 3. Configure the Connector
 
 Update the configuration files with your deployment details:
 

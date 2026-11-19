@@ -15,10 +15,26 @@
  */
 
 /**
- * Simple Chrome Extension that pumps CDP messages between chrome.debugger and WebSocket
+ * Darbot Browser MCP Bridge Extension - Service Worker
+ * Version: 1.3.0
+ * 
+ * Chrome/Edge Extension that bridges CDP messages between chrome.debugger and 
+ * Darbot Browser MCP server through WebSocket connection.
  */
 
 // @ts-check
+
+/** @constant {string} */
+const EXTENSION_VERSION = '1.3.0';
+
+/** @constant {number} Connection timeout in milliseconds */
+const CONNECTION_TIMEOUT_MS = 10000;
+
+/** @constant {number} Maximum reconnection attempts */
+const MAX_RECONNECT_ATTEMPTS = 3;
+
+/** @constant {number} Reconnection delay in milliseconds */
+const RECONNECT_DELAY_MS = 1000;
 
 /**
  * Extended Debuggee type that includes optional sessionId from CDP
@@ -31,22 +47,28 @@
  * @property {WebSocket} socket
  * @property {number} tabId
  * @property {string} sessionId
+ * @property {string} bridgeUrl
+ * @property {number} reconnectAttempts
  * @property {((source: DebuggeeWithSession, method: string, params?: Object) => void)|undefined} [eventListener]
  * @property {((source: chrome.debugger.Debuggee, reason: string) => void)|undefined} [detachListener]
  */
 
 /**
+ * Debug logging utility - enabled via storage setting
  * @param {...any} args
  */
 function debugLog(...args) {
-  const enabled = false;
-  if (enabled) {
-    console.log('[Extension]', ...args);
-  }
+  // Enable debug logging by setting debugEnabled in chrome.storage.local
+  chrome.storage.local.get(['debugEnabled'], (result) => {
+    if (result.debugEnabled) {
+      console.log(`[Darbot MCP Bridge v${EXTENSION_VERSION}]`, ...args);
+    }
+  });
 }
 
 class TabShareExtension {
   constructor() {
+    /** @type {Map<number, Connection>} */
     this.activeConnections = new Map(); // tabId -> connection info
 
     // Remove page action click handler since we now use popup
@@ -54,6 +76,9 @@ class TabShareExtension {
 
     // Handle messages from popup
     chrome.runtime.onMessage.addListener(this.onMessage.bind(this));
+    
+    // Log extension startup
+    debugLog('Extension initialized');
   }
 
   /**
@@ -137,10 +162,11 @@ class TabShareExtension {
    * Connect a tab to the bridge server
    * @param {number} tabId
    * @param {string} bridgeUrl
+   * @param {number} [reconnectAttempt=0]
    */
-  async connectTab(tabId, bridgeUrl) {
+  async connectTab(tabId, bridgeUrl, reconnectAttempt = 0) {
     try {
-      debugLog(`Connecting tab ${tabId} to bridge at ${bridgeUrl}`);
+      debugLog(`Connecting tab ${tabId} to bridge at ${bridgeUrl} (attempt ${reconnectAttempt + 1})`);
 
       // Attach chrome debugger
       const debuggee = { tabId };
@@ -151,29 +177,36 @@ class TabShareExtension {
       const targetInfo = /** @type {any} */ (await chrome.debugger.sendCommand(debuggee, 'Target.getTargetInfo'));
       debugLog('Target info:', targetInfo);
 
-      // Connect to bridge server
+      // Connect to bridge server with increased timeout
       const socket = new WebSocket(bridgeUrl);
 
+      /** @type {Connection} */
       const connection = {
         debuggee,
         socket,
         tabId,
-        sessionId: `pw-tab-${tabId}`
+        sessionId: `pw-tab-${tabId}`,
+        bridgeUrl,
+        reconnectAttempts: reconnectAttempt
       };
 
       await new Promise((resolve, reject) => {
         socket.onopen = () => {
           debugLog(`WebSocket connected for tab ${tabId}`);
-          // Send initial connection info to bridge
+          // Send initial connection info to bridge with version
           socket.send(JSON.stringify({
             type: 'connection_info',
             sessionId: connection.sessionId,
-            targetInfo: targetInfo?.targetInfo
+            targetInfo: targetInfo?.targetInfo,
+            extensionVersion: EXTENSION_VERSION
           }));
           resolve(undefined);
         };
-        socket.onerror = reject;
-        setTimeout(() => reject(new Error('Connection timeout')), 5000);
+        socket.onerror = (error) => {
+          debugLog('WebSocket error during connect:', error);
+          reject(new Error('WebSocket connection failed'));
+        };
+        setTimeout(() => reject(new Error('Connection timeout')), CONNECTION_TIMEOUT_MS);
       });
 
       // Set up message handling
@@ -306,15 +339,28 @@ class TabShareExtension {
     chrome.debugger.onEvent.addListener(eventListener);
     chrome.debugger.onDetach.addListener(detachListener);
 
-    // Handle WebSocket close
-    socket.onclose = () => {
-      debugLog(`WebSocket closed for tab ${tabId}`);
-      this.disconnectTab(tabId);
+    // Handle WebSocket close - with reconnection logic
+    socket.onclose = (/** @type {CloseEvent} */ event) => {
+      debugLog(`WebSocket closed for tab ${tabId}, code: ${event.code}, reason: ${event.reason}`);
+      
+      // Attempt reconnection if not a clean close and under max attempts
+      const conn = this.activeConnections.get(tabId);
+      if (conn && event.code !== 1000 && conn.reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+        debugLog(`Attempting reconnection (${conn.reconnectAttempts + 1}/${MAX_RECONNECT_ATTEMPTS})...`);
+        setTimeout(() => {
+          this.connectTab(tabId, conn.bridgeUrl, conn.reconnectAttempts + 1).catch((err) => {
+            debugLog('Reconnection failed:', err.message);
+            this.disconnectTab(tabId);
+          });
+        }, RECONNECT_DELAY_MS);
+      } else {
+        this.disconnectTab(tabId);
+      }
     };
 
     socket.onerror = (/** @type {Event} */ error) => {
       debugLog(`WebSocket error for tab ${tabId}:`, error);
-      this.disconnectTab(tabId);
+      // Error handling is done in onclose
     };
   }
 

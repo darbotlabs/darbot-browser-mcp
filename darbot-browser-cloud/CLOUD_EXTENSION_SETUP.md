@@ -15,7 +15,7 @@ Darbot Browser VS Code extension to connect to Azure cloud deployment instead of
 
 - **Configuration Properties**:
   - `serverUrl`: Default to `https://darbot-browser-mcp.azurewebsites.net`
-  - `sseEndpoint`: Default to `https://darbot-browser-mcp.azurewebsites.net/sse`
+  - `sseEndpoint`: Default to `https://darbot-browser-mcp.azurewebsites.net/mcp` (Streamable HTTP)
   - `autoConnect`: Auto-connect on startup (default: true)
   - `authToken`: Optional authentication token
   - `connectionTimeout`: Connection timeout (default: 30000ms)
@@ -64,9 +64,9 @@ npx @darbotlabs/darbot-browser-mcp@latest
     v
 Azure App Service (darbot-browser-mcp.azurewebsites.net)
     v
-MCP Server (HTTP/SSE Transport)
+MCP Server (Streamable HTTP Transport)
     v
-Browser Automation Tools (39 tools: 34 accessibility-first + 5 vision mode) — see [`docs/readme_index.md`](../docs/readme_index.md)
+Browser Automation Tools (52 tools) — see [`docs/readme_index.md`](../docs/readme_index.md)
 ```
 
 ### Environment Variables Set
@@ -100,7 +100,7 @@ Browser Automation Tools (39 tools: 34 accessibility-first + 5 vision mode) — 
 
 5. **Test Connection**:
    - Command Palette -> "Darbot Browser Cloud: Test Connection"
-   - Should show [PENDING VALIDATION] success message
+   - Should show success message with server status
    - Check output channel for details
 
 6. **Connect to Cloud**:

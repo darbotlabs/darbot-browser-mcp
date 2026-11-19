@@ -64,7 +64,7 @@ The extension automatically:
 1. **Extension Activation**: Registers as MCP server definition provider
 2. **Server Discovery**: VS Code MCP system discovers the server
 3. **Copilot Integration**: Available as `@darbot-browser-mcp` in Copilot Chat
-4. **Tool Selection**: 29 browser tools become available through natural language
+4. **Tool Selection**: 52 browser tools become available through natural language
 
 ### Usage Examples
 
@@ -161,7 +161,7 @@ If automatic configuration fails, manually add to VS Code settings:
 
 Monitor activity: `View > Output > Darbot Browser MCP`
 
-## [PENDING VALIDATION] Verification Steps
+## Verification Steps
 
 ### 1. Check MCP is Enabled
 
@@ -255,7 +255,7 @@ npm install -g @darbotlabs/darbot-browser-mcp@latest
 
 ## Complete Tool List
 
-The extension provides 29 browser automation tools:
+The extension provides 52 browser automation tools:
 
 ### Navigation & Core
 

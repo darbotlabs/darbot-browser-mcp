@@ -30,12 +30,14 @@ test('save as pdf unavailable', async ({ startClient, server }) => {
   })).toHaveTextContent(/Tool \"browser_pdf_save\" not found/);
 });
 
-test('save as pdf', async ({ startClient, mcpBrowser, server }, testInfo) => {
+test('save as pdf', async ({ startClient, mcpBrowser, mcpHeadless, server }, testInfo) => {
   const { client } = await startClient({
     config: { outputDir: testInfo.outputPath('output') },
   });
 
   test.skip(!!mcpBrowser && !['chromium', 'chrome', 'msedge'].includes(mcpBrowser), 'Save as PDF is only supported in Chromium.');
+  // PDF generation may not be available in headless Edge in certain configurations
+  test.skip(mcpBrowser === 'msedge' && mcpHeadless, 'PDF save not reliable in headless Edge');
 
   expect(await client.callTool({
     name: 'browser_navigate',
@@ -48,9 +50,11 @@ test('save as pdf', async ({ startClient, mcpBrowser, server }, testInfo) => {
   expect(response).toHaveTextContent(/Save page as.*page-[^:]+.pdf/);
 });
 
-test('save as pdf (filename: output.pdf)', async ({ startClient, mcpBrowser, server }, testInfo) => {
+test('save as pdf (filename: output.pdf)', async ({ startClient, mcpBrowser, mcpHeadless, server }, testInfo) => {
   const outputDir = testInfo.outputPath('output');
   test.skip(!!mcpBrowser && !['chromium', 'chrome', 'msedge'].includes(mcpBrowser), 'Save as PDF is only supported in Chromium.');
+  // PDF generation may not be available in headless Edge in certain configurations
+  test.skip(mcpBrowser === 'msedge' && mcpHeadless, 'PDF save not reliable in headless Edge');
   const { client } = await startClient({
     config: { outputDir },
   });

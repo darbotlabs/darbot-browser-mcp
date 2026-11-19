@@ -55,6 +55,7 @@ program
     .option('--vision', 'Run server that uses screenshots (Aria snapshots are used by default)')
     .option('--edge-profile <name>', 'Edge profile name to use (e.g., "Profile 1", "Default"). This is recorded in saved session states.')
     .option('--edge-profile-email <email>', 'Email associated with the Edge profile. This is recorded in saved session states for context.')
+    .option('--workspace <name>', 'Workspace name to record in saved session states.')
     .option('--auto-sign-in', 'Auto sign in with work/school account (Edge profile preference)')
     .option('--profile-switching', 'Enable automatic profile switching based on site (Edge profile preference)')
     .option('--intranet-switch', 'Automatically switch to work profile for intranet sites (Edge profile preference)')
@@ -66,11 +67,33 @@ program
       const httpResult = config.server.port !== undefined ? await startHttpServer(config.server) : undefined;
       const httpServer = httpResult?.httpServer;
       const expressApp = httpResult?.app;
+      let cdpRelayServer: Awaited<ReturnType<typeof startCDPRelayServer>>['relayServer'] | undefined;
+      
       if (config.extension) {
         if (!httpServer)
           throw new Error('--port parameter is required for extension mode');
         // Point CDP endpoint to the relay server.
-        config.browser.cdpEndpoint = await startCDPRelayServer(httpServer);
+        const relayResult = await startCDPRelayServer(httpServer);
+        config.browser.cdpEndpoint = relayResult.cdpEndpoint;
+        cdpRelayServer = relayResult.relayServer;
+        
+        // Add bridge status endpoint
+        if (expressApp) {
+          expressApp.get('/bridge', (req, res) => {
+            const status = cdpRelayServer?.getStatus() ?? {
+              extensionConnected: false,
+              mcpConnected: false,
+              targetInfo: null,
+              sessionId: null,
+              extensionVersion: null,
+            };
+            res.json({
+              bridge: 'cdp-relay',
+              version: '1.3.0',
+              ...status,
+            });
+          });
+        }
       }
 
       const server = new Server(config);

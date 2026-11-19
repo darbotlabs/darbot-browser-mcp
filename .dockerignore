@@ -30,10 +30,9 @@ examples
 *.md
 !README.md
 
-# Extensions and cloud packages (separate builds)
+# Extensions and cloud packages (separate builds - keep hosted for docker builds)
 vscode-extension
 darbot-browser-cloud
-darbot-browser-hosted
 extension
 dotnet
 power-platform

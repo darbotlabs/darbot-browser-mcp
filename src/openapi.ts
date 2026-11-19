@@ -76,7 +76,7 @@ export class OpenAPIGenerator {
       openapi: '3.0.3',
       info: {
         title: 'Darbot Browser MCP API',
-        description: 'Autonomous browser automation tools for Microsoft Copilot Studio integration. Provides 39 AI-driven browser capabilities including navigation, interaction, testing, and work profile management.',
+        description: 'Autonomous browser automation tools for Microsoft Copilot Studio integration. Provides 52 AI-driven browser capabilities including navigation, interaction, testing, and work profile management.',
         version: packageJSON.version,
         contact: {
           name: 'Darbot Labs',

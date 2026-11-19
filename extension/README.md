@@ -1,12 +1,12 @@
-# Browser MCP Bridge Extension
+# Darbot Browser MCP Bridge Extension
 
 **Version 1.3.0**
 
-A Chrome/Edge browser extension that enables you to share browser tabs with Darbot Browser MCP server through Chrome DevTools Protocol (CDP) bridge.
+A Chrome/Edge browser extension that enables you to share browser tabs with Darbot Browser MCP server through Chrome DevTools Protocol (CDP) bridge for AI-driven browser automation.
 
 ## What This Extension Does
 
-This extension creates a bidirectional bridge between your browser tabs and the Darbot Browser MCP server, allowing AI assistants to interact with live browser sessions through the CDP relay server.
+This extension creates a bidirectional bridge between your browser tabs and the Darbot Browser MCP server, allowing AI assistants (like GitHub Copilot, Copilot Studio, or other MCP clients) to interact with live browser sessions through the CDP relay server.
 
 ### Key Features
 
@@ -303,14 +303,16 @@ npm start -- --extension --port 9223
 
 ## Version History
 
-### Version 1.3.0 (November 2024)
+### Version 1.3.0 (January 2026)
 
-- Initial release
-- Chrome/Edge support via Manifest V3
-- WebSocket bridge connection
-- CDP message forwarding
-- Tab sharing with visual status
-- Connection preference storage
+- Updated branding to Darbot Browser MCP Bridge
+- Added Content Security Policy for Manifest V3 compliance
+- Improved connection reliability with auto-reconnection (up to 3 attempts)
+- Increased connection timeout to 10 seconds
+- Added version info in connection handshake
+- Debug logging now configurable via storage setting
+- Added minimum Chrome version requirement (88+)
+- Updated UI text and descriptions
 
 ## Requirements
 

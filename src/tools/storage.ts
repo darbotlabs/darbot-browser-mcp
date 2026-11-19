@@ -298,7 +298,7 @@ const getLocalStorage = defineTool({
       const output = keys.map(key => {
         const value = storage[key];
         const displayValue = value.length > 100 ? value.substring(0, 100) + '...' : value;
-        return `📦 ${key}\n   ${displayValue}`;
+        return `${key}\n   ${displayValue}`;
       }).join('\n\n');
 
       return {

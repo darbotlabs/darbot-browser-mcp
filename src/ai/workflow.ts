@@ -334,17 +334,102 @@ export class WorkflowEngine {
   }
 
   /**
-   * Execute a single workflow step
+   * Map workflow action names to browser tool names
+   */
+  private readonly actionToToolMap: Record<string, string> = {
+    'navigate': 'browser_navigate',
+    'click': 'browser_click',
+    'conditional_click': 'browser_click',
+    'type': 'browser_type',
+    'wait_for': 'browser_wait_for',
+    'screenshot': 'browser_screenshot',
+    'snapshot': 'browser_snapshot',
+    'detect_login_form': 'browser_snapshot',
+    'analyze_readme': 'browser_snapshot',
+    'analyze_issues': 'browser_snapshot',
+    'analyze_pull_requests': 'browser_snapshot',
+    'analyze_changes': 'browser_snapshot',
+    'generate_report': 'browser_snapshot',
+  };
+
+  /**
+   * Execute a single workflow step using the browser tool system
    */
   private async executeStep(context: Context, step: WorkflowStep): Promise<any> {
-    // This would integrate with the existing tool system
-    // For now, return a mock result
-    return {
-      action: step.action,
-      parameters: step.parameters,
-      success: true,
-      timestamp: Date.now(),
-    };
+    const startTime = Date.now();
+
+    // Map action to tool name
+    const toolName = this.actionToToolMap[step.action] || `browser_${step.action}`;
+
+    // Find the tool in context
+    const tool = context.tools.find(t => t.schema.name === toolName);
+    if (!tool) {
+      return {
+        action: step.action,
+        toolName,
+        success: false,
+        error: `Tool '${toolName}' not found for action '${step.action}'`,
+        timestamp: startTime,
+        duration: Date.now() - startTime,
+      };
+    }
+
+    // Build tool parameters from step parameters
+    const toolParams: Record<string, unknown> = {};
+
+    // Map common workflow parameters to tool parameters
+    if (step.parameters.url)
+      toolParams.url = step.parameters.url;
+
+    if (step.parameters.element)
+      toolParams.element = step.parameters.element;
+
+    if (step.parameters.text)
+      toolParams.text = step.parameters.text;
+
+    if (step.parameters.target)
+      toolParams.text = step.parameters.target; // wait_for uses 'text' param
+
+    // Handle conditional actions
+    if (step.action === 'conditional_click' && step.parameters.condition) {
+      const conditionFn = step.parameters.condition;
+      if (typeof conditionFn === 'function' && !conditionFn(step.parameters)) {
+        return {
+          action: step.action,
+          toolName,
+          success: true,
+          skipped: true,
+          reason: 'Condition not met',
+          timestamp: startTime,
+          duration: Date.now() - startTime,
+        };
+      }
+    }
+
+    try {
+      // Execute the tool through context.run()
+      const result = await context.run(tool, toolParams);
+
+      return {
+        action: step.action,
+        toolName,
+        parameters: toolParams,
+        success: true,
+        result,
+        timestamp: startTime,
+        duration: Date.now() - startTime,
+      };
+    } catch (error) {
+      return {
+        action: step.action,
+        toolName,
+        parameters: toolParams,
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+        timestamp: startTime,
+        duration: Date.now() - startTime,
+      };
+    }
   }
 
   /**

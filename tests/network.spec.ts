@@ -38,8 +38,14 @@ test('browser_network_requests', async ({ client, server }) => {
     },
   });
 
-  await expect.poll(() => client.callTool({
-    name: 'browser_network_requests',
-  })).toHaveTextContent(`[GET] ${`${server.PREFIX}`} => [200] OK
-[GET] ${`${server.PREFIX}json`} => [200] OK`);
+  // Wait for the network request to complete and verify both requests are captured
+  // Note: Edge may include internal edge:// requests in the output
+  await expect.poll(async () => {
+    const result = await client.callTool({
+      name: 'browser_network_requests',
+    });
+    const text = (result.content as any)[0]?.text || '';
+    return text.includes(`[GET] ${server.PREFIX} => [200] OK`) && 
+           text.includes(`[GET] ${server.PREFIX}json => [200] OK`);
+  }, { timeout: 10000 }).toBe(true);
 });

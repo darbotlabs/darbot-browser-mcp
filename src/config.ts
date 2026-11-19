@@ -17,6 +17,7 @@
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
+import http from 'http';
 import { devices } from 'playwright';
 
 import type { Config as PublicConfig, ToolCapability } from '../config.js';
@@ -62,6 +63,7 @@ export type CLIOptions = {
   // Edge profile preference options
   edgeProfile?: string;
   edgeProfileEmail?: string;
+  workspace?: string;
   autoSignIn?: boolean;
   profileSwitching?: boolean;
   intranetSwitch?: boolean;
@@ -148,10 +150,116 @@ export async function resolveConfig(config: Config): Promise<FullConfig> {
   return mergeConfig(defaultConfig, config);
 }
 
+/**
+ * Well-known ports for the Darbot Browser Bridge
+ */
+const BRIDGE_PORTS = [9223, 9224, 9225];
+
+/**
+ * Bridge status response from /bridge endpoint
+ */
+interface BridgeStatus {
+  bridge: string;
+  version: string;
+  extensionConnected: boolean;
+  mcpConnected: boolean;
+  targetInfo: {
+    url: string;
+    title: string;
+    type: string;
+  } | null;
+  sessionId: string | null;
+  extensionVersion: string | null;
+}
+
+/**
+ * Check if the Darbot Browser Bridge is available and has an extension connected.
+ * This allows the MCP server to automatically connect to a shared browser tab
+ * without requiring the --extension flag.
+ * 
+ * @returns The bridge URL and CDP endpoint if available, or null if no bridge found
+ */
+async function detectBridge(): Promise<{ bridgeUrl: string; cdpEndpoint: string; targetInfo: BridgeStatus['targetInfo'] } | null> {
+  for (const port of BRIDGE_PORTS) {
+    try {
+      const status = await fetchBridgeStatus(port);
+      if (status?.extensionConnected && status.targetInfo) {
+        // Bridge found with extension connected
+        return {
+          bridgeUrl: `http://localhost:${port}`,
+          cdpEndpoint: `ws://localhost:${port}/cdp`,
+          targetInfo: status.targetInfo,
+        };
+      }
+    } catch {
+      // Port not available or bridge not running, continue checking
+    }
+  }
+  return null;
+}
+
+/**
+ * Fetch bridge status from a given port
+ */
+function fetchBridgeStatus(port: number): Promise<BridgeStatus | null> {
+  return new Promise((resolve) => {
+    const timeout = setTimeout(() => resolve(null), 1000);
+    
+    const req = http.request({
+      hostname: 'localhost',
+      port,
+      path: '/bridge',
+      method: 'GET',
+      timeout: 1000,
+    }, (res) => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => {
+        clearTimeout(timeout);
+        try {
+          resolve(JSON.parse(data) as BridgeStatus);
+        } catch {
+          resolve(null);
+        }
+      });
+    });
+    
+    req.on('error', () => {
+      clearTimeout(timeout);
+      resolve(null);
+    });
+    
+    req.on('timeout', () => {
+      req.destroy();
+      clearTimeout(timeout);
+      resolve(null);
+    });
+    
+    req.end();
+  });
+}
+
 export async function resolveCLIConfig(cliOptions: CLIOptions): Promise<FullConfig> {
   const configInFile = await loadConfig(cliOptions.config);
   const cliOverrides = await configFromCLIOptions(cliOptions);
-  const result = mergeConfig(mergeConfig(defaultConfig, configInFile), cliOverrides);
+  let result = mergeConfig(mergeConfig(defaultConfig, configInFile), cliOverrides);
+  
+  // Auto-detect bridge if no CDP endpoint specified and not explicitly in extension mode
+  // This allows MCP clients to automatically connect to a shared browser tab
+  if (!result.browser.cdpEndpoint && !result.extension) {
+    const bridge = await detectBridge();
+    if (bridge) {
+      // eslint-disable-next-line no-console
+      console.error(`Darbot Bridge detected at ${bridge.bridgeUrl}`);
+      // eslint-disable-next-line no-console
+      console.error(`  Connected tab: ${bridge.targetInfo?.title || 'Unknown'}`);
+      // eslint-disable-next-line no-console  
+      console.error(`  URL: ${bridge.targetInfo?.url || 'Unknown'}`);
+      result.browser.cdpEndpoint = bridge.cdpEndpoint;
+      result.browser.browserName = 'chromium'; // CDP requires chromium
+    }
+  }
+  
   // Derive artifact output directory from config.outputDir
   if (result.saveTrace)
     result.browser.launchOptions.tracesDir = path.join(result.outputDir, 'traces');
@@ -243,6 +351,8 @@ export async function configFromCLIOptions(cliOptions: CLIOptions): Promise<Conf
     process.env.DARBOT_EDGE_PROFILE = cliOptions.edgeProfile;
   if (cliOptions.edgeProfileEmail)
     process.env.DARBOT_EDGE_PROFILE_EMAIL = cliOptions.edgeProfileEmail;
+  if (cliOptions.workspace)
+    process.env.DARBOT_WORKSPACE = cliOptions.workspace;
 
   const result: Config = {
     browser: {

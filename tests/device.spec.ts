@@ -16,8 +16,10 @@
 
 import { test, expect } from './fixtures.js';
 
-test('--device should work', async ({ startClient, server, mcpMode }) => {
+test('--device should work', async ({ startClient, server, mcpMode, mcpBrowser, mcpHeadless }) => {
   test.skip(mcpMode === 'extension', 'Viewport is not supported when connecting via CDP. There we re-use the browser viewport.');
+  // Known Playwright limitation: headless Edge fails with "Browser.getWindowForTarget" CDP error
+  test.skip(mcpBrowser === 'msedge' && mcpHeadless, 'Headless Edge does not support launchPersistentContext with device emulation');
   const { client } = await startClient({
     args: ['--device', 'iPhone 15'],
   });

@@ -17,7 +17,7 @@ Darbot Browser is a framework for autonomous web automation. This tool enables A
 - **DarbotLM framework** - No vision models needed, operates purely on structured data
 - **Deterministic** - Avoids ambiguity common with screenshot-based approaches
 - **Session States** - Save and restore complete browser sessions with Edge profile context
-- **38 Autonomous Tools** - Comprehensive autonomous browser capabilities
+- **52 Autonomous Tools** - Comprehensive autonomous browser capabilities
 - **Autonomous Crawling** - BFS strategy with memory, guardrails, and reporting
 - **DarbotLabsMemory System** - State tracking and deduplication with darbot-memory-mcp integration
 - **HTML Reports** - Comprehensive crawl reports with screenshots and statistics
@@ -81,7 +81,7 @@ Install the **Browser MCP Bridge** extension from the Chrome Web Store to share 
 | ERROR Browser-specific code | Universal MCP protocol |
 | ERROR No session management | Advanced autonomous session states |
 
-### Complete Autonomous Toolkit (38 Tools)
+### Complete Autonomous Toolkit (52 Tools)
 
 <details>
 <summary><b> Core Autonomous Operations</b></summary>
@@ -115,7 +115,7 @@ Install the **Browser MCP Bridge** extension from the Chrome Web Store to share 
 </details>
 
 <details>
-<summary><b>🖼️ Autonomous Media & Resources</b></summary>
+<summary><b>Autonomous Media & Resources</b></summary>
 
 - `browser_take_screenshot` - Autonomous high-quality screenshots
 - `browser_pdf_save` - Autonomous PDF generation from pages
@@ -124,7 +124,7 @@ Install the **Browser MCP Bridge** extension from the Chrome Web Store to share 
 </details>
 
 <details>
-<summary><b>️ Autonomous Tab Management</b></summary>
+<summary><b>Autonomous Tab Management</b></summary>
 
 - `browser_tab_new` - Autonomously open new tabs
 - `browser_tab_list` - Autonomously get all open tabs
@@ -142,7 +142,7 @@ Install the **Browser MCP Bridge** extension from the Chrome Web Store to share 
 
 </details>
 
-[**39 View All 39 tools**](#tools)
+[**View All 52 tools**](#tools)
 
 <!--
 // Generate using:
@@ -520,13 +520,13 @@ run the MCP server from environment with the DISPLAY and pass the `--port` flag 
 npx @darbotlabs/darbot-browser-mcp@latest --port 8931
 ```
 
-And then in MCP client config, set the `url` to the SSE endpoint:
+And then in MCP client config, set the `url` to the MCP endpoint:
 
 ```js
 {
   "mcpServers": {
     "playwright": {
-      "url": "http://localhost:8931/sse"
+      "url": "http://localhost:8931/mcp"
     }
   }
 }
@@ -860,7 +860,7 @@ X Y coordinate space, based on the provided screenshot.
 </details>
 
 <details>
-<summary><b>Session States</b></summary>
+<summary><b>Work Profiles</b></summary>
 
 <!-- NOTE: This has been generated via update-readme.js -->
 
@@ -1050,10 +1050,6 @@ X Y coordinate space, based on the provided screenshot.
 - `/extension/` - Browser extension source
 - `/src/` - Main MCP server source code
 - `/tests/` - Test suite
-
-## Autonomous Features
-
-For detailed information about the autonomous crawling capabilities, including memory system, BFS planner, guardrails, and reporting, see [AUTONOMOUS_FEATURES.md](./AUTONOMOUS_FEATURES.md).
 
 **Key Autonomous Capabilities:**
 

@@ -1,7 +1,7 @@
 {
   "name": "darbot-browser-mcp-cloud",
   "displayName": "Darbot Browser MCP Cloud",
-  "description": "Cloud-connected autonomous browser for VS Code. 39 AI-driven browser tools (34 accessibility-first + 5 vision mode) via Azure deployment with enterprise-grade security, automatic Microsoft authentication, and Microsoft Copilot Studio integration.",
+  "description": "Cloud-connected autonomous browser for VS Code. 52 AI-driven browser tools via Azure deployment with enterprise-grade security, automatic Microsoft authentication, and Microsoft Copilot Studio integration.",
   "version": "1.3.0",
   "publisher": "darbotlabs",
   "engines": {

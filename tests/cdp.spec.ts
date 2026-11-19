@@ -21,6 +21,10 @@ import { test, expect } from './fixtures.js';
 
 test.skip(({ mcpMode }) => mcpMode === 'extension', 'Connecting to CDP server is not supported in combination with --extension');
 
+// Known Playwright limitation: headless Edge fails with "Browser.getWindowForTarget" CDP error
+// See: https://github.com/microsoft/playwright/issues/
+test.skip(({ mcpBrowser, mcpHeadless }) => mcpBrowser === 'msedge' && mcpHeadless === true, 'Headless Edge does not support launchPersistentContext with CDP');
+
 test('cdp server', async ({ cdpServer, startClient, server }) => {
   await cdpServer.start();
   const { client } = await startClient({ args: [`--cdp-endpoint=${cdpServer.endpoint}`] });
